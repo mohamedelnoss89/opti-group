@@ -1,0 +1,1332 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>OptiSize - تقرير المشروع الشامل</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cairo:wght@300;400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg-dark: #0a0e1a;
+    --primary-cyan: #00f0ff;
+    --secondary-blue: #0080ff;
+    --purple: #a855f7;
+    --green: #00d4aa;
+    --orange: #ffa500;
+    --red: #ff3b30;
+    --text-primary: #e2e8f0;
+    --text-secondary: #94a3b8;
+    --glass-bg: rgba(255, 255, 255, 0.05);
+    --glass-border: rgba(255, 255, 255, 0.1);
+    --section-gap: 40px;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  html, body {
+    background: var(--bg-dark);
+    color: var(--text-primary);
+    font-family: 'Cairo', sans-serif;
+    font-size: 11pt;
+    line-height: 1.7;
+    direction: rtl;
+  }
+
+  .page {
+    width: 210mm;
+    min-height: 297mm;
+    margin: 0 auto;
+    padding: 25mm 20mm 20mm 20mm;
+    background: var(--bg-dark);
+    position: relative;
+  }
+
+  @page {
+    size: 210mm 297mm;
+    margin: 0;
+  }
+
+  /* ===== COVER PAGE ===== */
+  .cover-page {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    min-height: 297mm;
+    text-align: center;
+    padding: 30mm 20mm;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .cover-page::before {
+    content: '';
+    position: absolute;
+    top: -100px;
+    right: -100px;
+    width: 400px;
+    height: 400px;
+    border-radius: 50%;
+    background: radial-gradient(circle, rgba(0,240,255,0.08) 0%, transparent 70%);
+    pointer-events: none;
+  }
+
+  .cover-page::after {
+    content: '';
+    position: absolute;
+    bottom: -150px;
+    left: -150px;
+    width: 500px;
+    height: 500px;
+    border-radius: 50%;
+    background: radial-gradient(circle, rgba(168,85,247,0.06) 0%, transparent 70%);
+    pointer-events: none;
+  }
+
+  .cover-eye-icon {
+    width: 120px;
+    height: 120px;
+    margin-bottom: 30px;
+  }
+
+  .cover-title {
+    font-size: 42pt;
+    font-weight: 900;
+    color: var(--primary-cyan);
+    letter-spacing: 2px;
+    margin-bottom: 8px;
+    text-shadow: 0 0 40px rgba(0,240,255,0.3);
+  }
+
+  .cover-subtitle {
+    font-size: 16pt;
+    font-weight: 400;
+    color: var(--text-secondary);
+    margin-bottom: 40px;
+  }
+
+  .cover-tagline {
+    font-size: 13pt;
+    color: var(--text-secondary);
+    font-style: italic;
+    margin-bottom: 60px;
+    max-width: 400px;
+  }
+
+  .cover-meta {
+    display: flex;
+    gap: 30px;
+    font-size: 10pt;
+    color: var(--text-secondary);
+  }
+
+  .cover-meta-item {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 4px;
+  }
+
+  .cover-meta-label {
+    font-size: 8pt;
+    color: var(--primary-cyan);
+    text-transform: uppercase;
+    letter-spacing: 1px;
+  }
+
+  .cover-divider {
+    width: 80px;
+    height: 2px;
+    background: linear-gradient(90deg, transparent, var(--primary-cyan), transparent);
+    margin: 30px auto;
+  }
+
+  /* ===== SECTION STYLES ===== */
+  .section {
+    margin-bottom: var(--section-gap);
+    page-break-inside: avoid;
+  }
+
+  .section-title {
+    font-size: 18pt;
+    font-weight: 700;
+    color: var(--primary-cyan);
+    margin-bottom: 16px;
+    padding-bottom: 8px;
+    border-bottom: 2px solid rgba(0,240,255,0.2);
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+
+  .section-title .num {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 36px;
+    height: 36px;
+    border-radius: 10px;
+    background: rgba(0,240,255,0.1);
+    border: 1px solid rgba(0,240,255,0.3);
+    font-size: 14pt;
+    font-weight: 700;
+    flex-shrink: 0;
+  }
+
+  .subsection-title {
+    font-size: 13pt;
+    font-weight: 600;
+    color: var(--text-primary);
+    margin-bottom: 10px;
+    margin-top: 20px;
+    padding-right: 12px;
+    border-right: 3px solid var(--primary-cyan);
+  }
+
+  .sub-subsection-title {
+    font-size: 11pt;
+    font-weight: 600;
+    color: var(--secondary-blue);
+    margin-bottom: 8px;
+    margin-top: 14px;
+  }
+
+  p {
+    margin-bottom: 10px;
+    text-align: justify;
+  }
+
+  /* ===== TABLES ===== */
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    margin: 14px 0;
+    font-size: 10pt;
+  }
+
+  th {
+    background: rgba(0,240,255,0.1);
+    color: var(--primary-cyan);
+    font-weight: 600;
+    padding: 10px 12px;
+    text-align: right;
+    border-bottom: 2px solid rgba(0,240,255,0.3);
+  }
+
+  td {
+    padding: 8px 12px;
+    border-bottom: 1px solid rgba(255,255,255,0.06);
+    vertical-align: top;
+  }
+
+  tr:hover td {
+    background: rgba(255,255,255,0.02);
+  }
+
+  /* ===== CODE BLOCKS ===== */
+  code {
+    font-family: 'JetBrains Mono', monospace;
+    background: rgba(255,255,255,0.06);
+    padding: 2px 6px;
+    border-radius: 4px;
+    font-size: 9pt;
+    color: var(--green);
+    direction: ltr;
+    display: inline-block;
+    text-align: left;
+  }
+
+  pre {
+    background: rgba(255,255,255,0.04);
+    border: 1px solid rgba(255,255,255,0.08);
+    border-radius: 8px;
+    padding: 14px;
+    margin: 12px 0;
+    overflow-x: auto;
+    direction: ltr;
+    text-align: left;
+  }
+
+  pre code {
+    background: none;
+    padding: 0;
+    font-size: 8.5pt;
+    color: var(--text-primary);
+    white-space: pre-wrap;
+  }
+
+  /* ===== BADGES ===== */
+  .badge {
+    display: inline-block;
+    padding: 2px 10px;
+    border-radius: 20px;
+    font-size: 8pt;
+    font-weight: 600;
+  }
+
+  .badge-cyan { background: rgba(0,240,255,0.15); color: var(--primary-cyan); }
+  .badge-blue { background: rgba(0,128,255,0.15); color: var(--secondary-blue); }
+  .badge-purple { background: rgba(168,85,247,0.15); color: var(--purple); }
+  .badge-green { background: rgba(0,212,170,0.15); color: var(--green); }
+  .badge-orange { background: rgba(255,165,0,0.15); color: var(--orange); }
+  .badge-red { background: rgba(255,59,48,0.15); color: var(--red); }
+
+  /* ===== CARDS ===== */
+  .card {
+    background: var(--glass-bg);
+    border: 1px solid var(--glass-border);
+    border-radius: 12px;
+    padding: 16px;
+    margin: 10px 0;
+  }
+
+  .card-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+    margin: 12px 0;
+  }
+
+  .card-grid-3 {
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr;
+    gap: 12px;
+    margin: 12px 0;
+  }
+
+  .feature-card {
+    background: var(--glass-bg);
+    border: 1px solid var(--glass-border);
+    border-radius: 12px;
+    padding: 14px;
+    text-align: center;
+  }
+
+  .feature-card .icon {
+    font-size: 24pt;
+    margin-bottom: 6px;
+  }
+
+  .feature-card .label {
+    font-size: 10pt;
+    font-weight: 600;
+    color: var(--text-primary);
+    margin-bottom: 4px;
+  }
+
+  .feature-card .desc {
+    font-size: 8.5pt;
+    color: var(--text-secondary);
+  }
+
+  /* ===== COLOR PALETTE ===== */
+  .color-palette {
+    display: flex;
+    gap: 8px;
+    margin: 12px 0;
+    flex-wrap: wrap;
+  }
+
+  .color-swatch {
+    width: 50px;
+    height: 50px;
+    border-radius: 10px;
+    border: 1px solid rgba(255,255,255,0.1);
+    display: flex;
+    align-items: flex-end;
+    justify-content: center;
+    padding-bottom: 4px;
+    font-size: 7pt;
+    font-family: 'JetBrains Mono', monospace;
+    color: white;
+    text-shadow: 0 1px 3px rgba(0,0,0,0.8);
+  }
+
+  /* ===== FLOW ===== */
+  .flow {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    margin: 14px 0;
+    flex-wrap: wrap;
+    direction: ltr;
+  }
+
+  .flow-node {
+    padding: 6px 14px;
+    border-radius: 8px;
+    font-size: 9pt;
+    font-weight: 600;
+    white-space: nowrap;
+  }
+
+  .flow-arrow {
+    color: var(--primary-cyan);
+    font-size: 14pt;
+  }
+
+  /* ===== STATS ===== */
+  .stats-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 12px;
+    margin: 16px 0;
+  }
+
+  .stat-card {
+    background: var(--glass-bg);
+    border: 1px solid var(--glass-border);
+    border-radius: 12px;
+    padding: 14px;
+    text-align: center;
+  }
+
+  .stat-value {
+    font-size: 22pt;
+    font-weight: 800;
+    color: var(--primary-cyan);
+  }
+
+  .stat-label {
+    font-size: 8pt;
+    color: var(--text-secondary);
+    margin-top: 4px;
+  }
+
+  /* ===== LIST ===== */
+  ul, ol {
+    margin: 8px 0 12px 20px;
+  }
+
+  li {
+    margin-bottom: 5px;
+  }
+
+  /* ===== FILE TREE ===== */
+  .file-tree {
+    background: rgba(255,255,255,0.03);
+    border: 1px solid rgba(255,255,255,0.06);
+    border-radius: 10px;
+    padding: 16px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 8pt;
+    direction: ltr;
+    text-align: left;
+    line-height: 1.8;
+    margin: 12px 0;
+    overflow-x: auto;
+  }
+
+  .file-tree .folder { color: var(--primary-cyan); }
+  .file-tree .file { color: var(--text-primary); }
+  .file-tree .comment { color: var(--text-secondary); font-style: italic; }
+
+  /* ===== PHASE TIMELINE ===== */
+  .phase {
+    border-right: 3px solid var(--primary-cyan);
+    padding-right: 16px;
+    margin-bottom: 20px;
+    position: relative;
+  }
+
+  .phase::before {
+    content: '';
+    position: absolute;
+    right: -7px;
+    top: 4px;
+    width: 11px;
+    height: 11px;
+    border-radius: 50%;
+    background: var(--primary-cyan);
+  }
+
+  .phase-date {
+    font-size: 8.5pt;
+    color: var(--primary-cyan);
+    font-weight: 600;
+    margin-bottom: 4px;
+  }
+
+  .phase-title {
+    font-size: 12pt;
+    font-weight: 700;
+    margin-bottom: 6px;
+  }
+
+  .phase-desc {
+    font-size: 9.5pt;
+    color: var(--text-secondary);
+    margin-bottom: 8px;
+  }
+
+  /* ===== TOC ===== */
+  .toc {
+    margin: 20px 0;
+  }
+
+  .toc-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    padding: 8px 0;
+    border-bottom: 1px dotted rgba(255,255,255,0.08);
+    font-size: 11pt;
+  }
+
+  .toc-item:hover { color: var(--primary-cyan); }
+
+  .toc-section { font-weight: 700; margin-top: 6px; }
+
+  .toc-sub {
+    padding-right: 20px;
+    font-size: 10pt;
+    color: var(--text-secondary);
+  }
+
+  /* ===== UTILITY ===== */
+  .text-cyan { color: var(--primary-cyan); }
+  .text-blue { color: var(--secondary-blue); }
+  .text-purple { color: var(--purple); }
+  .text-green { color: var(--green); }
+  .text-orange { color: var(--orange); }
+  .text-red { color: var(--red); }
+  .text-muted { color: var(--text-secondary); }
+
+  .mb-8 { margin-bottom: 8px; }
+  .mb-12 { margin-bottom: 12px; }
+  .mb-16 { margin-bottom: 16px; }
+  .mt-16 { margin-top: 16px; }
+  .mt-24 { margin-top: 24px; }
+
+  .separator {
+    width: 100%;
+    height: 1px;
+    background: linear-gradient(90deg, transparent, rgba(0,240,255,0.2), transparent);
+    margin: 30px 0;
+  }
+
+  .highlight-box {
+    background: rgba(0,240,255,0.05);
+    border: 1px solid rgba(0,240,255,0.15);
+    border-radius: 10px;
+    padding: 14px;
+    margin: 12px 0;
+  }
+
+  .note-box {
+    background: rgba(255,165,0,0.05);
+    border: 1px solid rgba(255,165,0,0.15);
+    border-radius: 10px;
+    padding: 14px;
+    margin: 12px 0;
+    font-size: 9.5pt;
+  }
+
+  .note-box::before {
+    content: 'ملاحظة: ';
+    font-weight: 700;
+    color: var(--orange);
+  }
+
+  .page-footer {
+    position: absolute;
+    bottom: 10mm;
+    left: 20mm;
+    right: 20mm;
+    text-align: center;
+    font-size: 8pt;
+    color: var(--text-secondary);
+  }
+
+  .two-col {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 16px;
+  }
+
+  @media print {
+    .page { page-break-after: always; }
+  }
+</style>
+</head>
+<body>
+
+<!-- ===== COVER PAGE ===== -->
+<div class="page cover-page">
+  <svg class="cover-eye-icon" viewBox="0 0 100 60" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <ellipse cx="50" cy="30" rx="45" ry="25" stroke="#00f0ff" stroke-width="2" fill="none" opacity="0.6"/>
+    <circle cx="50" cy="30" r="15" fill="none" stroke="#00f0ff" stroke-width="2.5" opacity="0.8"/>
+    <circle cx="50" cy="30" r="7" fill="#00f0ff" opacity="0.9"/>
+    <circle cx="48" cy="28" r="2" fill="#0a0e1a"/>
+    <ellipse cx="50" cy="30" rx="45" ry="25" stroke="#00f0ff" stroke-width="1" fill="none" opacity="0.2">
+      <animate attributeName="rx" values="45;42;45" dur="3s" repeatCount="indefinite"/>
+      <animate attributeName="ry" values="25;22;25" dur="3s" repeatCount="indefinite"/>
+    </ellipse>
+  </svg>
+  <div class="cover-title">OptiSize</div>
+  <div class="cover-subtitle">تقرير المشروع الشامل</div>
+  <div class="cover-divider"></div>
+  <div class="cover-tagline">الدقة في كل تفصيلة.. مستقبل البصريات في جيبك</div>
+  <div class="cover-meta">
+    <div class="cover-meta-item">
+      <div class="cover-meta-label">التقنية</div>
+      <div>Next.js 16 + TypeScript</div>
+    </div>
+    <div class="cover-meta-item">
+      <div class="cover-meta-label">المكونات</div>
+      <div>21 مكوّن React</div>
+    </div>
+    <div class="cover-meta-item">
+      <div class="cover-meta-label">اللغات</div>
+      <div>العربية + الإنجليزية</div>
+    </div>
+  </div>
+  <div style="position:absolute; bottom:20mm; font-size:9pt; color: var(--text-secondary);">
+    Comprehensive Eye Health Platform &mdash; Full Project Documentation
+  </div>
+</div>
+
+<!-- ===== TABLE OF CONTENTS ===== -->
+<div class="page">
+  <div class="section">
+    <div class="section-title"><span class="num">ف</span> فهرس المحتويات</div>
+    <div class="toc">
+      <div class="toc-item toc-section"><span>1. نظرة عامة على المشروع</span></div>
+      <div class="toc-item toc-sub"><span>1.1 ما هو OptiSize؟</span></div>
+      <div class="toc-item toc-sub"><span>1.2 الغرض والرؤية</span></div>
+      <div class="toc-item toc-sub"><span>1.3 المستخدمون المستهدفون</span></div>
+      <div class="toc-item toc-section"><span>2. البنية التقنية</span></div>
+      <div class="toc-item toc-sub"><span>2.1 حزمة التقنيات المستخدمة</span></div>
+      <div class="toc-item toc-sub"><span>2.2 هيكل المشروع</span></div>
+      <div class="toc-item toc-sub"><span>2.3 المسارات وملفات الإعدادات</span></div>
+      <div class="toc-item toc-sub"><span>2.4 قاعدة البيانات</span></div>
+      <div class="toc-item toc-section"><span>3. الميزات الرئيسية</span></div>
+      <div class="toc-item toc-sub"><span>3.1 قياس مسافة البؤبؤ (PD Scanner)</span></div>
+      <div class="toc-item toc-sub"><span>3.2 اختبارات النظر</span></div>
+      <div class="toc-item toc-sub"><span>3.3 مركز صحة العين</span></div>
+      <div class="toc-item toc-sub"><span>3.4 معرض النظارات</span></div>
+      <div class="toc-item toc-sub"><span>3.5 التجربة الافتراضية</span></div>
+      <div class="toc-item toc-sub"><span>3.6 نظام السجلات</span></div>
+      <div class="toc-item toc-sub"><span>3.7 دعم اللغات (i18n)</span></div>
+      <div class="toc-item toc-section"><span>4. تفاصيل المكونات (21 مكوّن)</span></div>
+      <div class="toc-item toc-section"><span>5. واجهة المستخدم والتصميم</span></div>
+      <div class="toc-item toc-sub"><span>5.1 لوحة الألوان</span></div>
+      <div class="toc-item toc-sub"><span>5.2 الأنماط البصرية</span></div>
+      <div class="toc-item toc-sub"><span>5.3 الحركات والانتقالات</span></div>
+      <div class="toc-item toc-section"><span>6. خريطة التنقل</span></div>
+      <div class="toc-item toc-section"><span>7. المسارات البرمجية (API)</span></div>
+      <div class="toc-item toc-section"><span>8. المكتبات المساعدة</span></div>
+      <div class="toc-item toc-section"><span>9. تاريخ التطوير</span></div>
+      <div class="toc-item toc-section"><span>10. ملخص الإحصائيات</span></div>
+    </div>
+  </div>
+</div>
+
+<!-- ===== SECTION 1: OVERVIEW ===== -->
+<div class="page">
+  <div class="section">
+    <div class="section-title"><span class="num">1</span> نظرة عامة على المشروع</div>
+
+    <div class="subsection-title">1.1 ما هو OptiSize؟</div>
+    <p>
+      OptiSize هو تطبيق ويب متكامل لصحة العين يعمل باللغتين العربية والإنجليزية مع واجهة مستخدم مستقبلية بتصميم داكن وتخطيط RTL. يتميز التطبيق بكونه منصة شاملة تجمع بين أدوات قياس المسافة البين بؤبؤية (PD) باستخدام الكاميرا، واختبارات بصرية متنوعة تشمل حدة البصر واختبار الألوان والاستيجماتيزم، بالإضافة إلى مركز لفحص صحة العين يشمل فحوصات الحول والمياه البيضاء والمياه الزرقاء. يقدم التطبيق أيضاً معرضاً ضخماً للنظارات يضم 68 نموذجاً عبر 5 فئات مع إمكانية التجربة الافتراضية للنظارات على صورة المستخدم.
+    </p>
+    <p>
+      يُعد OptiSize من أوائل التطبيقات العربية التي تدمج تقنيات الذكاء الاصطناعي في مجال البصريات، حيث يستخدم كشف الوجه المدمج في المتصفح (FaceDetector API) مع إمكانية الرجوع إلى مكتبة face-api.js كخطة بديلة. يتميز التطبيق بحفظ جميع القياسات والنتائج محلياً في جهاز المستخدم عبر localStorage، مما يضمن خصوصية تامة دون الحاجة لخوادم خارجية لتخزين البيانات الشخصية.
+    </p>
+
+    <div class="subsection-title">1.2 الغرض والرؤية</div>
+    <p>
+      يسعى OptiSize إلى تقديم حل رقمي شامل ومتاح للجميع في مجال صحة العين والبصريات. يهدف التطبيق إلى تمكين المستخدمين من إجراء فحوصات بصرية أولية سريعة ودقيقة نسبياً دون الحاجة لزيارة عيادة متخصصة في كل مرة، مع توضيح أن هذه الفحوصات للتوعية والتوجيه فقط ولا تغني عن الاستشارة الطبية المتخصصة. كما يوفر التطبيق ميزة قياس مسافة البؤبؤ التي تُعد ضرورية عند طلب نظارات طبية عبر الإنترنت، مما يوفر الوقت والجهد على المستخدم.
+    </p>
+    <p>
+      من أبرز أهداف التطبيق: توفير واجهة عربية سهلة الاستخدام تدعم RTL بشكل كامل، تقديم تجربة مستخدم مميزة بتصميم مستقبلي مع تأثيرات بصرية متقدمة، تمكين التجربة الافتراضية للنظارات قبل الشراء، وحفظ تاريخ الفحوصات للمتابعة الدورية. يطمح فريق التطوير إلى جعل OptiSize المرجع الأول في المنطقة العربية للتطبيقات البصرية الصحية المتاحة على الويب.
+    </p>
+
+    <div class="subsection-title">1.3 المستخدمون المستهدفون</div>
+    <div class="card-grid">
+      <div class="feature-card">
+        <div class="icon">&#128083;</div>
+        <div class="label">مرتدو النظارات</div>
+        <div class="desc">قياس PD لطلب نظارات أونلاين وتجربة النظارات افتراضياً</div>
+      </div>
+      <div class="feature-card">
+        <div class="icon">&#128065;</div>
+        <div class="label">الأشخاص المهتمون بصحة العين</div>
+        <div class="desc">إجراء فحوصات بصرية دورية سريعة ومتابعة التغييرات</div>
+      </div>
+      <div class="feature-card">
+        <div class="icon">&#127973;</div>
+        <div class="label">محبو الأزياء</div>
+        <div class="desc">تصفح أحدث صيحات النظارات وتجربتها على صورهم</div>
+      </div>
+      <div class="feature-card">
+        <div class="icon">&#128218;</div>
+        <div class="label">طلاب وأكاديميون</div>
+        <div class="desc">فهم كيفية عمل اختبارات النظر المختلفة بشكل تفاعلي</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="separator"></div>
+
+  <!-- ===== SECTION 2: TECH ARCHITECTURE ===== -->
+  <div class="section">
+    <div class="section-title"><span class="num">2</span> البنية التقنية</div>
+
+    <div class="subsection-title">2.1 حزمة التقنيات المستخدمة</div>
+    <div class="stats-grid">
+      <div class="stat-card">
+        <div class="stat-value">16</div>
+        <div class="stat-label">إصدار Next.js</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-value">21</div>
+        <div class="stat-label">مكوّن React</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-value">5</div>
+        <div class="stat-label">إصدار Tailwind CSS</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-value">10K+</div>
+        <div class="stat-label">سطر كود مصدري</div>
+      </div>
+    </div>
+
+    <table>
+      <thead>
+        <tr>
+          <th>التقنية</th>
+          <th>الإصدار</th>
+          <th>الاستخدام</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr><td>Next.js</td><td><code>^16.1.1</code></td><td>إطار العمل الرئيسي (SSR/SSG)</td></tr>
+        <tr><td>React</td><td><code>^19.0.0</code></td><td>مكتبة واجهة المستخدم</td></tr>
+        <tr><td>TypeScript</td><td><code>^5</code></td><td>كتابة الكود المكتوب بأمان</td></tr>
+        <tr><td>Tailwind CSS</td><td><code>^4</code></td><td>تنسيق الأنماط والتصميم</td></tr>
+        <tr><td>Framer Motion</td><td><code>^12.23.2</code></td><td>الحركات والانتقالات المتقدمة</td></tr>
+        <tr><td>face-api.js</td><td><code>^0.22.2</code></td><td>كشف الوجه والمعالم (خطة بديلة)</td></tr>
+        <tr><td>Prisma</td><td><code>^6.11.1</code></td><td>ORM لإدارة قاعدة البيانات</td></tr>
+        <tr><td>z-ai-web-dev-sdk</td><td><code>^0.0.17</code></td><td>توليد الصور بالذكاء الاصطناعي</td></tr>
+        <tr><td>Radix UI</td><td><code>مجموعة كاملة</code></td><td>مكونات واجهة المستخدم الأساسية</td></tr>
+        <tr><td>Lucide React</td><td><code>^0.525.0</code></td><td>مكتبة الأيقونات</td></tr>
+        <tr><td>shadcn/ui</td><td><code>مدمج</code></td><td>مكونات UI جاهزة (50+ مكوّن)</td></tr>
+        <tr><td>Zustand</td><td><code>^5.0.6</code></td><td>إدارة الحالة العالمية</td></tr>
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<!-- ===== SECTION 2 CONTINUED: PROJECT STRUCTURE ===== -->
+<div class="page">
+  <div class="section">
+    <div class="subsection-title">2.2 هيكل المشروع</div>
+    <p>
+      يتبع المشروع الهيكل القياسي لتطبيقات Next.js مع تنظيم المكونات في مجلدات منفصلة. يحتوي المشروع على 21 مكوّناً رئيسياً مخصصاً للتطبيق في مجلد <code>src/components/optisize/</code>، بالإضافة إلى 50+ مكوّن UI عام من shadcn/ui. تبلغ الحجم الإجمالي للكود المصدري أكثر من 10,000 سطر موزعة على ملفات TypeScript/TSX.
+    </p>
+
+    <div class="file-tree">
+<span class="folder">my-project/</span>
+  <span class="file">package.json</span>            <span class="comment"># إعدادات المشروع والتبعيات</span>
+      <span class="file">next.config.ts</span>         <span class="comment"># إعدادات Next.js (standalone output)</span>
+      <span class="file">tailwind.config.ts</span>     <span class="comment"># إعدادات Tailwind CSS</span>
+      <span class="file">tsconfig.json</span>          <span class="comment"># إعدادات TypeScript</span>
+      <span class="file">middleware.ts</span>           <span class="comment"># Middleware للطلبات</span>
+      <span class="file">.env</span>                   <span class="comment"># متغيرات البيئة</span>
+<span class="folder">  src/</span>
+<span class="folder">    app/</span>
+        <span class="file">page.tsx</span>            <span class="comment"># الصفحة الرئيسية - آلة الحالات</span>
+        <span class="file">layout.tsx</span>           <span class="comment"># التخطيط RTL + البيانات الوصفية</span>
+        <span class="file">globals.css</span>          <span class="comment"># الأنماط العامة + الثيم الداكن</span>
+<span class="folder">      api/</span>
+        <span class="file">auth/route.ts</span>       <span class="comment"># مسار تسجيل الدخول/التسجيل</span>
+        <span class="file">measurements/route.ts</span><span class="comment"># مسار قياسات PD</span>
+        <span class="file">generate-glasses-image/route.ts</span> <span class="comment"># توليد صور بالنظارات</span>
+<span class="folder">    components/</span>
+<span class="folder">      optisize/</span>            <span class="comment"># 21 مكوّن رئيسي</span>
+        <span class="file">SplashScreen.tsx</span>      <span class="comment"># شاشة البداية المتحركة</span>
+        <span class="file">AuthScreen.tsx</span>        <span class="comment"># تسجيل الدخول/إنشاء حساب</span>
+        <span class="file">MainMenu.tsx</span>          <span class="comment"># القائمة الرئيسية</span>
+        <span class="file">Scanner.tsx</span>           <span class="comment"># ماسح PD بالكاميرا</span>
+        <span class="file">Results.tsx</span>           <span class="comment"># عرض نتيجة القياس</span>
+        <span class="file">Records.tsx</span>           <span class="comment"># السجلات المحفوظة</span>
+        <span class="file">VisionTest.tsx</span>        <span class="comment"># مركز اختبارات النظر</span>
+        <span class="file">ColorVisionTest.tsx</span>   <span class="comment"># اختبار الألوان (Ishihara)</span>
+        <span class="file">VisualAcuityTest.tsx</span>  <span class="comment"># اختبار حدة البصر (Snellen)</span>
+        <span class="file">AstigmatismTest.tsx</span>   <span class="comment"># اختبار الاستيجماتيزم</span>
+        <span class="file">HealthCenter.tsx</span>      <span class="comment"># مركز صحة العين</span>
+        <span class="file">StrabismusTest.tsx</span>    <span class="comment"># فحص الحول</span>
+        <span class="file">CataractTest.tsx</span>     <span class="comment"># فحص المياه البيضاء</span>
+        <span class="file">GlaucomaTest.tsx</span>     <span class="comment"># فحص المياه الزرقاء</span>
+        <span class="file">GlassesCatalog.tsx</span>   <span class="comment"># معرض النظارات (68 نموذج)</span>
+        <span class="file">RealisticGlasses.tsx</span>  <span class="comment"># بيانات النظارات + SVG</span>
+        <span class="file">GlassesTryOn.tsx</span>     <span class="comment"># التجربة الافتراضية</span>
+        <span class="file">CalibrationGuide.tsx</span>  <span class="comment"># دليل التجربة الافتراضية</span>
+        <span class="file">LanguageSwitch.tsx</span>    <span class="comment"># زر تبديل اللغة</span>
+        <span class="file">LoginPrompt.tsx</span>       <span class="comment"># تنبيه تسجيل الدخول</span>
+        <span class="file">PlaceholderScreen.tsx</span> <span class="comment"># شاشة بديلة</span>
+<span class="folder">      ui/</span>                 <span class="comment"># 50+ مكوّن shadcn/ui</span>
+<span class="folder">    lib/</span>
+      <span class="file">i18n.tsx</span>             <span class="comment"># نظام اللغات (عربي/إنجليزي)</span>
+      <span class="file">storage.ts</span>            <span class="comment"># localStorage للسجلات</span>
+      <span class="file">auth.ts</span>               <span class="comment"># نظام المصادقة</span>
+      <span class="file">faceDetection.ts</span>      <span class="comment"># كشف الوجه (Native + CDN)</span>
+      <span class="file">pdCalculation.ts</span>      <span class="comment"># حساب وتصنيف PD</span>
+      <span class="file">glassesFaceDetection.ts</span><span class="comment"># كشف الوجه للتجربة</span>
+<span class="folder">    lib/translations/</span>
+        <span class="file">ar.ts</span>               <span class="comment"># الترجمات العربية (317+ مفتاح)</span>
+        <span class="file">en.ts</span>               <span class="comment"># الترجمات الإنجليزية (317+ مفتاح)</span>
+<span class="folder">    hooks/</span>
+        <span class="file">use-mobile.ts</span>       <span class="comment"># كشف الجوال</span>
+        <span class="file">use-toast.ts</span>        <span class="comment"># نظام الإشعارات</span>
+<span class="folder">    types/</span>
+        <span class="file">face-api.d.ts</span>        <span class="comment"># تعريفات TypeScript</span>
+<span class="folder">  public/</span>
+    <span class="file">favicon.svg</span>             <span class="comment"># أيقونة العين (#00f0ff)</span>
+    <span class="file">logo.svg</span>                <span class="comment"># شعار OptiSize</span>
+<span class="folder">    glasses/</span>               <span class="comment"># 70 صورة نظارات</span>
+      <span class="comment"># 8 أطفال | 13 نسائي نظر | 13 نسائي شمس</span>
+      <span class="comment"># 18 رجالي نظر | 18 رجالي شمس</span>
+    </div>
+
+    <div class="subsection-title">2.3 المسارات وملفات الإعدادات</div>
+    <div class="two-col">
+      <div class="card">
+        <div class="sub-subsection-title">next.config.ts</div>
+        <ul>
+          <li>وضع الإخراج: <code>standalone</code></li>
+          <li>تجاهل أخطاء TypeScript في البناء</li>
+          <li>تعطيل StrictMode لتجنب الترندر المزدوج</li>
+          <li>صلاحيات الكاميرا والميكروفون</li>
+          <li>أصول التطوير المسموحة</li>
+          <li>رأس <code>X-Content-Type-Options: nosniff</code></li>
+        </ul>
+      </div>
+      <div class="card">
+        <div class="sub-subsection-title">أوامر البناء والتشغيل</div>
+        <pre><code># بناء المشروع
+npx next build --turbopack
+
+# نسخ الملفات الثابتة
+cp -r .next/static .next/standalone/.next/
+cp -r public .next/standalone/
+
+# تشغيل الإنتاج
+PORT=3000 node .next/standalone/server.js
+
+# تشغيل التطوير
+npx next dev -p 3000</code></pre>
+      </div>
+    </div>
+
+    <div class="subsection-title">2.4 قاعدة البيانات</div>
+    <p>
+      يستخدم المشروع Prisma ORM مع قاعدة بيانات SQLite للتخزين المحلي. يتضمن Schema نموذجين رئيسيين: User لتخزين بيانات المستخدم (الاسم والبريد وكلمة المرور وحالة الضيف)، وMeasurement لتخزين قياسات مسافة البؤبؤ. بالإضافة إلى ذلك، يتم استخدام localStorage في المتصفح لحفظ سجلات الفحوصات والنتائج بشكل محلي على جهاز المستخدم، مما يوفر استجابة فورية دون الحاجة لطلبات شبكة.
+    </p>
+    <table>
+      <thead>
+        <tr><th>النموذج</th><th>الحقول</th><th>الوصف</th></tr>
+      </thead>
+      <tbody>
+        <tr><td><code>User</code></td><td>id, name, email, password, isGuest</td><td>بيانات المستخدم المحفوظة</td></tr>
+        <tr><td><code>Measurement</code></td><td>id, userId, pd, type, timestamp</td><td>قياسات PD المحفوظة</td></tr>
+        <tr><td><code>Record</code></td><td>id, userId, type, title, data, timestamp</td><td>سجلات الفحوصات (localStorage)</td></tr>
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<!-- ===== SECTION 3: FEATURES ===== -->
+<div class="page">
+  <div class="section">
+    <div class="section-title"><span class="num">3</span> الميزات الرئيسية</div>
+
+    <div class="subsection-title">3.1 قياس مسافة البؤبؤ (PD Scanner)</div>
+    <p>
+      يُعد ماسح PD من أبرز ميزات OptiSize، حيث يتيح للمستخدم قياس مسافة البؤبؤ باستخدام كاميرا الهاتف أو الكمبيوتر مباشرة. يعتمد النظام على واجهة كشف الوجه المدمجة في المتصفح (FaceDetector API) المتوفرة في Chrome 70+ وEdge 79+ وOpera 57+، مع إمكانية الرجوع إلى مكتبة face-api.js عبر CDN في المتصفحات التي لا تدعم الواجهة الأصلية.
+    </p>
+    <p>
+      يتميز الماسح بتصميم تفاعلي متقدم يشمل: دليل إطار الوجه المتحرك، خط المسح المضيء مع تأثير التوهج، دائرة علامة العين اليمنى واليسرى بخط PD المتصل بينهما، شريط تقدم لجمع 5 عينات، عرض متوسط القراءات فورياً، وتحويل الكاميرا الأمامية/الخلفية. يستخدم حساب PD نسبة أنثروبومترية معتمدة حيث تبلغ نسبة المسافة بين البؤبؤين إلى عرض الوجه حوالي 43%، مع عرض وجه مرجعي 140 مم للبالغين.
+    </p>
+    <div class="highlight-box">
+      <strong>تصنيف النتائج:</strong>
+      <span class="badge badge-orange" style="margin-right:4px;">ضيق (أقل من 58 مم)</span>
+      <span class="badge badge-green" style="margin-right:4px;">طبيعي (58-68 مم)</span>
+      <span class="badge badge-cyan">واسع (أكثر من 68 مم)</span>
+    </div>
+
+    <div class="subsection-title">3.2 اختبارات النظر</div>
+    <p>
+      يقدم OptiSize ثلاثة اختبارات نظر متنوعة تشمل اختبار حدة البصر بنظام Snellen، واختبار الألوان بنظام ألواح Ishihara، واختبار الاستيجماتيزم لفحص عدم انتظام القرنية. كل اختبار يتبع مساراً موحداً: تعليمات - الاختبار الفعلي - النتائج مع التوصيات.
+    </p>
+
+    <div class="sub-subsection-title">اختبار حدة البصر (Visual Acuity Test)</div>
+    <p>
+      يستخدم أحرف Snellen العربية بـ 5 مستويات متناقصة في الحجم (من 80px إلى 22px). يختار كل مستوى حرفاً عشوائياً من مجموعة أحرف عربية محددة ويقدم 4 خيارات متعددة. يعرض النتيجة بناءً على عدد الإجابات الصحيحة من 5 مع تصنيف: رؤية ممتازة (أخضر)، رؤية جيدة (أزرق)، رؤية متوسطة (برتقالي)، ويُنصح بزيارة طبيب العيون (أحمر).
+    </p>
+
+    <div class="sub-subsection-title">اختبار الألوان (Color Vision Test)</div>
+    <p>
+      يحتوي على 8 ألواح Ishihara مولّدة برمجياً باستخدام Canvas/SVG. يستخدم تقنية Bitmap Digit Map (شبكة 5×7 بكسل لكل رقم) بدلاً من الخطوط الرقيقة لضمان وضوح الأرقام. يحتوي كل لوحة على نقاط خلفية عشوائية بألوان مختلفة ونقاط مرقّمة تُشكّل الأرقام بلون مميز. يحتسب النتيجة ويصنفها إلى: سليم أو ضعف في تمييز الألوان.
+    </p>
+
+    <div class="sub-subsection-title">اختبار الاستيجماتيزم (Astigmatism Test)</div>
+    <p>
+      يتضمن 3 اختبارات بصرية SVG تفاعلية: نمط الساعة (24 خطاً شعاعياً)، نمط الأقواس، ونمط الشبكة المشوّهة. يليها 4 أسئلة عن الأعراض (صداع، رؤية مزدوجة، إرهاق العين، صعوبة القراءة). يقيّم مستوى الخطر بناءً على مجموع النتائج البصرية والأعراض: منخفض أو متوسط أو مرتفع.
+    </p>
+
+    <div class="subsection-title">3.3 مركز صحة العين</div>
+    <p>
+      يوفر مركز صحة العين خمسة فحوصات متخصصة تغطي مختلف جوانب صحة العين. كل فحص يتضمن مرحلة تعريفية توضح الهدف والخطوات، ثم اختبار بصري أو تفاعلي، يليه أسئلة عن الأعراض، وأخيراً عرض النتيجة مع تقييم مستوى الخطر وتوصيات مفصلة.
+    </p>
+
+    <table>
+      <thead>
+        <tr><th>الفحص</th><th>الاختبار البصري</th><th>عدد الأسئلة</th><th>تقييم الخطر</th></tr>
+      </thead>
+      <tbody>
+        <tr><td>فحص الحول (Strabismus)</td><td>3 أنماط بصرية (تقاطع، نقاط، خطوط)</td><td>6 أسئلة</td><td>بصري + أعراض</td></tr>
+        <tr><td>فحص المياه البيضاء (Cataract)</td><td>3 أشكال بضباب تدريجي</td><td>7 أسئلة</td><td>بصري + أعراض</td></tr>
+        <tr><td>فحص المياه الزرقاء (Glaucoma)</td><td>محاكاة مجال الرؤية (20 نقطة)</td><td>7 أسئلة</td><td>مجال بصري + أعراض</td></tr>
+        <tr><td>اختبار حدة البصر</td><td>أحرف Snellen (5 مستويات)</td><td>-</td><td>نسبة الإجابات</td></tr>
+        <tr><td>اختبار الألوان</td><td>8 ألواح Ishihara</td><td>-</td><td>نسبة صحيحة</td></tr>
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<!-- ===== SECTION 3 CONTINUED: GLASSES ===== -->
+<div class="page">
+  <div class="section">
+    <div class="subsection-title">3.4 معرض النظارات</div>
+    <p>
+      يضم المعرض 68 نموذج نظارات موزعة على 5 فئات رئيسية مع صور حقيقية لكل نموذج بالإضافة إلى رسومات SVG مولّدة برمجياً. يتميز المعرض بواجهة تفاعلية غنية تشمل: تبويبات الفئات، شريط البحث، لوحة فلاتر متقدمة (12 نوع إطار)، خيارات ترتيب متعددة، وشبكة بطاقات متجاوبة مع حركات staggered عبر Framer Motion.
+    </p>
+
+    <div class="card-grid-3">
+      <div class="stat-card">
+        <div class="stat-value text-cyan">68</div>
+        <div class="stat-label">نموذج نظارة</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-value text-purple">5</div>
+        <div class="stat-label">فئات</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-value text-blue">12</div>
+        <div class="stat-label">نوع إطار</div>
+      </div>
+    </div>
+
+    <table>
+      <thead>
+        <tr><th>الفئة</th><th>العدد</th><th>الأسماء</th></tr>
+      </thead>
+      <tbody>
+        <tr><td><span class="badge badge-cyan">أطفال</span></td><td>8</td><td>نظارات أطفال بألوان جذابة</td></tr>
+        <tr><td><span class="badge badge-purple">نسائي نظر</span></td><td>13</td><td>نظارات نسائية طبية</td></tr>
+        <tr><td><span class="badge badge-purple">نسائي شمس</span></td><td>13</td><td>نظارات شمسية نسائية</td></tr>
+        <tr><td><span class="badge badge-blue">رجالي نظر</span></td><td>18</td><td>نظارات رجالية طبية</td></tr>
+        <tr><td><span class="badge badge-blue">رجالي شمس</span></td><td>18</td><td>نظارات شمسية رجالية</td></tr>
+      </tbody>
+    </table>
+
+    <p class="mt-16">
+      يدعم المعرض 12 نوع إطار مختلف: Full-Rim (إطار كامل)، Round (دائري)، Square (مربع)، Cat-Eye (عين قطة)، Aviator (طيار)، Wayfarer (رائد)، Rimless (بدون إطار)، Half-Rim (نصف إطار)، Rectangle (مستطيل)، Oval (بيضاوي)، Shield (درع)، Wrap (ملتف). يتم توليد رسم SVG فريد لكل نوع إطار مع دعم ألوان العدسات (شفافة للنظارة الطبية وداكنة للشمسية).
+    </p>
+
+    <div class="subsection-title">3.5 التجربة الافتراضية (Virtual Try-On)</div>
+    <p>
+      تتميز ميزة التجربة الافتراضية بأنبوب تفاعلي من 4 مراحل متكاملة: مرحلة الاختيار (عرض النظارة مع التفاصيل وخيارات التصوير أو رفع صورة)، مرحلة الالتقاط (بث مباشر من الكاميرا مع دليل وجه دائري وعد تنازلي)، مرحلة الكشف (تحليل الوجه بالذكاء الاصطناعي مع رسم متحرك)، ومرحلة التجربة (عرض الصورة مع تراكب النظارة القابل للسحب والتكبير والدوران).
+    </p>
+    <p>
+      في مرحلة التجربة النهائية، يمكن للمستخدم: سحب النظارة لضبط الموضع يدوياً، استخدام أشرطة التحكم لتغيير الحجم (0.3x إلى 2.5x) والدوران (-30 درجة إلى +30 درجة)، إعادة الوضع التلقائي، تغيير النظارة من نفس الفئة عبر شريط سفلي، إعادة التجربة، وتحميل الصورة المركّبة كملف PNG. يتم التركيب على Canvas خارج الشاشة ويُصدّر كصورة عالية الجودة.
+    </p>
+
+    <div class="subsection-title">3.6 نظام السجلات</div>
+    <p>
+      يحفظ النظام جميع نتائج الفحوصات تلقائياً في localStorage على جهاز المستخدم. يدعم أنواع السجلات التالية: قياسات PD، اختبارات الرؤية (ألوان، حدة البصر، استيجماتيزم)، فحوصات صحة العين (حول، مياه بيضاء، مياه زرقاء)، وتجارب النظارات. يمكن للمستخدم استعراض السجلات، حذف فردية مع حركة حذف متحركة، أو مسح جميع السجلات مع تأكيد عبر مربع حوار. تظهر كل سجل مع نوعه وتاريخه ووقته وملخص النتيجة.
+    </p>
+
+    <div class="subsection-title">3.7 دعم اللغات (i18n)</div>
+    <p>
+      يدعم OptiSize اللغتين العربية والإنجليزية بشكل كامل عبر نظام i18n مخصص مبني على React Context. يحتوي النظام على أكثر من 317 مفتاح ترجمة في كل لغة، ويحفظ تفضيل اللغة في localStorage للاستمرارية بين الجلسات. يتم تبديل اتجاه الصفحة تلقائياً (RTL/LTR) عند تغيير اللغة. زر تبديل اللغة ثابت في أعلى الشاشة كزر عائم، ويمكن الوصول إليه من أي شاشة داخل التطبيق.
+    </p>
+  </div>
+</div>
+
+<!-- ===== SECTION 4: COMPONENTS ===== -->
+<div class="page">
+  <div class="section">
+    <div class="section-title"><span class="num">4</span> تفاصيل المكونات (21 مكوّن)</div>
+    <p>يحتوي المشروع على 21 مكوّن React رئيسياً مخصص لتطبيق OptiSize، بإجمالي أكثر من 10,060 سطر كود. يعرض الجدول التالي تفاصيل كل مكوّن:</p>
+
+    <table>
+      <thead>
+        <tr><th>المكوّن</th><th>الأسطر</th><th>الوصف</th><th>الخصائص</th></tr>
+      </thead>
+      <tbody>
+        <tr><td><code>VisualAcuityTest</code></td><td>1,786</td><td>اختبار حدة البصر Snellen بـ 5 مستويات</td><td>onBack</td></tr>
+        <tr><td><code>GlassesTryOn</code></td><td>1,305</td><td>تجربة افتراضية 4 مراحل مع سحب ودوران</td><td>glasses, onBack, onChangeGlasses</td></tr>
+        <tr><td><code>RealisticGlasses</code></td><td>1,038</td><td>68 نموذج + SVG مولّد لـ 12 نوع إطار</td><td>مكتبة بيانات + دالة SVG</td></tr>
+        <tr><td><code>AstigmatismTest</code></td><td>621</td><td>3 اختبارات SVG + 4 أسئلة أعراض</td><td>onBack</td></tr>
+        <tr><td><code>ColorVisionTest</code></td><td>539</td><td>8 ألواح Ishihara بتقنية Bitmap</td><td>onBack, onComplete</td></tr>
+        <tr><td><code>GlaucomaTest</code></td><td>521</td><td>فحص مجال الرؤية + 7 أسئلة</td><td>onBack, onComplete</td></tr>
+        <tr><td><code>GlassesCatalog</code></td><td>468</td><td>معرض بـ 5 تبويبات + بحث + فلاتر + ترتيب</td><td>onTryOn, onBack</td></tr>
+        <tr><td><code>Scanner</code></td><td>464</td><td>ماسح PD بالكاميرا مع 5 عينات</td><td>onResult, onBack</td></tr>
+        <tr><td><code>AuthScreen</code></td><td>465</td><td>نموذج تسجيل/دخول مع glass morphism</td><td>onAuth</td></tr>
+        <tr><td><code>CataractTest</code></td><td>420</td><td>3 أشكال بضباب تدريجي + 7 أسئلة</td><td>onBack, onComplete</td></tr>
+        <tr><td><code>StrabismusTest</code></td><td>404</td><td>3 أنماط بصرية + 6 أسئلة حول</td><td>onBack, onComplete</td></tr>
+        <tr><td><code>MainMenu</code></td><td>333</td><td>5 بطاقات خدمات + 4 بطاقات ميزات</td><td>user, onNavigate, onLogout</td></tr>
+        <tr><td><code>Records</code></td><td>293</td><td>قائمة سجلات محفوظة مع حذف</td><td>onBack</td></tr>
+        <tr><td><code>Results</code></td><td>292</td><td>نتيجة PD مع تصنيف ورسوم بيانية</td><td>pd, onBack, onSave, onRetake, onRecords</td></tr>
+        <tr><td><code>SplashScreen</code></td><td>251</td><td>شاشة بداية بـ SVG متحرك (عين + نبض)</td><td>onComplete</td></tr>
+        <tr><td><code>CalibrationGuide</code></td><td>248</td><td>4 نصائح مصوّرة قبل التجربة</td><td>onBack, onStart</td></tr>
+        <tr><td><code>HealthCenter</code></td><td>173</td><td>مركز صحة العين بـ 5 فحوصات</td><td>onSelectTest, onBack</td></tr>
+        <tr><td><code>PlaceholderScreen</code></td><td>163</td><td>شاشة بديلة قابلة لإعادة الاستخدام</td><td>title, subtitle, type</td></tr>
+        <tr><td><code>VisionTest</code></td><td>155</td><td>مركز اختبارات النظر بـ 3 بطاقات</td><td>onSelectTest, onBack</td></tr>
+        <tr><td><code>LoginPrompt</code></td><td>97</td><td>تنبيه تسجيل الدخول للضيوف</td><td>onLogin, onDismiss</td></tr>
+        <tr><td><code>LanguageSwitch</code></td><td>24</td><td>زر تبديل اللغة (عربي/إنجليزي)</td><td>-</td></tr>
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<!-- ===== SECTION 5: DESIGN ===== -->
+<div class="page">
+  <div class="section">
+    <div class="section-title"><span class="num">5</span> واجهة المستخدم والتصميم</div>
+
+    <div class="subsection-title">5.1 لوحة الألوان</div>
+    <p>
+      يعتمد التصميم على ثيم داكن احترافي مع لون سماوي كلون أساسي. تم اختيار الألوان بعناية لتحقيق توازن بصري مريح مع الحفاظ على التباين الكافي لقراءة سهلة. كل لون يخدم غرضاً محدداً في التسلسل الهرمي البصري.
+    </p>
+    <div class="color-palette">
+      <div class="color-swatch" style="background:#0a0e1a;">#0a0e1a</div>
+      <div class="color-swatch" style="background:#00f0ff;">#00f0ff</div>
+      <div class="color-swatch" style="background:#0080ff;">#0080ff</div>
+      <div class="color-swatch" style="background:#a855f7;">#a855f7</div>
+      <div class="color-swatch" style="background:#00d4aa;">#00d4aa</div>
+      <div class="color-swatch" style="background:#ffa500;">#ffa500</div>
+      <div class="color-swatch" style="background:#ff3b30;">#ff3b30</div>
+      <div class="color-swatch" style="background:#e2e8f0;">#e2e8f0</div>
+      <div class="color-swatch" style="background:#94a3b8;">#94a3b8</div>
+    </div>
+
+    <table>
+      <thead><tr><th>اللون</th><th>الكود</th><th>الاستخدام</th></tr></thead>
+      <tbody>
+        <tr><td style="color:#0a0e1a; font-weight:700;">الخلفية الداكنة</td><td><code>#0a0e1a</code></td><td>خلفية الصفحة الرئيسية لجميع الشاشات</td></tr>
+        <tr><td style="color:#00f0ff; font-weight:700;">السماوي الأساسي</td><td><code>#00f0ff</code></td><td>العناوين والأزرار والعلامات والروابط</td></tr>
+        <tr><td style="color:#0080ff; font-weight:700;">الأزرق الثانوي</td><td><code>#0080ff</code></td><td>التدرجات والعناصر الفرعية</td></tr>
+        <tr><td style="color:#a855f7; font-weight:700;">البنفسجي</td><td><code>#a855f7</code></td><td>العناصر المميزة والديكور</td></tr>
+        <tr><td style="color:#00d4aa; font-weight:700;">الأخضر</td><td><code>#00d4aa</code></td><td>النجاح والنتائج الطبيعية</td></tr>
+        <tr><td style="color:#ffa500; font-weight:700;">البرتقالي</td><td><code>#ffa500</code></td><td>التحذيرات والنتائج المتوسطة</td></tr>
+        <tr><td style="color:#ff3b30; font-weight:700;">الأحمر</td><td><code>#ff3b30</code></td><td>الأخطاء والخطر المرتفع</td></tr>
+        <tr><td style="color:#e2e8f0; font-weight:700;">النص الأساسي</td><td><code>#e2e8f0</code></td><td>النصوص الرئيسية</td></tr>
+        <tr><td style="color:#94a3b8; font-weight:700;">النص الثانوي</td><td><code>#94a3b8</code></td><td>الأوصاف والتسميات الفرعية</td></tr>
+      </tbody>
+    </table>
+
+    <div class="subsection-title">5.2 الأنماط البصرية</div>
+    <div class="two-col">
+      <div class="card">
+        <div class="sub-subsection-title">Glass Morphism</div>
+        <p>ثلاث مستويات من الشفافية مع تأثير الضبابية:</p>
+        <ul>
+          <li><code>.glass</code> - شفافية 5% + ضبابية 16px</li>
+          <li><code>.glass-strong</code> - شفافية 8% + ضبابية 24px</li>
+          <li><code>.glass-card</code> - تدرج خطي + ضبابية 16px</li>
+        </ul>
+      </div>
+      <div class="card">
+        <div class="sub-subsection-title">Glow Effects</div>
+        <p>تأثيرات التوهج بألوان مختلفة:</p>
+        <ul>
+          <li><code>.glow-cyan</code> - توهج سماوي قوي</li>
+          <li><code>.glow-purple</code> - توهج بنفسجي ناعم</li>
+          <li><code>.glow-blue</code> - توهج أزرق</li>
+          <li><code>.glow-green</code> - توهج أخضر</li>
+          <li><code>.text-glow-cyan</code> - توهج نصي</li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="subsection-title">5.3 الحركات والانتقالات</div>
+    <p>
+      يستخدم التطبيق مكتبة Framer Motion لإضافة حركات سلسة ومتقدمة في جميع أنحاء التطبيق. يتم التحكم في الانتقالات بين الشاشات عبر <code>AnimatePresence</code> مع تأثيرات التلاشي والانزلاق. الشاشات تدخل من الأسفل (<code>y: 10</code>) وتخرج للأعلى (<code>y: -10</code>) مع تلاشي الشفافية، مدة الانتقال 0.3 ثانية. تحتوي المكونات أيضاً على تأثيرات staggered للبطاقات في الشبكات، وحركات النبض للعناصر النشطة، وحركة الطفو للأيقونات.
+    </p>
+
+    <div class="highlight-box">
+      <strong>الرسوم المتحركة المخصصة في CSS:</strong>
+      <ul style="margin-top:8px;">
+        <li><code>fadeSlideUp</code> - انتقال مع انزلاق للأعلى (0.4 ثانية)</li>
+        <li><code>pulse-glow</code> - نبض التوهج السماوي (2 ثانية دورية)</li>
+        <li><code>float</code> - حركة الطفو الخفيفة (3 ثوانٍ دورية)</li>
+      </ul>
+    </div>
+  </div>
+</div>
+
+<!-- ===== SECTION 6: NAVIGATION ===== -->
+<div class="page">
+  <div class="section">
+    <div class="section-title"><span class="num">6</span> خريطة التنقل</div>
+    <p>
+      يعمل التطبيق كآلة حالات (State Machine) تُدار من الصفحة الرئيسية <code>page.tsx</code> عبر 17 حالة مختلفة. كل حالة تُمثّل شاشة محددة مع انتقالات سلسة عبر Framer Motion. يدعم النظام التدفق ذو الاتجاهين مع حفظ الحالة بين التنقلات.
+    </p>
+
+    <div class="subsection-title">التدفق الرئيسي</div>
+    <div class="flow">
+      <div class="flow-node" style="background:rgba(0,240,255,0.15); color:#00f0ff;">splash</div>
+      <span class="flow-arrow">&rarr;</span>
+      <div class="flow-node" style="background:rgba(168,85,247,0.15); color:#a855f7;">auth</div>
+      <span class="flow-arrow">&rarr;</span>
+      <div class="flow-node" style="background:rgba(0,212,170,0.15); color:#00d4aa;">main</div>
+    </div>
+
+    <div class="subsection-title">التدفق من القائمة الرئيسية</div>
+    <div class="card" style="font-size:9pt; line-height:2;">
+      <div style="display:grid; grid-template-columns: auto 1fr; gap: 4px 12px; align-items:center;">
+        <span class="badge badge-cyan">scanner</span> <span>&rarr; results (مع قيمة PD) &rarr; records</span>
+        <span class="badge badge-blue">vision-test</span> <span>&rarr; visual-acuity-test | color-test | astigmatism-test</span>
+        <span class="badge badge-purple">health-center</span> <span>&rarr; color-test | strabismus-test | cataract-test | glaucoma-test</span>
+        <span class="badge badge-green">glasses-catalog</span> <span>&rarr; calibration-guide &rarr; glasses-try-on</span>
+        <span class="badge badge-orange">records</span> <span>&rarr; (قائمة السجلات)</span>
+      </div>
+    </div>
+
+    <div class="subsection-title">الStates الكاملة</div>
+    <table>
+      <thead><tr><th>الحالة</th><th>المكوّن</th><th>الوصف</th></tr></thead>
+      <tbody>
+        <tr><td><code>splash</code></td><td>SplashScreen</td><td>شاشة البداية (3 ثوانٍ)</td></tr>
+        <tr><td><code>auth</code></td><td>AuthScreen</td><td>تسجيل الدخول / إنشاء حساب</td></tr>
+        <tr><td><code>main</code></td><td>MainMenu</td><td>القائمة الرئيسية + LoginPrompt</td></tr>
+        <tr><td><code>scanner</code></td><td>Scanner</td><td>ماسح PD بالكاميرا</td></tr>
+        <tr><td><code>results</code></td><td>Results</td><td>عرض نتيجة القياس</td></tr>
+        <tr><td><code>records</code></td><td>Records</td><td>السجلات المحفوظة</td></tr>
+        <tr><td><code>vision-test</code></td><td>VisionTest</td><td>مركز اختبارات النظر</td></tr>
+        <tr><td><code>color-test</code></td><td>ColorVisionTest</td><td>اختبار الألوان Ishihara</td></tr>
+        <tr><td><code>visual-acuity-test</code></td><td>VisualAcuityTest</td><td>اختبار حدة البصر Snellen</td></tr>
+        <tr><td><code>astigmatism-test</code></td><td>AstigmatismTest</td><td>اختبار الاستيجماتيزم</td></tr>
+        <tr><td><code>health-center</code></td><td>HealthCenter</td><td>مركز صحة العين</td></tr>
+        <tr><td><code>strabismus-test</code></td><td>StrabismusTest</td><td>فحص الحول</td></tr>
+        <tr><td><code>cataract-test</code></td><td>CataractTest</td><td>فحص المياه البيضاء</td></tr>
+        <tr><td><code>glaucoma-test</code></td><td>GlaucomaTest</td><td>فحص المياه الزرقاء</td></tr>
+        <tr><td><code>glasses-catalog</code></td><td>GlassesCatalog</td><td>معرض النظارات</td></tr>
+        <tr><td><code>calibration-guide</code></td><td>CalibrationGuide</td><td>دليل التجربة الافتراضية</td></tr>
+        <tr><td><code>glasses-try-on</code></td><td>GlassesTryOn</td><td>التجربة الافتراضية</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div class="separator"></div>
+
+  <!-- ===== SECTION 7: API ===== -->
+  <div class="section">
+    <div class="section-title"><span class="num">7</span> المسارات البرمجية (API Routes)</div>
+    <p>
+      يحتوي المشروع على 4 مسارات برمجية تعمل على الخادم مع Next.js API Routes. تتعامل هذه المسارات مع المصادقة وقياسات PD وتوليد صور النظارات بالذكاء الاصطناعي.
+    </p>
+
+    <table>
+      <thead><tr><th>المسار</th><th>الطريقة</th><th>الوصف</th></tr></thead>
+      <tbody>
+        <tr><td><code>/api/auth</code></td><td>POST</td><td>تسجيل مستخدم جديد / تسجيل دخول / دخول ضيف باستخدام Prisma + SQLite</td></tr>
+        <tr><td><code>/api/measurements</code></td><td>GET / POST</td><td>استعراض وإنشاء قياسات PD محفوظة في قاعدة البيانات</td></tr>
+        <tr><td><code>/api/generate-glasses-image</code></td><td>POST</td><td>توليد صور نظارات واقعية باستخدام z-ai-web-dev-sdk</td></tr>
+        <tr><td><code>/api</code></td><td>GET</td><td>مسار الجذر (health check)</td></tr>
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<!-- ===== SECTION 8: LIBRARIES ===== -->
+<div class="page">
+  <div class="section">
+    <div class="section-title"><span class="num">8</span> المكتبات المساعدة</div>
+    <p>
+      يحتوي المشروع على 6 مكتبات مساعدة مخصصة في مجلد <code>src/lib/</code> تُغطي جميع الوظائف الأساسية للتطبيق من إدارة اللغات والمصادقة إلى كشف الوجه وحساب PD وتخزين البيانات.
+    </p>
+
+    <div class="card" style="margin-bottom:12px;">
+      <div class="sub-subsection-title"><code>i18n.tsx</code> &mdash; نظام اللغات الدولي</div>
+      <p>يوفّر نظام i18n كامل مبني على React Context. يدعم العربية والإنجليزية مع أكثر من 317 مفتاح ترجمة. يحفظ تفضيل اللغة في localStorage. يُحدّث اتجاه الصفحة وسم اللغة تلقائياً. يُصدّر: <code>I18nProvider</code>, <code>useI18n</code>, <code>Locale</code>, <code>Translations</code>. الدالة <code>t(key)</code> ترجع النص المترجم للمفتاح المطلوب.</p>
+    </div>
+
+    <div class="card" style="margin-bottom:12px;">
+      <div class="sub-subsection-title"><code>storage.ts</code> &mdash; إدارة التخزين المحلي</div>
+      <p>يُغلف جميع عمليات localStorage بطريقة آمنة مع فحوصات SSR. يُدار عبر مفتاح واحد <code>optisize_</code> مع أنواع TypeScript صارمة. يُصدّر: <code>saveUser/getUser/removeUser</code> للمستخدمين، <code>saveMeasurements/getMeasurements</code> للقياسات، <code>saveRecord/getRecords/deleteRecord/clearRecords</code> للسجلات العامة. يدعم أنواع: <code>StoredUser</code>, <code>Measurement</code>, <code>Record</code>.</p>
+    </div>
+
+    <div class="card" style="margin-bottom:12px;">
+      <div class="sub-subsection-title"><code>auth.ts</code> &mdash; نظام المصادقة</div>
+      <p>يوفر وظائف المصادقة المحلية عبر localStorage. يدعم: <code>register</code> (تسجيل جديد)، <code>login</code> (تسجيل دخول بالبريد وكلمة المرور)، <code>loginAsGuest</code> (دخول كزائر)، <code>getCurrentUser</code> (استرجاع المستخدم الحالي)، <code>logout</code> (تسجيل الخروج). يولّد معرفات فريدة عبر دمج عشوائي مع الطابع الزمني.</p>
+    </div>
+
+    <div class="card" style="margin-bottom:12px;">
+      <div class="sub-subsection-title"><code>faceDetection.ts</code> &mdash; كشف الوجه</div>
+      <p>نظام كشف الوجه متعدد الطبقات. يبدأ بواجهة FaceDetector الأصلية في المتصفح (Chrome/Edge)، ثم يتراجع إلى face-api.js عبر CDN. يوفر: <code>initializeDetection</code> (تهيئة الكاش)، <code>detectFace</code> (كشف من فيديو)، <code>drawFaceOverlay</code> (رسم طبقة على Canvas)، <code>calculatePD</code> (حساب PD بالمم). يستخدم نسب أنثروبومترية معتمدة (PD = 43% من عرض الوجه).</p>
+    </div>
+
+    <div class="card" style="margin-bottom:12px;">
+      <div class="sub-subsection-title"><code>pdCalculation.ts</code> &mdash; حساب وتصنيف PD</div>
+      <p>يُصنّف قيمة PD إلى ثلاث فئات: ضيق (أقل من 58 مم - برتقالي)، طبيعي (58-68 مم - أخضر)، واسع (أكثر من 68 مم - سماوي). يوفر: <code>classifyPD</code> (تصنيف القيمة)، <code>getPDInfo</code> (معلومات تفصيلية)، <code>averagePD</code> (متوسط عدة قراءات)، <code>getPDStats</code> (إحصائيات شاملة).</p>
+    </div>
+
+    <div class="card">
+      <div class="sub-subsection-title"><code>glassesFaceDetection.ts</code> &mdash; كشف الوجه للتجربة</div>
+      <p>نسخة مخصصة من كشف الوجه مُحسّنة للاستخدام في ميزة التجربة الافتراضية. تتعامل مع الصور الثابتة بدلاً من الفيديو المباشر، وتُحسّن دقة تحديد موضع العينين لتركيب النظارة بدقة أعلى. تعمل بالتنسيق مع مكوّن GlassesTryOn في مرحلة الكشف والتحليل.</p>
+    </div>
+  </div>
+</div>
+
+<!-- ===== SECTION 9: DEVELOPMENT HISTORY ===== -->
+<div class="page">
+  <div class="section">
+    <div class="section-title"><span class="num">9</span> تاريخ التطوير</div>
+    <p>
+      تم تطوير OptiSize على أربع مراحل رئيسية متتالية، بدأت في أبريل 2025. كل مرحلة أضافت ميزات جديدة كاملة مع التحقق من الجودة في نهاية كل مرحلة.
+    </p>
+
+    <div class="phase">
+      <div class="phase-date">أبريل 2025 &mdash; المرحلة الأولى</div>
+      <div class="phase-title">الأساسيات والشاشات الرئيسية</div>
+      <div class="phase-desc">تأسيس المشروع الكامل مع إنشاء الثيم الداكن وتخطيط RTL. بناء نظام المصادقة والتخزين المحلي. تطوير شاشة البداية المتحركة وشاشة تسجيل الدخول والقائمة الرئيسية. إعداد قاعدة البيانات مع Prisma وSQLite. إنشاء المسارات البرمجية (API Routes). إجمالي: 7 ملفات جديدة.</div>
+      <div>
+        <span class="badge badge-green">مكتمل</span>
+        <span class="text-muted" style="margin-right:8px; font-size:9pt;">lint: 0 أخطاء | dev server: 200</span>
+      </div>
+    </div>
+
+    <div class="phase">
+      <div class="phase-date">أبريل 2025 &mdash; المرحلة الثانية</div>
+      <div class="phase-title">ماسح PD + النتائج + السجلات + اختبارات النظر + مركز صحة العين</div>
+      <div class="phase-desc">بناء ماسح PD كامل بالكاميرا مع 5 عينات وتصنيف النتائج. تطوير اختبار الألوان بتقنية Ishihara (8 ألواح). إنشاء مركز صحة العين مع فحوصات الحول والمياه البيضاء والمياه الزرقاء. بناء نظام السجلات مع حفظ تلقائي. إجمالي: 10 ملفات مكونات جديدة.</div>
+      <div>
+        <span class="badge badge-green">مكتمل</span>
+        <span class="text-muted" style="margin-right:8px; font-size:9pt;">lint: 0 أخطاء | جميع الشاشات تعمل</span>
+      </div>
+    </div>
+
+    <div class="phase">
+      <div class="phase-date">أبريل 2025 &mdash; المرحلة الثالثة</div>
+      <div class="phase-title">معرض النظارات + التجربة الافتراضية</div>
+      <div class="phase-desc">بناء قاعدة بيانات 68 نموذج نظارة عبر 5 فئات مع 12 نوع إطار SVG. تطوير معرض تفاعلي بتبويبات وبحث وفلاتر وترتيب. إنشاء نظام تجربة افتراضية من 4 مراحل (اختيار - التقاط - كشف - تجربة) مع سحب وتكبير ودوران وتحميل. إضافة دليل المعايرة قبل التجربة. إجمالي: 4 ملفات جديدة + تعديل page.tsx.</div>
+      <div>
+        <span class="badge badge-green">مكتمل</span>
+        <span class="text-muted" style="margin-right:8px; font-size:9pt;">68 نظارة | SVG يعمل | التنقل سليم</span>
+      </div>
+    </div>
+
+    <div class="phase">
+      <div class="phase-date">أبريل 2025 &mdash; المرحلة الرابعة</div>
+      <div class="phase-title">إصلاحات اختبارات النظر + تحسينات</div>
+      <div class="phase-desc">إصلاح 3 أخطاء رئيسية: إنشاء اختبار حدة البصر المفقود، إنشاء اختبار الاستيجماتيزم المفقود، وإصلاح عدم عرض نتائج اختبار الألوان. إنشاء ملفات VisualAcuityTest.tsx (اختبار Snellen) وAstigmatismTest.tsx (6 مراحل). تحديث خريطة التنقل لربط جميع الاختبارات الجديدة.</div>
+      <div>
+        <span class="badge badge-green">مكتمل</span>
+        <span class="text-muted" style="margin-right:8px; font-size:9pt;">2 ملف جديد | lint: 0 أخطاء</span>
+      </div>
+    </div>
+
+    <div class="phase">
+      <div class="phase-date">أبريل 2025 &mdash; تحسينات إضافية</div>
+      <div class="phase-title">إصلاح الصور وتحسين الألوان ودعم اللغات</div>
+      <div class="phase-desc">إصلاح صور النظارات المفقودة (نسخ 65 صورة + توليد 5 بالذكاء الاصطناعي). تحسين عرض أرقام ألواح Ishihara بتغيير تقنية الرسم من خطوط رقيقة إلى Bitmap Grid. إضافة نظام i18n كامل مع 317+ مفتاح ترجمة لكل لغة. تغيير favicon إلى أيقونة عين مخصصة. التحول من وضع التطوير إلى وضع الإنتاج.</div>
+      <div>
+        <span class="badge badge-green">مكتمل</span>
+        <span class="text-muted" style="margin-right:8px; font-size:9pt;">70 صورة | 634 مفتاح ترجمة | production mode</span>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ===== SECTION 10: STATS SUMMARY ===== -->
+<div class="page">
+  <div class="section">
+    <div class="section-title"><span class="num">10</span> ملخص الإحصائيات</div>
+
+    <div class="stats-grid" style="grid-template-columns: repeat(3, 1fr);">
+      <div class="stat-card">
+        <div class="stat-value" style="color:var(--primary-cyan);">21</div>
+        <div class="stat-label">مكوّن React مخصص</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-value" style="color:var(--secondary-blue);">50+</div>
+        <div class="stat-label">مكوّن shadcn/ui</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-value" style="color:var(--purple);">10,060</div>
+        <div class="stat-label">سطر كود مصدري</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-value" style="color:var(--green);">68</div>
+        <div class="stat-label">نموذج نظارة</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-value" style="color:var(--orange);">70</div>
+        <div class="stat-label">صورة نظارة</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-value" style="color:var(--red);">317+</div>
+        <div class="stat-label">مفتاح ترجمة</div>
+      </div>
+    </div>
+
+    <div class="separator"></div>
+
+    <div class="subsection-title">تفاصيل حجم الملفات (أكبر 10 ملفات)</div>
+    <table>
+      <thead><tr><th>#</th><th>المكوّن</th><th>الأسطر</th><th>النسبة</th></tr></thead>
+      <tbody>
+        <tr><td>1</td><td>VisualAcuityTest.tsx</td><td>1,786</td><td>17.7%</td></tr>
+        <tr><td>2</td><td>GlassesTryOn.tsx</td><td>1,305</td><td>13.0%</td></tr>
+        <tr><td>3</td><td>RealisticGlasses.tsx</td><td>1,038</td><td>10.3%</td></tr>
+        <tr><td>4</td><td>AstigmatismTest.tsx</td><td>621</td><td>6.2%</td></tr>
+        <tr><td>5</td><td>ColorVisionTest.tsx</td><td>539</td><td>5.4%</td></tr>
+        <tr><td>6</td><td>GlaucomaTest.tsx</td><td>521</td><td>5.2%</td></tr>
+        <tr><td>7</td><td>GlassesCatalog.tsx</td><td>468</td><td>4.7%</td></tr>
+        <tr><td>8</td><td>Scanner.tsx</td><td>464</td><td>4.6%</td></tr>
+        <tr><td>9</td><td>AuthScreen.tsx</td><td>465</td><td>4.6%</td></tr>
+        <tr><td>10</td><td>CataractTest.tsx</td><td>420</td><td>4.2%</td></tr>
+      </tbody>
+    </table>
+
+    <div class="separator"></div>
+
+    <div class="subsection-title">توزيع الميزات</div>
+    <table>
+      <thead><tr><th>الميزة</th><th>عدد المكونات</th><th>إجمالي الأسطر</th><th>النسبة</th></tr></thead>
+      <tbody>
+        <tr><td>اختبارات النظر وصحة العين</td><td>7</td><td>5,196</td><td>51.6%</td></tr>
+        <tr><td>معرض النظارات والتجربة</td><td>4</td><td>3,059</td><td>30.4%</td></tr>
+        <tr><td>الشاشات الأساسية والتنقل</td><td>6</td><td>1,513</td><td>15.0%</td></tr>
+        <tr><td>الأنظمة المساعدة</td><td>4</td><td>1,292</td><td>3.0%</td></tr>
+      </tbody>
+    </table>
+
+    <div class="separator"></div>
+
+    <div class="highlight-box" style="text-align:center; padding:20px;">
+      <div style="font-size:14pt; font-weight:700; color:var(--primary-cyan); margin-bottom:8px;">
+        OptiSize - الدقة في كل تفصيلة
+      </div>
+      <div style="font-size:10pt; color:var(--text-secondary);">
+        تطبيق ويب شامل لصحة العين والبصريات | Next.js 16 + TypeScript + Tailwind CSS 4
+      </div>
+      <div style="font-size:9pt; color:var(--text-muted); margin-top:8px;">
+        21 مكوّن | 68 نموذج نظارة | 10,060 سطر كود | 317+ ترجمة | ثيم داكن RTL
+      </div>
+    </div>
+  </div>
+</div>
+
+</body>
+</html>
