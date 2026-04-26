@@ -1,0 +1,149 @@
+تطبيق OptiSize - تفاصيل كاملة
+التقنيات: Next.js 16, TypeScript, Tailwind CSS 4, framer-motion, face-api.js, Prisma (SQLite), lucide-react icons
+
+الاتجاه: عربي RTL (dir="rtl", lang="ar")
+
+الألوان الأساسية:
+خلفية: #0a0e1a (أزرق داكن جداً)
+لون أساسي: #00f0ff (سماوي فوسفوري)
+لون ثانوي: #0080ff (أزرق)
+بنفسجي: #a855f7
+أخضر: #00d4aa
+برتقاني تحذير: #ffa500
+أحمر: #ff3b30 / #ff6b6b
+نص عادي: #e2e8f0
+نص ثانوي: #94a3b8
+نص خافت: #64748b
+الصفحات (19 مكون):
+1. SplashScreen (SplashScreen.tsx) - شاشة بداية:
+
+لوجو عين متحرك (SVG - عين بـ iris و pupil وحيدة)
+اسم "OptiSize" بخط كبير مع توهج
+شعار: "الدقة في كل تفصيلة.. مستقبل البصريات في جيبك"
+شريط تقدم متحرك
+تختفي تلقائياً بعد 3 ثواني
+2. AuthScreen (AuthScreen.tsx) - تسجيل الدخول:
+
+تبويبين: "تسجيل جديد" و "تسجيل الدخول"
+حقول: الاسم، البريد الإلكتروني، كلمة المرور
+زر "دخول كزائر"
+تخزين البيانات في localStorage
+3. MainMenu (MainMenu.tsx) - القائمة الرئيسية:
+
+لوجو + اسم OptiSize + "مركز صحة العين الشامل"
+شريط المستخدم (اسم + زر تسجيل خروج)
+5 أزرار رئيسية (كروت بتدرج لوني + أيقونة):
+قياس مسافة البؤبؤ (Eye icon, cyan) → يفتح Scanner
+اختبارات النظر (Stethoscope icon, بنفسجي) → يفتح VisionTest
+مركز صحة العين (Heart icon, أحمر) → يفتح HealthCenter
+معرض النظارات (Glasses icon, برتقالي) → يفتح GlassesCatalog
+السجل المحفوظ (History icon, أزرق) → يفتح Records
+شبكة مميزات (4 كروت صغيرة: قياس دقيق، فوري بالذكاء الاصطناعي، حفظ السجلات، واجهة مستقبلية)
+تنبيه "الأحجام تقريبية. للحصول على قياسات دقيقة، يُنصح بزيارة طبيب العيون المتخصص." (مع Info icon برتقالي)
+زر "تواصل معنا" (Mail icon, يفتح mailto:mohamed10.mohamed10@gmail.com)
+"جميع الحقوق محفوظة — OptiSize"
+4. Scanner (Scanner.tsx) - قياس PD بالكاميرا:
+
+طلب إذن الكاميرا
+عرض فيديو مباشر من الكاميرا الأمامية
+زر تبديل الكاميرا (أمامية/خلفية)
+تحميل نماذج face-api.js (TinyFaceDetector + FaceLandmark68Net)
+رسم إطار دليل + خط مسح متحرك على الوجه
+دائرات حول العينين + خط PD بينهم
+يجمع 5 عينات ثم يحسب المتوسط
+شريط تقدم + قيمة PD الحالية
+نصيحة: "انظر مباشرة للكاميرا وأبقى ثابت"
+5. Results (Results.tsx) - نتيجة القياس:
+
+عرض قيمة PD بالملم بحجم كبير
+تصنيف (ضيق/طبيعي/واسع) بلون مميز
+وصف تفصيلي
+أزرار: حفظ القياس، إعادة القياس، عرض السجلات، رجوع
+6. Records (Records.tsx) - السجلات المحفوظة:
+
+قائمة كل القياسات السابقة من localStorage
+كل سجل: القيمة، التاريخ، النوع
+حذف سجل / مسح الكل
+7. VisionTest (VisionTest.tsx) - اختبارات النظر:
+
+3 اختبارات: حدة البصر (حروف Snellen بتدرج الأحجام)، الألوان (إيشيهارا)، الاستيجماتيزم
+حروف عربية وأرقام وأشكال Snellen
+نتيجة في النهاية
+8. ColorVisionTest (ColorVisionTest.tsx) - اختبار الألوان (إيشيهارا):
+
+أطباق إيشيهارا بألوان مختلفة
+المستخدم يختار الرقم المخفي
+نتيجة: سليم/ضعف ألوان
+9. HealthCenter (HealthCenter.tsx) - مركز صحة العين:
+
+4 اختبارات: حدة البصر، الألوان، الحول، المياه البيضاء/الزرقاء
+10. StrabismusTest (StrabismusTest.tsx) - كشف الحول:
+
+أسئلة وأشكال لفحص الحول
+11. CataractTest (CataractTest.tsx) - كشف المياه البيضاء:
+
+أسئلة عن أعراض المياه البيضاء
+مراحل: أسئلة → نتيجة
+12. GlaucomaTest (GlaucomaTest.tsx) - كشف المياه الزرقاء:
+
+أسئلة عن أعراض المياه الزرقاء
+13. GlassesCatalog (GlassesCatalog.tsx) - معرض النظارات:
+
+68 نظارة مقسمة لـ 4 تصنيفات:
+أطفال (1-8) - نظارات نظر ملونة
+نسائي نظر (9-21) - cat-eye, round, rectangle, full-rim, half-rim, wayfarer, oval, rimless, square
+نسائي شمس (22-33) - cat-eye, wayfarer, oval, round, shield, rectangle, aviator, full-rim
+رجالي نظر (34-50) - full-rim, rectangle, round, wayfarer, oval, aviator
+رجالي شمس (51-68) - أنواع مختلفة
+كل نظارة لها: id, اسم عربي, اسم إنجليزي, تصنيف, نوع الإطار, اللون, السعر
+صور حقيقية في public/glasses/ (child_01.jpeg, women_reg_01.jfif, men_sun_01.jpeg, إلخ)
+فلتر بالتصنيف (تبويبات)
+عرض شبكي (2 في كل صف)
+عند الضغط: تفاصيل النظارة + زر "تجربة النظارة"
+14. GlassesTryOn (GlassesTryOn.tsx) - تجربة النظارات:
+
+4 مراحل:
+اختيار: عرض النظارة المختارة + زر رفع صورة + زر كاميرا
+التقاط: كاميرا مباشرة + زر التقاط
+كشف: تحميل face-api + كشف الوجه + تحديد نقاط العينين
+تجربة: رسم النظارة على الوجه باستخدام Canvas
+خط أنابيب 4 مراحل لرسم النظارة:
+تحميل صورة النظارة (من public/glasses/)
+إزالة الخلفية البيضاء
+تحميل SVG كـ Image
+رسم النظارة على الوجه بناءً على face landmarks
+تحجيم وتدوير النظارة حسب:
+المسافة بين العينين (eye distance)
+زاوية الوجه (face angle)
+موقع الأنف (nose tip - point 30)
+أزرار: تغيير النظارة، إعادة التجربة، تحميل الصورة الناتجة، رجوع
+اختيار نظارة أخرى من قائمة في الأسفل
+15. RealisticGlasses (RealisticGlasses.tsx) - بيانات النظارات الـ 68:
+
+مصفوفة ALL_GLASSES بكل البيانات (id, nameAr, nameEn, category, frameType, gender, color, price)
+تصدير GLASSES_STYLES للمشاركة مع المكونات الأخرى
+أنواع الإطارات: full-rim, round, square, cat-eye, wayfarer, rimless, half-rim, aviator, rectangle, oval, shield, wrap
+16. LoginPrompt (LoginPrompt.tsx) - تنبيه تسجيل الدخول:
+
+يظهر كـ overlay على القائمة الرئيسية
+"سجّل دخولك لحفظ بياناتك والوصول لجميع الميزات"
+أزرار: تسجيل الدخول، لاحقاً
+17. CalibrationGuide (CalibrationGuide.tsx) - دليل المعايرة
+
+API Routes:
+POST /api/auth - تسجيل/دخول
+POST /api/measurements - حفظ قياس
+GET /api/measurements - جلب القياسات
+POST /api/generate-glasses-image - توليد صورة نظارة بالذكاء الاصطناعي (z-ai-web-dev-sdk)
+ملفات أخرى:
+src/lib/auth.ts - تخزين المستخدم في localStorage
+src/lib/db.ts - Prisma Client (SQLite)
+src/lib/faceDetection.ts - face-api.js (تحميل النماذج + كشف الوجه + رسم overlay)
+src/lib/pdCalculation.ts - حساب PD من قياسات الوجه
+src/lib/storage.ts - تخزين السجلات في localStorage
+src/types/face-api.d.ts - types لـ face-api.js
+public/face-api.min.js - مكتبة face-api.js محلية
+public/glasses/ - 68 صورة نظارات
+public/manifest.json - PWA manifest
+prisma/schema.prisma - قاعدة البيانات
+next.config.ts - output: "standalone", allowedDevOrigins, Permissions-Policy للكاميرا
