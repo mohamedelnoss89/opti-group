@@ -1,9 +1,3 @@
-// This is your Prisma schema file,
-// learn more about it in the docs: https://pris.ly/d/prisma-schema
-
-// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
-// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
-
 generator client {
   provider = "prisma-client-js"
 }
@@ -14,19 +8,73 @@ datasource db {
 }
 
 model User {
-  id        String   @id @default(cuid())
-  email     String   @unique
-  name      String?
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  id           String        @id @default(cuid())
+  name         String
+  email        String?       @unique
+  password     String?
+  isGuest      Boolean       @default(false)
+  createdAt    DateTime      @default(now())
+  measurements Measurement[]
+  prescriptions Prescription[]
+  chatMessages ChatMessage[]
+  reminders    ReviewReminder[]
 }
 
-model Post {
+model Measurement {
   id        String   @id @default(cuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  type      String    // pd, vision-test, health-check, glasses
   title     String
-  content   String?
-  published Boolean  @default(false)
-  authorId  String
+  data      String    // JSON string
   createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+}
+
+model Prescription {
+  id           String   @id @default(cuid())
+  userId       String
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  label        String    // "old", "new", or custom name
+  odSph        Float     @default(0)
+  odCyl        Float     @default(0)
+  odAxis       Int       @default(0)
+  odAdd        Float     @default(0)
+  osSph        Float     @default(0)
+  osCyl        Float     @default(0)
+  osAxis       Int       @default(0)
+  osAdd        Float     @default(0)
+  pd           Float?    // Pupillary distance if available
+  notes        String?
+  createdAt    DateTime  @default(now())
+}
+
+model ChatMessage {
+  id        String   @id @default(cuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  role      String    // "user" or "assistant"
+  content   String
+  createdAt DateTime @default(now())
+}
+
+model ReviewReminder {
+  id           String   @id @default(cuid())
+  userId       String
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  nextVisitDate DateTime?
+  intervalMonths Int    @default(6)
+  isActive     Boolean  @default(true)
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+}
+
+model EyeProtectionSession {
+  id           String   @id @default(cuid())
+  userId       String
+  intervalMinutes Int   @default(20)
+  isActive     Boolean  @default(false)
+  lastBreakAt  DateTime?
+  totalBreaks  Int      @default(0)
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
 }
