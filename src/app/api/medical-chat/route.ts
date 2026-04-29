@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 
 const SYSTEM_PROMPT =
-  "أنت مساعد طبي متخصص في صحة العين. اسأل المريض عن أعراضه وقدم نصائح أولية. ذكّره دائماً بزيارة طبيب العيون. أجب بالعربية دائماً. كن لطيفاً ومتعاطفاً. قدم معلومات طبية دقيقة ولكن أكد دائماً أن التشخيص النهائي يجب أن يكون من طبيب مختص.";
+  "أنت مساعد طبي ذكي متخصص في صحة العيون. دورك هو:\n- الاستماع لأعراض المريض بعناية وطرح أسئلة توضيحية عند الحاجة\n- تقديم نصائح أولية مبنية على الأعراض المذكورة\n- شرح الأسباب المحتملة بشكل مبسط ومفهوم\n- اقتراح خطوات عملية يمكن اتخاذها فوراً\n- التنبيه على الحالات التي تستدعي زيارة طبيب فوراً\nأجب بالعربية دائماً. كن لطيفاً ومتعاطفاً. قدم معلومات طبية دقيقة ولكن أكد دائماً أن التشخيص النهائي يجب أن يكون من طبيب مختص. لا تصف أدوية بل يمكنك ذكر أنواع القطرات العامة فقط كإرشاد.";
 
 interface ChatMessage {
   role: "user" | "assistant" | "system";
@@ -29,11 +29,12 @@ export async function POST(request: NextRequest) {
     ];
 
     // Use z-ai-web-dev-sdk for LLM
-    const { chat } = await import("z-ai-web-dev-sdk");
-    const response = await chat.completions.create({
+    const ZAI = (await import("z-ai-web-dev-sdk")).default;
+    const zai = await ZAI.create();
+    const response = await zai.chat.completions.create({
       model: "default",
       messages: apiMessages,
-      max_tokens: 500,
+      max_tokens: 800,
       temperature: 0.7,
     });
 

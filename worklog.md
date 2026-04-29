@@ -85,3 +85,20 @@ Stage Summary:
 - Prescription Calculator: 4 dropdown fields per eye (SPH, CYL, Axis, ADD) - tap to pick value
 - Prescription Comparison: Same dropdown pattern for old and new prescriptions
 - No more +/- button tapping to reach a value - just open and select directly
+
+---
+Task ID: 1
+Agent: Main Agent
+Task: Fix Smart Medical Chat API - connection error
+
+Work Log:
+- Read the MedicalChat.tsx component and /api/medical-chat/route.ts API route
+- Identified the root cause: incorrect z-ai-web-dev-sdk import pattern
+- The code was doing `const { chat } = await import("z-ai-web-dev-sdk")` and `chat.completions.create()`
+- Correct pattern is: `const ZAI = (await import("z-ai-web-dev-sdk")).default; const zai = await ZAI.create(); zai.chat.completions.create()`
+- Fixed the import pattern in route.ts
+- Build verified successful
+
+Stage Summary:
+- Fixed API route to use correct ZAI SDK initialization pattern
+- Medical chat should now successfully connect to the AI and return responses
