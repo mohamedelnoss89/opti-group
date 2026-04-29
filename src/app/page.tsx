@@ -91,6 +91,7 @@ const pageVariants = {
 
 export default function Home() {
   const [screen, setScreen] = useState<Screen>("splash");
+  const [screenHistory, setScreenHistory] = useState<Screen[]>([]);
   const [user, setUser] = useState<StoredUser | null>(null);
   const [showLoginPrompt, setShowLoginPrompt] = useState(false);
   const [scanResult, setScanResult] = useState<number | null>(null);
@@ -113,6 +114,7 @@ export default function Home() {
     const existingUser = getCurrentUser();
     if (existingUser) {
       setUser(existingUser);
+      setScreenHistory([]);
       if (existingUser.isGuest) {
         setScreen("main");
         setTimeout(() => setShowLoginPrompt(true), 1500);
@@ -126,6 +128,7 @@ export default function Home() {
 
   const handleAuth = useCallback((authUser: StoredUser) => {
     setUser(authUser);
+    setScreenHistory([]);
     setScreen("main");
   }, []);
 
@@ -134,18 +137,32 @@ export default function Home() {
     setScreen("auth");
   }, []);
 
-  const handleNavigate = useCallback((target: string) => {
-    setScreen(target as Screen);
-  }, []);
+  // Navigate forward: push current screen to history
+  const navigateTo = useCallback((target: Screen) => {
+    setScreenHistory((prev) => [...prev, screen]);
+    setScreen(target);
+  }, [screen]);
 
+  const handleNavigate = useCallback((target: string) => {
+    setScreenHistory((prev) => [...prev, screen]);
+    setScreen(target as Screen);
+  }, [screen]);
+
+  // Go back one step: pop from history
   const handleBack = useCallback(() => {
-    setScreen("main");
+    setScreenHistory((prev) => {
+      const newHistory = [...prev];
+      const previousScreen = newHistory.pop() || "main";
+      setScreen(previousScreen);
+      return newHistory;
+    });
   }, []);
 
   const handleLoginPromptLogin = useCallback(() => {
     setShowLoginPrompt(false);
+    setScreenHistory((prev) => [...prev, screen]);
     setScreen("auth");
-  }, []);
+  }, [screen]);
 
   const handleLoginPromptDismiss = useCallback(() => {
     setShowLoginPrompt(false);
@@ -154,8 +171,9 @@ export default function Home() {
   // Scanner result
   const handleScanResult = useCallback((pd: number) => {
     setScanResult(pd);
+    setScreenHistory((prev) => [...prev, screen]);
     setScreen("results");
-  }, []);
+  }, [screen]);
 
   // Save PD measurement
   const handleSaveResult = useCallback(() => {
@@ -176,16 +194,18 @@ export default function Home() {
   // Retake measurement
   const handleRetake = useCallback(() => {
     setScanResult(null);
-    setScreen("scanner");
-  }, []);
+    handleBack();
+  }, [handleBack]);
 
   // Go to records from results
   const handleGoToRecords = useCallback(() => {
+    setScreenHistory((prev) => [...prev, screen]);
     setScreen("records");
-  }, []);
+  }, [screen]);
 
   // Vision test selection
   const handleSelectVisionTest = useCallback((testId: string) => {
+    setScreenHistory((prev) => [...prev, screen]);
     if (testId === "color-vision") {
       setScreen("color-test");
     } else if (testId === "visual-acuity") {
@@ -193,10 +213,11 @@ export default function Home() {
     } else if (testId === "astigmatism") {
       setScreen("astigmatism-test");
     }
-  }, []);
+  }, [screen]);
 
   // Health center test selection
   const handleSelectHealthTest = useCallback((testId: string) => {
+    setScreenHistory((prev) => [...prev, screen]);
     if (testId === "color-test") {
       setScreen("color-test");
     } else if (testId === "strabismus-test") {
@@ -217,8 +238,10 @@ export default function Home() {
       setScreen("eye-protection");
     } else if (testId === "eye-nutrition") {
       setScreen("eye-nutrition");
+    } else if (testId === "light-sensitivity") {
+      setScreen("light-sensitivity");
     }
-  }, []);
+  }, [screen]);
 
   // Color vision test complete
   const handleColorTestComplete = useCallback((result: { score: number; total: number; status: string }) => {
@@ -233,8 +256,9 @@ export default function Home() {
       };
       saveRecord(record);
     }
-    setScreen("vision-test");
-  }, [user]);
+    // Go back to previous screen (vision-test or health-center)
+    handleBack();
+  }, [user, handleBack]);
 
   // Strabismus test complete
   const handleStrabismusComplete = useCallback((result: { score: number; riskLevel: string; riskColor: string }) => {
@@ -281,21 +305,23 @@ export default function Home() {
   // Glasses catalog try-on
   const handleTryOn = useCallback((glasses: GlassesItem) => {
     setSelectedGlasses(glasses);
+    setScreenHistory((prev) => [...prev, screen]);
     setScreen("calibration-guide");
-  }, []);
+  }, [screen]);
 
   // Calibration guide start → go to try-on
   const handleCalibrationStart = useCallback(() => {
     if (selectedGlasses) {
+      setScreenHistory((prev) => [...prev, screen]);
       setScreen("glasses-try-on");
     }
-  }, [selectedGlasses]);
+  }, [selectedGlasses, screen]);
 
   // Calibration guide back → go to catalog
   const handleCalibrationBack = useCallback(() => {
     setSelectedGlasses(null);
-    setScreen("glasses-catalog");
-  }, []);
+    handleBack();
+  }, [handleBack]);
 
   // Change glasses during try-on
   const handleChangeGlasses = useCallback((newGlasses: GlassesItem) => {
@@ -305,8 +331,8 @@ export default function Home() {
   // Try-on back → catalog
   const handleTryOnBack = useCallback(() => {
     setSelectedGlasses(null);
-    setScreen("glasses-catalog");
-  }, []);
+    handleBack();
+  }, [handleBack]);
 
   // Prevent body scroll when on splash
   useEffect(() => {
