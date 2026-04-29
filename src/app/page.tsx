@@ -2,11 +2,11 @@
 
 import { useState, useCallback, useEffect } from "react";
 import { AnimatePresence, motion } from "framer-motion";
+import dynamic from "next/dynamic";
 import SplashScreen from "@/components/optisize/SplashScreen";
 import AuthScreen from "@/components/optisize/AuthScreen";
 import MainMenu from "@/components/optisize/MainMenu";
 import LoginPrompt from "@/components/optisize/LoginPrompt";
-import Scanner from "@/components/optisize/Scanner";
 import Results from "@/components/optisize/Results";
 import Records from "@/components/optisize/Records";
 import VisionTest from "@/components/optisize/VisionTest";
@@ -18,7 +18,6 @@ import StrabismusTest from "@/components/optisize/StrabismusTest";
 import CataractTest from "@/components/optisize/CataractTest";
 import GlaucomaTest from "@/components/optisize/GlaucomaTest";
 import GlassesCatalog from "@/components/optisize/GlassesCatalog";
-import GlassesTryOn from "@/components/optisize/GlassesTryOn";
 import CalibrationGuide from "@/components/optisize/CalibrationGuide";
 import PrescriptionCalculator from "@/components/optisize/PrescriptionCalculator";
 import MedicalChat from "@/components/optisize/MedicalChat";
@@ -26,6 +25,32 @@ import PrescriptionComparison from "@/components/optisize/PrescriptionComparison
 import EyeProtectionTimer from "@/components/optisize/EyeProtectionTimer";
 import EyeNutrition from "@/components/optisize/EyeNutrition";
 import LightSensitivity from "@/components/optisize/LightSensitivity";
+
+// Dynamic imports for heavy components that use camera / face-api.js / TensorFlow
+const Scanner = dynamic(() => import("@/components/optisize/Scanner"), {
+  ssr: false,
+  loading: () => (
+    <div className="min-h-screen flex items-center justify-center" style={{ background: "#0a0e1a" }}>
+      <div className="text-center">
+        <div className="w-12 h-12 rounded-full border-2 border-t-transparent animate-spin mx-auto mb-3" style={{ borderColor: "#00f0ff", borderTopColor: "transparent" }} />
+        <p style={{ color: "#64748b" }}>جاري تحميل الكاميرا...</p>
+      </div>
+    </div>
+  ),
+});
+
+const GlassesTryOn = dynamic(() => import("@/components/optisize/GlassesTryOn"), {
+  ssr: false,
+  loading: () => (
+    <div className="min-h-screen flex items-center justify-center" style={{ background: "#0a0e1a" }}>
+      <div className="text-center">
+        <div className="w-12 h-12 rounded-full border-2 border-t-transparent animate-spin mx-auto mb-3" style={{ borderColor: "#00f0ff", borderTopColor: "transparent" }} />
+        <p style={{ color: "#64748b" }}>جاري التحميل...</p>
+      </div>
+    </div>
+  ),
+});
+
 import type { GlassesItem } from "@/components/optisize/RealisticGlasses";
 import { getCurrentUser } from "@/lib/auth";
 import { saveRecord, type Record as StoredRecord } from "@/lib/storage";
@@ -70,6 +95,19 @@ export default function Home() {
   const [showLoginPrompt, setShowLoginPrompt] = useState(false);
   const [scanResult, setScanResult] = useState<number | null>(null);
   const [selectedGlasses, setSelectedGlasses] = useState<GlassesItem | null>(null);
+
+  // Remove CSS-only loader and show app once React hydrates
+  useEffect(() => {
+    const cssLoader = document.getElementById("css-loader");
+    const appRoot = document.getElementById("app-root");
+    if (cssLoader) {
+      cssLoader.classList.add("app-ready");
+      setTimeout(() => cssLoader.remove(), 400);
+    }
+    if (appRoot) {
+      appRoot.classList.add("app-ready");
+    }
+  }, []);
 
   const handleSplashComplete = useCallback(() => {
     const existingUser = getCurrentUser();
@@ -157,7 +195,7 @@ export default function Home() {
     }
   }, []);
 
-  // Health center test selection - UPDATED with new screens
+  // Health center test selection
   const handleSelectHealthTest = useCallback((testId: string) => {
     if (testId === "color-test") {
       setScreen("color-test");
@@ -394,7 +432,7 @@ export default function Home() {
           </motion.div>
         )}
 
-        {/* ===== NEW: Eye Health Center Screens ===== */}
+        {/* ===== Eye Health Center Screens ===== */}
 
         {screen === "prescription-calculator" && (
           <motion.div key="prescription-calculator" variants={pageVariants} initial="initial" animate="animate" exit="exit" transition={{ duration: 0.3 }}>
