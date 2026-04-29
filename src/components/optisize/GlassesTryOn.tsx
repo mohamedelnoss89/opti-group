@@ -477,7 +477,7 @@ export default function GlassesTryOn({
         glassesId: glasses.id,
         glassesName: glasses.nameAr,
         glassesColor: glasses.color,
-        price: glasses.price,
+        price: glasses.price || 0,
         category: glasses.category,
       },
       timestamp: new Date().toISOString(),
@@ -607,9 +607,6 @@ export default function GlassesTryOn({
               <h2 className="text-lg font-bold mb-1" style={{ color: "#e2e8f0" }}>
                 {glasses.nameAr}
               </h2>
-              <p className="text-sm mb-3" style={{ color: "#64748b" }}>
-                {glasses.nameEn}
-              </p>
               <div className="flex items-center justify-center gap-3 mb-2">
                 <span
                   className="text-xs px-3 py-1 rounded-full"
@@ -619,24 +616,9 @@ export default function GlassesTryOn({
                     border: "1px solid rgba(0,240,255,0.15)",
                   }}
                 >
-                  {getFrameTypeLabel(glasses.frameType)}
+                  {glasses.color}
                 </span>
-                <div className="flex items-center gap-1.5">
-                  <div
-                    className="w-3 h-3 rounded-full"
-                    style={{
-                      background: glasses.colorHex,
-                      border: "1px solid rgba(255,255,255,0.15)",
-                    }}
-                  />
-                  <span className="text-xs" style={{ color: "#94a3b8" }}>
-                    {glasses.color}
-                  </span>
-                </div>
               </div>
-              <p className="text-xl font-bold mt-2" style={{ color: "#00d4aa" }}>
-                {glasses.price} ج.م
-              </p>
             </div>
 
             {/* Options */}
@@ -802,7 +784,7 @@ export default function GlassesTryOn({
             </div>
             <div className="flex-1 min-w-0">
               <p className="text-xs font-semibold truncate" style={{ color: "#e2e8f0" }}>{glasses.nameAr}</p>
-              <p className="text-[10px] truncate" style={{ color: "#64748b" }}>{glasses.nameEn}</p>
+              <p className="text-[10px] truncate" style={{ color: "#64748b" }}>{glasses.color}</p>
             </div>
           </div>
 
@@ -1271,12 +1253,9 @@ export default function GlassesTryOn({
                               }`,
                             }}
                           >
-                            <div
-                              className="flex items-center justify-center mb-2"
-                              dangerouslySetInnerHTML={{
-                                __html: getGlassesSVG(g.frameType, g.colorHex, 80),
-                              }}
-                            />
+                            <div className="flex items-center justify-center mb-2 h-10">
+                              <img src={g.image} alt={g.nameAr} className="max-h-10 w-auto object-contain" />
+                            </div>
                             <p
                               className="text-xs font-medium truncate"
                               style={{ color: "#e2e8f0" }}
@@ -1287,7 +1266,7 @@ export default function GlassesTryOn({
                               className="text-[10px] truncate"
                               style={{ color: "#64748b" }}
                             >
-                              {g.color} - {g.price} ج.م
+                              {g.color}
                             </p>
                           </motion.button>
                         )
