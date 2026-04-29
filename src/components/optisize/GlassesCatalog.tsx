@@ -61,7 +61,7 @@ export default function GlassesCatalog({ onTryOn, onBack }: GlassesCatalogProps)
     : GLASSES_CATEGORIES.find((c) => c.id === activeCategory)?.label || "";
 
   return (
-    <div className="min-h-screen flex flex-col" style={{ background: "#0a0e1a" }}>
+    <div className="min-h-screen flex flex-col touch-manipulation" style={{ background: "#0a0e1a", WebkitTapHighlightColor: "transparent" }}>
       {/* Background decoration */}
       <div
         className="fixed inset-0 pointer-events-none"
@@ -171,37 +171,37 @@ export default function GlassesCatalog({ onTryOn, onBack }: GlassesCatalogProps)
                 variants={cardVariants}
                 whileTap={{ scale: 0.97 }}
                 onClick={() => onTryOn(glasses)}
-                className="rounded-2xl overflow-hidden cursor-pointer transition-all duration-200 group"
+                className="rounded-2xl overflow-hidden cursor-pointer transition-all duration-200 group hover:border-cyan-500/20"
                 style={{
                   background:
-                    "linear-gradient(135deg, rgba(255,255,255,0.06) 0%, rgba(255,255,255,0.02) 100%)",
-                  border: "1px solid rgba(255,255,255,0.06)",
+                    "linear-gradient(180deg, rgba(15,23,42,0.8) 0%, rgba(10,14,26,0.95) 100%)",
+                  border: "1px solid rgba(255,255,255,0.08)",
                 }}
               >
                 {/* Glasses Image */}
                 <div
-                  className="relative flex items-center justify-center p-3"
+                  className="relative flex items-center justify-center p-2"
                   style={{
-                    background:
-                      "linear-gradient(180deg, rgba(255,255,255,0.02) 0%, transparent 100%)",
-                    minHeight: "120px",
+                    background: "transparent",
+                    minHeight: "130px",
                   }}
                 >
                   <img
                     src={glasses.image}
                     alt={glasses.nameAr}
-                    className="max-h-28 w-auto object-contain"
+                    className="max-h-32 w-auto object-contain drop-shadow-lg transition-transform duration-200 group-active:scale-95"
+                    style={{ filter: "drop-shadow(0 2px 8px rgba(0,0,0,0.3))" }}
                   />
                   {/* Try-on overlay */}
                   <div
-                    className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-200"
-                    style={{ background: "rgba(10,14,26,0.6)" }}
+                    className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 group-active:opacity-100 transition-opacity duration-200"
+                    style={{ background: "rgba(10,14,26,0.5)" }}
                   >
                     <div
                       className="flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium"
                       style={{
-                        background: "rgba(0,240,255,0.15)",
-                        border: "1px solid rgba(0,240,255,0.3)",
+                        background: "rgba(0,240,255,0.2)",
+                        border: "1px solid rgba(0,240,255,0.4)",
                         color: "#00f0ff",
                       }}
                     >
