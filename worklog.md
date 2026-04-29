@@ -186,3 +186,29 @@ Stage Summary:
 - Average frame content: ~18% of image area (good visibility)
 - Images are 800x800 max, optimized for web
 - Build successful, deployment ready
+---
+Task ID: 1
+Agent: Main Agent
+Task: Fix glasses images - restore frame structure and properly remove backgrounds
+
+Work Log:
+- Investigated git history to find original and rembg-processed versions of images
+- Found commit fa45eb5 had original RGB images (before any processing)
+- Found commit 6d06ae5 had correctly rembg-processed images with frames intact
+- Found commit 0d5de8c had the destroyed images (99.6% transparent - frame erased)
+- Restored all 69 images from rembg commit (6d06ae5)
+- Re-ran rembg on ALL 69 original images using Python API for cleanest results
+- Resized all images to 800x800 with transparent padding (aspect ratio preserved)
+- Applied gentle cleanup to remove background artifacts inside lenses:
+  - Removed semi-transparent gray/white pixels (background remnants)
+  - Protected anti-aliasing pixels near frame edges (using dilation check)
+  - Never touched opaque pixels (frame structure fully preserved)
+  - Reduced alpha of remaining gray artifacts not near frame
+- Verified all 69 images: 800x800 RGBA, frames intact, ~84.8% transparent (background removed)
+
+Stage Summary:
+- All 69 glasses images successfully re-processed from originals
+- Background properly removed while preserving complete frame structure
+- Images are 800x800 RGBA PNG format with transparent backgrounds
+- Average opaque content: 15.2% (frame + lenses), Average transparent: 84.8% (background)
+- Preview grids created for each category in /home/z/my-project/download/
