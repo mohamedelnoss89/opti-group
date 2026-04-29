@@ -54,7 +54,7 @@ export default function MainMenu({
     {
       id: "scanner",
       label: t("menu.pd"),
-      description: "PD Measurement",
+      description: "قياس مسافة البؤبؤ",
       icon: Eye,
       gradient: "linear-gradient(135deg, #00f0ff, #0080ff)",
       glowClass: "glow-cyan",
@@ -62,7 +62,7 @@ export default function MainMenu({
     {
       id: "vision-test",
       label: t("menu.vision"),
-      description: "Vision Tests",
+      description: "اختبارات النظر",
       icon: Stethoscope,
       gradient: "linear-gradient(135deg, #a855f7, #6366f1)",
       glowClass: "glow-purple",
@@ -70,7 +70,7 @@ export default function MainMenu({
     {
       id: "health-center",
       label: t("menu.health"),
-      description: "Eye Health Center",
+      description: "مركز صحة العين",
       icon: Heart,
       gradient: "linear-gradient(135deg, #ff3b30, #ff6b6b)",
       glowClass: "glow-red",
@@ -78,7 +78,7 @@ export default function MainMenu({
     {
       id: "glasses-catalog",
       label: t("menu.glasses"),
-      description: "Glasses Catalog",
+      description: "معرض النظارات",
       icon: Glasses,
       gradient: "linear-gradient(135deg, #ffa500, #ff6b00)",
       glowClass: "glow-orange",
@@ -86,7 +86,7 @@ export default function MainMenu({
     {
       id: "records",
       label: t("menu.records"),
-      description: "Saved Records",
+      description: "السجلات المحفوظة",
       icon: History,
       gradient: "linear-gradient(135deg, #0080ff, #0050cc)",
       glowClass: "glow-blue",
@@ -121,7 +121,7 @@ export default function MainMenu({
     {
       id: "light-sensitivity",
       label: t("light.title"),
-      subtitle: "Light Sensitivity",
+      subtitle: "تحسس الإضاءة",
       icon: Sun,
       gradient: "linear-gradient(135deg, #fbbf24, #f59e0b)",
       color: "#fbbf24",
@@ -129,7 +129,7 @@ export default function MainMenu({
     {
       id: "records",
       label: t("records.export"),
-      subtitle: "Export & Filter",
+      subtitle: "تصدير وفرز",
       icon: Download,
       gradient: "linear-gradient(135deg, #00d4aa, #00a88a)",
       color: "#00d4aa",

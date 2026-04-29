@@ -165,7 +165,7 @@ function EyeCard({
       </div>
       <div className="grid grid-cols-2 gap-2">
         <RxInput
-          label="SPH"
+          label="كروي"
           value={rx.sph}
           onChange={(v) => onUpdate("sph", v)}
           min={-20}
@@ -173,7 +173,7 @@ function EyeCard({
           step={0.25}
         />
         <RxInput
-          label="CYL"
+          label="أسطواني"
           value={rx.cyl}
           onChange={(v) => onUpdate("cyl", v)}
           min={-10}
@@ -181,7 +181,7 @@ function EyeCard({
           step={0.25}
         />
         <RxInput
-          label="Axis"
+          label="محور"
           value={rx.axis}
           onChange={(v) => onUpdate("axis", v)}
           min={0}
@@ -190,7 +190,7 @@ function EyeCard({
           unit="°"
         />
         <RxInput
-          label="ADD"
+          label="إضافة"
           value={rx.add}
           onChange={(v) => onUpdate("add", v)}
           min={0}
@@ -208,10 +208,10 @@ function comparePrescriptions(
 ): DiffResult[] {
   const diffs: DiffResult[] = [];
   const params: { key: keyof EyeRx; label: string; isAxis?: boolean }[] = [
-    { key: "sph", label: "SPH" },
-    { key: "cyl", label: "CYL" },
-    { key: "axis", label: "Axis", isAxis: true },
-    { key: "add", label: "ADD" },
+    { key: "sph", label: "كروي" },
+    { key: "cyl", label: "أسطواني" },
+    { key: "axis", label: "محور", isAxis: true },
+    { key: "add", label: "إضافة" },
   ];
 
   for (const eye of ["od", "os"] as const) {
@@ -368,7 +368,7 @@ export default function PrescriptionComparison({
             مقارنة الوصفات
           </h1>
           <p className="text-xs" style={{ color: "#64748b" }}>
-            Prescription Comparison
+            مقارنة الوصفات
           </p>
         </div>
         <Button
@@ -403,7 +403,7 @@ export default function PrescriptionComparison({
           <div className="space-y-2">
             <EyeCard
               title="العين اليمنى (OD)"
-              subtitle="Old OD"
+              subtitle="العين اليمنى القديمة"
               color="#ff6b6b"
               gradient="linear-gradient(135deg, #ff3b30, #ff6b6b)"
               rx={oldRx.od}
@@ -411,7 +411,7 @@ export default function PrescriptionComparison({
             />
             <EyeCard
               title="العين اليسرى (OS)"
-              subtitle="Old OS"
+              subtitle="العين اليسرى القديمة"
               color="#ff6b6b"
               gradient="linear-gradient(135deg, #ff3b30, #ff6b6b)"
               rx={oldRx.os}
@@ -462,7 +462,7 @@ export default function PrescriptionComparison({
           <div className="space-y-2">
             <EyeCard
               title="العين اليمنى (OD)"
-              subtitle="New OD"
+              subtitle="العين اليمنى الجديدة"
               color="#00d4aa"
               gradient="linear-gradient(135deg, #00d4aa, #00a88a)"
               rx={newRx.od}
@@ -470,7 +470,7 @@ export default function PrescriptionComparison({
             />
             <EyeCard
               title="العين اليسرى (OS)"
-              subtitle="New OS"
+              subtitle="العين اليسرى الجديدة"
               color="#00d4aa"
               gradient="linear-gradient(135deg, #00d4aa, #00a88a)"
               rx={newRx.os}

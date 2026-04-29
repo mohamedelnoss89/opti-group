@@ -370,7 +370,6 @@ export default function ColorVisionTest({ onBack, onComplete }: ColorVisionTestP
         </Button>
         <div className="text-center">
           <h1 className="text-base font-bold" style={{ color: "#e2e8f0" }}>{t("color.title")}</h1>
-          <p className="text-xs" style={{ color: "#64748b" }}>Ishihara Color Test</p>
         </div>
         <div className="w-10" />
       </div>

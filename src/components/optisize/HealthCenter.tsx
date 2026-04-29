@@ -43,45 +43,45 @@ export default function HealthCenter({ onSelectTest, onBack }: HealthCenterProps
   const diagnosticTests = [
     {
       id: "visual-acuity",
-      title: "اختبار حدة البصر",
-      subtitle: "Visual Acuity",
-      description: "فحص مدى وضوح رؤيتك للأشياء القريبة والبعيدة",
+      title: t("health.acuity"),
+      subtitle: t("health.acuity"),
+      description: t("health.acuityDesc"),
       icon: Eye,
       gradient: "linear-gradient(135deg, #a855f7, #6366f1)",
       color: "#a855f7",
     },
     {
       id: "color-test",
-      title: "اختبار الألوان",
-      subtitle: "Color Vision",
-      description: "فحص قدرتك على تمييز الألوان المختلفة باستخدام ألواح إيشيهارا",
+      title: t("health.colorTest"),
+      subtitle: t("health.colorTest"),
+      description: t("health.colorTestDesc"),
       icon: Palette,
       gradient: "linear-gradient(135deg, #ff3b30, #ff6b6b)",
       color: "#ff3b30",
     },
     {
       id: "strabismus-test",
-      title: "فحص الحول",
-      subtitle: "Strabismus Screening",
-      description: "اكتشاف علامات الحول وتقييم حالة محاذاة العينين",
+      title: t("health.strabismus"),
+      subtitle: t("health.strabismus"),
+      description: t("health.strabismusDesc"),
       icon: Focus,
       gradient: "linear-gradient(135deg, #ffa500, #ff6b00)",
       color: "#ffa500",
     },
     {
       id: "cataract-test",
-      title: "فحص المياه البيضاء",
-      subtitle: "Cataract Screening",
-      description: "تقييم خطر الإصابة بالمياه البيضاء من خلال الأعراض الشائعة",
+      title: t("health.cataract"),
+      subtitle: t("health.cataract"),
+      description: t("health.cataractDesc"),
       icon: Shield,
       gradient: "linear-gradient(135deg, #00d4aa, #00a88a)",
       color: "#00d4aa",
     },
     {
       id: "glaucoma-test",
-      title: "فحص المياه الزرقاء",
-      subtitle: "Glaucoma Screening",
-      description: "فحص مبكر لارتفاع ضغط العين وتقييم مجال الرؤية الجانبية",
+      title: t("health.glaucoma"),
+      subtitle: t("health.glaucoma"),
+      description: t("health.glaucomaDesc"),
       icon: Eye,
       gradient: "linear-gradient(135deg, #00f0ff, #0080ff)",
       color: "#00f0ff",
@@ -93,7 +93,7 @@ export default function HealthCenter({ onSelectTest, onBack }: HealthCenterProps
     {
       id: "prescription-calculator",
       title: t("health.calculator"),
-      subtitle: "Prescription Calculator",
+      subtitle: t("health.calculatorSub"),
       description: t("health.calculatorDesc"),
       icon: Calculator,
       gradient: "linear-gradient(135deg, #00f0ff, #0080ff)",
@@ -102,7 +102,7 @@ export default function HealthCenter({ onSelectTest, onBack }: HealthCenterProps
     {
       id: "medical-chat",
       title: t("health.chat"),
-      subtitle: "AI Medical Chat",
+      subtitle: t("health.chatSub"),
       description: t("health.chatDesc"),
       icon: MessageCircle,
       gradient: "linear-gradient(135deg, #a855f7, #6366f1)",
@@ -111,7 +111,7 @@ export default function HealthCenter({ onSelectTest, onBack }: HealthCenterProps
     {
       id: "prescription-comparison",
       title: t("health.compare"),
-      subtitle: "Prescription Comparison",
+      subtitle: t("health.compareSub"),
       description: t("health.compareDesc"),
       icon: GitCompareArrows,
       gradient: "linear-gradient(135deg, #ffa500, #ff6b00)",
@@ -120,7 +120,7 @@ export default function HealthCenter({ onSelectTest, onBack }: HealthCenterProps
     {
       id: "eye-protection",
       title: t("health.protection"),
-      subtitle: "Eye Protection Mode",
+      subtitle: t("health.protectionSub"),
       description: t("health.protectionDesc"),
       icon: Timer,
       gradient: "linear-gradient(135deg, #00d4aa, #00a88a)",
@@ -129,7 +129,7 @@ export default function HealthCenter({ onSelectTest, onBack }: HealthCenterProps
     {
       id: "eye-nutrition",
       title: t("health.nutrition"),
-      subtitle: "Eye Nutrition",
+      subtitle: t("health.nutritionSub"),
       description: t("health.nutritionDesc"),
       icon: Apple,
       gradient: "linear-gradient(135deg, #ff3b30, #ff6b6b)",
@@ -162,9 +162,6 @@ export default function HealthCenter({ onSelectTest, onBack }: HealthCenterProps
           <h1 className="text-base font-bold" style={{ color: "#e2e8f0" }}>
             {t("health.title")}
           </h1>
-          <p className="text-xs" style={{ color: "#64748b" }}>
-            Eye Health Center
-          </p>
         </div>
         <div className="w-10" />
       </div>
@@ -178,7 +175,7 @@ export default function HealthCenter({ onSelectTest, onBack }: HealthCenterProps
         {/* Diagnostic Tests Section */}
         <motion.div variants={itemVariants}>
           <h2 className="text-sm font-semibold mb-3" style={{ color: "#94a3b8" }}>
-            الفحوصات التشخيصية
+            {t("health.diagnosticSection")}
           </h2>
           <div className="space-y-3">
             {diagnosticTests.map((test) => (
@@ -225,7 +222,7 @@ export default function HealthCenter({ onSelectTest, onBack }: HealthCenterProps
         {/* Separator */}
         <motion.div variants={itemVariants} className="flex items-center gap-3 py-2">
           <div className="flex-1 h-px" style={{ background: "rgba(255,255,255,0.06)" }} />
-          <span className="text-[10px]" style={{ color: "#64748b" }}>أدوات صحة العين</span>
+          <span className="text-[10px]" style={{ color: "#64748b" }}>{t("health.toolsSection")}</span>
           <div className="flex-1 h-px" style={{ background: "rgba(255,255,255,0.06)" }} />
         </motion.div>
 
@@ -276,7 +273,7 @@ export default function HealthCenter({ onSelectTest, onBack }: HealthCenterProps
         {/* Info */}
         <motion.div variants={itemVariants} className="glass-card rounded-xl p-4 mt-4">
           <p className="text-xs leading-relaxed" style={{ color: "#94a3b8" }}>
-            هذه الفحوصات والأدوات للتوعية والتوجيه فقط ولا تُغني عن الفحص الدقيق عند طبيب العيون المتخصص.
+            {t("health.disclaimer")}
           </p>
         </motion.div>
       </motion.div>

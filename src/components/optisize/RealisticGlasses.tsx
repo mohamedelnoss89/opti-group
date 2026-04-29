@@ -3,7 +3,7 @@
 export interface GlassesItem {
   id: number;
   nameAr: string;
-  nameEn: string;
+  nameAr: string;
   category: "kids" | "women_regular" | "women_sun" | "men_regular" | "men_sun";
   frameType: string;
   gender: "kids" | "women" | "men";
@@ -42,7 +42,7 @@ export const ALL_GLASSES: GlassesItem[] = [
   {
     id: 1,
     nameAr: "نظارة أطفال ملونة",
-    nameEn: "Colorful Kids Frame",
+    nameAr: "Colorful Kids Frame",
     category: "kids",
     frameType: "full-rim",
     gender: "kids",
@@ -54,7 +54,7 @@ export const ALL_GLASSES: GlassesItem[] = [
   {
     id: 2,
     nameAr: "نظارة أطفال مستديرة",
-    nameEn: "Round Kids Frame",
+    nameAr: "Round Kids Frame",
     category: "kids",
     frameType: "round",
     gender: "kids",
@@ -66,7 +66,7 @@ export const ALL_GLASSES: GlassesItem[] = [
   {
     id: 3,
     nameAr: "نظارة أطفال مستطيلة",
-    nameEn: "Rectangle Kids Frame",
+    nameAr: "Rectangle Kids Frame",
     category: "kids",
     frameType: "rectangle",
     gender: "kids",
@@ -78,7 +78,7 @@ export const ALL_GLASSES: GlassesItem[] = [
   {
     id: 4,
     nameAr: "نظارة أطفال كات آي",
-    nameEn: "Cat-Eye Kids Frame",
+    nameAr: "Cat-Eye Kids Frame",
     category: "kids",
     frameType: "cat-eye",
     gender: "kids",
@@ -90,7 +90,7 @@ export const ALL_GLASSES: GlassesItem[] = [
   {
     id: 5,
     nameAr: "نظارة أطفال أوفال",
-    nameEn: "Oval Kids Frame",
+    nameAr: "Oval Kids Frame",
     category: "kids",
     frameType: "oval",
     gender: "kids",
@@ -102,7 +102,7 @@ export const ALL_GLASSES: GlassesItem[] = [
   {
     id: 6,
     nameAr: "نظارة أطفال ويفارر",
-    nameEn: "Wayfarer Kids Frame",
+    nameAr: "Wayfarer Kids Frame",
     category: "kids",
     frameType: "wayfarer",
     gender: "kids",
@@ -114,7 +114,7 @@ export const ALL_GLASSES: GlassesItem[] = [
   {
     id: 7,
     nameAr: "نظارة أطفال مربعة",
-    nameEn: "Square Kids Frame",
+    nameAr: "Square Kids Frame",
     category: "kids",
     frameType: "square",
     gender: "kids",
@@ -126,7 +126,7 @@ export const ALL_GLASSES: GlassesItem[] = [
   {
     id: 8,
     nameAr: "نظارة أطفال نصف إطار",
-    nameEn: "Half-Rim Kids Frame",
+    nameAr: "Half-Rim Kids Frame",
     category: "kids",
     frameType: "half-rim",
     gender: "kids",
@@ -140,7 +140,7 @@ export const ALL_GLASSES: GlassesItem[] = [
   {
     id: 9,
     nameAr: "نظارة كات آي كلاسيكية",
-    nameEn: "Classic Cat-Eye",
+    nameAr: "Classic Cat-Eye",
     category: "women_regular",
     frameType: "cat-eye",
     gender: "women",
@@ -152,7 +152,7 @@ export const ALL_GLASSES: GlassesItem[] = [
   {
     id: 10,
     nameAr: "نظارة مستديرة أنيقة",
-    nameEn: "Elegant Round Frame",
+    nameAr: "Elegant Round Frame",
     category: "women_regular",
     frameType: "round",
     gender: "women",
@@ -164,7 +164,7 @@ export const ALL_GLASSES: GlassesItem[] = [
   {
     id: 11,
     nameAr: "نظارة سكوير عصرية",
-    nameEn: "Modern Square Frame",
+    nameAr: "Modern Square Frame",
     category: "women_regular",
     frameType: "square",
     gender: "women",
@@ -176,7 +176,7 @@ export const ALL_GLASSES: GlassesItem[] = [
   {
     id: 12,
     nameAr: "نظارة مستطيلة نسائية",
-    nameEn: "Women's Rectangle Frame",
+    nameAr: "Women's Rectangle Frame",
     category: "women_regular",
     frameType: "rectangle",
     gender: "women",
@@ -188,7 +188,7 @@ export const ALL_GLASSES: GlassesItem[] = [
   {
     id: 13,
     nameAr: "نظارة أوفال رقيقة",
-    nameEn: "Slim Oval Frame",
+    nameAr: "Slim Oval Frame",
     category: "women_regular",
     frameType: "oval",
     gender: "women",
@@ -200,7 +200,7 @@ export const ALL_GLASSES: GlassesItem[] = [
   {
     id: 14,
     nameAr: "نظارة كاملة الإطار",
-    nameEn: "Full-Rim Elegant Frame",
+    nameAr: "Full-Rim Elegant Frame",
     category: "women_regular",
     frameType: "full-rim",
     gender: "women",
@@ -212,7 +212,7 @@ export const ALL_GLASSES: GlassesItem[] = [
   {
     id: 15,
     nameAr: "نظارة نصف إطار نسائية",
-    nameEn: "Women's Half-Rim",
+    nameAr: "Women's Half-Rim",
     category: "women_regular",
     frameType: "half-rim",
     gender: "women",
@@ -224,7 +224,7 @@ export const ALL_GLASSES: GlassesItem[] = [
   {
     id: 16,
     nameAr: "نظارة ويفارر نسائية",
-    nameEn: "Women's Wayfarer",
+    nameAr: "Women's Wayfarer",
     category: "women_regular",
     frameType: "wayfarer",
     gender: "women",
@@ -236,7 +236,7 @@ export const ALL_GLASSES: GlassesItem[] = [
   {
     id: 17,
     nameAr: "نظارة ريملس أنيقة",
-    nameEn: "Elegant Rimless Frame",
+    nameAr: "Elegant Rimless Frame",
     category: "women_regular",
     frameType: "rimless",
     gender: "women",
@@ -248,7 +248,7 @@ export const ALL_GLASSES: GlassesItem[] = [
   {
     id: 18,
     nameAr: "نظارة كات آي وردية",
-    nameEn: "Pink Cat-Eye Frame",
+    nameAr: "Pink Cat-Eye Frame",
     category: "women_regular",
     frameType: "cat-eye",
     gender: "women",
@@ -260,7 +260,7 @@ export const ALL_GLASSES: GlassesItem[] = [
   {
     id: 19,
     nameAr: "نظارة مستديرة بنفسجي",
-    nameEn: "Purple Round Frame",
+    nameAr: "Purple Round Frame",
     category: "women_regular",
     frameType: "round",
     gender: "women",
@@ -272,7 +272,7 @@ export const ALL_GLASSES: GlassesItem[] = [
   {
     id: 20,
     nameAr: "نظارة أفاتور نسائية",
-    nameEn: "Women's Aviator Frame",
+    nameAr: "Women's Aviator Frame",
     category: "women_regular",
     frameType: "aviator",
     gender: "women",
@@ -284,7 +284,7 @@ export const ALL_GLASSES: GlassesItem[] = [
   {
     id: 21,
     nameAr: "نظارة شفافة عصرية",
-    nameEn: "Clear Modern Frame",
+    nameAr: "Clear Modern Frame",
     category: "women_regular",
     frameType: "full-rim",
     gender: "women",
@@ -298,7 +298,7 @@ export const ALL_GLASSES: GlassesItem[] = [
   {
     id: 22,
     nameAr: "نظارة شمس كات آي",
-    nameEn: "Cat-Eye Sunglasses",
+    nameAr: "Cat-Eye Sunglasses",
     category: "women_sun",
     frameType: "cat-eye",
     gender: "women",
@@ -310,7 +310,7 @@ export const ALL_GLASSES: GlassesItem[] = [
   {
     id: 23,
     nameAr: "نظارة شمس ويفارر",
-    nameEn: "Wayfarer Sunglasses",
+    nameAr: "Wayfarer Sunglasses",
     category: "women_sun",
     frameType: "wayfarer",
     gender: "women",
@@ -322,7 +322,7 @@ export const ALL_GLASSES: GlassesItem[] = [
   {
     id: 24,
     nameAr: "نظارة شمس أوفال",
-    nameEn: "Oval Sunglasses",
+    nameAr: "Oval Sunglasses",
     category: "women_sun",
     frameType: "oval",
     gender: "women",
@@ -334,7 +334,7 @@ export const ALL_GLASSES: GlassesItem[] = [
   {
     id: 25,
     nameAr: "نظارة شمس مستديرة",
-    nameEn: "Round Sunglasses",
+    nameAr: "Round Sunglasses",
     category: "women_sun",
     frameType: "round",
     gender: "women",
@@ -346,7 +346,7 @@ export const ALL_GLASSES: GlassesItem[] = [
   {
     id: 26,
     nameAr: "نظارة شمس شيلد",
-    nameEn: "Shield Sunglasses",
+    nameAr: "Shield Sunglasses",
     category: "women_sun",
     frameType: "shield",
     gender: "women",
@@ -358,7 +358,7 @@ export const ALL_GLASSES: GlassesItem[] = [
   {
     id: 27,
     nameAr: "نظارة شمس مستطيلة",
-    nameEn: "Rectangle Sunglasses",
+    nameAr: "Rectangle Sunglasses",
     category: "women_sun",
     frameType: "rectangle",
     gender: "women",
@@ -370,7 +370,7 @@ export const ALL_GLASSES: GlassesItem[] = [
   {
     id: 28,
     nameAr: "نظارة شمس أفاتور نسائية",
-    nameEn: "Women's Aviator Sunglasses",
+    nameAr: "Women's Aviator Sunglasses",
     category: "women_sun",
     frameType: "aviator",
     gender: "women",
@@ -382,7 +382,7 @@ export const ALL_GLASSES: GlassesItem[] = [
   {
     id: 29,
     nameAr: "نظارة شمس كاملة",
-    nameEn: "Full-Rim Sunglasses",
+    nameAr: "Full-Rim Sunglasses",
     category: "women_sun",
     frameType: "full-rim",
     gender: "women",
@@ -394,7 +394,7 @@ export const ALL_GLASSES: GlassesItem[] = [
   {
     id: 30,
     nameAr: "نظارة شمس ويفارر كبيرة",
-    nameEn: "Oversized Wayfarer",
+    nameAr: "Oversized Wayfarer",
     category: "women_sun",
     frameType: "wayfarer",
     gender: "women",
@@ -406,7 +406,7 @@ export const ALL_GLASSES: GlassesItem[] = [
   {
     id: 31,
     nameAr: "نظارة شمس ماركيزة",
-    nameEn: "Marquise Sunglasses",
+    nameAr: "Marquise Sunglasses",
     category: "women_sun",
     frameType: "oval",
     gender: "women",
@@ -418,7 +418,7 @@ export const ALL_GLASSES: GlassesItem[] = [
   {
     id: 32,
     nameAr: "نظارة شمس بترولجي",
-    nameEn: "Butterfly Sunglasses",
+    nameAr: "Butterfly Sunglasses",
     category: "women_sun",
     frameType: "cat-eye",
     gender: "women",
@@ -430,7 +430,7 @@ export const ALL_GLASSES: GlassesItem[] = [
   {
     id: 33,
     nameAr: "نظارة شمس راب نسائية",
-    nameEn: "Women's Wrap Sunglasses",
+    nameAr: "Women's Wrap Sunglasses",
     category: "women_sun",
     frameType: "wrap",
     gender: "women",
@@ -444,7 +444,7 @@ export const ALL_GLASSES: GlassesItem[] = [
   {
     id: 34,
     nameAr: "نظارة رجالية كلاسيكية",
-    nameEn: "Classic Men's Frame",
+    nameAr: "Classic Men's Frame",
     category: "men_regular",
     frameType: "full-rim",
     gender: "men",
@@ -456,7 +456,7 @@ export const ALL_GLASSES: GlassesItem[] = [
   {
     id: 35,
     nameAr: "نظارة مستطيلة رجالية",
-    nameEn: "Men's Rectangle Frame",
+    nameAr: "Men's Rectangle Frame",
     category: "men_regular",
     frameType: "rectangle",
     gender: "men",
@@ -468,7 +468,7 @@ export const ALL_GLASSES: GlassesItem[] = [
   {
     id: 36,
     nameAr: "نظارة أفاتور رجالية",
-    nameEn: "Men's Aviator Frame",
+    nameAr: "Men's Aviator Frame",
     category: "men_regular",
     frameType: "aviator",
     gender: "men",
@@ -480,7 +480,7 @@ export const ALL_GLASSES: GlassesItem[] = [
   {
     id: 37,
     nameAr: "نظارة ويفارر رجالية",
-    nameEn: "Men's Wayfarer",
+    nameAr: "Men's Wayfarer",
     category: "men_regular",
     frameType: "wayfarer",
     gender: "men",
@@ -492,7 +492,7 @@ export const ALL_GLASSES: GlassesItem[] = [
   {
     id: 38,
     nameAr: "نظارة مستديرة رجالية",
-    nameEn: "Men's Round Frame",
+    nameAr: "Men's Round Frame",
     category: "men_regular",
     frameType: "round",
     gender: "men",
@@ -504,7 +504,7 @@ export const ALL_GLASSES: GlassesItem[] = [
   {
     id: 39,
     nameAr: "نظارة أوفال رجالية",
-    nameEn: "Men's Oval Frame",
+    nameAr: "Men's Oval Frame",
     category: "men_regular",
     frameType: "oval",
     gender: "men",
@@ -516,7 +516,7 @@ export const ALL_GLASSES: GlassesItem[] = [
   {
     id: 40,
     nameAr: "نظارة نصف إطار رجالية",
-    nameEn: "Men's Half-Rim Frame",
+    nameAr: "Men's Half-Rim Frame",
     category: "men_regular",
     frameType: "half-rim",
     gender: "men",
@@ -528,7 +528,7 @@ export const ALL_GLASSES: GlassesItem[] = [
   {
     id: 41,
     nameAr: "نظارة سكوير رجالية",
-    nameEn: "Men's Square Frame",
+    nameAr: "Men's Square Frame",
     category: "men_regular",
     frameType: "square",
     gender: "men",
@@ -540,7 +540,7 @@ export const ALL_GLASSES: GlassesItem[] = [
   {
     id: 42,
     nameAr: "نظارة ريملس رجالية",
-    nameEn: "Men's Rimless Frame",
+    nameAr: "Men's Rimless Frame",
     category: "men_regular",
     frameType: "rimless",
     gender: "men",
@@ -552,7 +552,7 @@ export const ALL_GLASSES: GlassesItem[] = [
   {
     id: 43,
     nameAr: "نظارة كاملة رجالية",
-    nameEn: "Men's Full-Rim Frame",
+    nameAr: "Men's Full-Rim Frame",
     category: "men_regular",
     frameType: "full-rim",
     gender: "men",
@@ -564,7 +564,7 @@ export const ALL_GLASSES: GlassesItem[] = [
   {
     id: 44,
     nameAr: "نظارة مستطيلة معدنية",
-    nameEn: "Metal Rectangle Frame",
+    nameAr: "Metal Rectangle Frame",
     category: "men_regular",
     frameType: "rectangle",
     gender: "men",
@@ -576,7 +576,7 @@ export const ALL_GLASSES: GlassesItem[] = [
   {
     id: 45,
     nameAr: "نظارة برواز رجالي",
-    nameEn: "Men's Browline Frame",
+    nameAr: "Men's Browline Frame",
     category: "men_regular",
     frameType: "half-rim",
     gender: "men",
@@ -588,7 +588,7 @@ export const ALL_GLASSES: GlassesItem[] = [
   {
     id: 46,
     nameAr: "نظارة أوفال معدنية",
-    nameEn: "Metal Oval Frame",
+    nameAr: "Metal Oval Frame",
     category: "men_regular",
     frameType: "oval",
     gender: "men",
@@ -600,7 +600,7 @@ export const ALL_GLASSES: GlassesItem[] = [
   {
     id: 47,
     nameAr: "نظارة كات آي رجالية",
-    nameEn: "Men's Cat-Eye Frame",
+    nameAr: "Men's Cat-Eye Frame",
     category: "men_regular",
     frameType: "cat-eye",
     gender: "men",
@@ -612,7 +612,7 @@ export const ALL_GLASSES: GlassesItem[] = [
   {
     id: 48,
     nameAr: "نظارة مستديرة بنيتون",
-    nameEn: "Brown Round Frame",
+    nameAr: "Brown Round Frame",
     category: "men_regular",
     frameType: "round",
     gender: "men",
@@ -624,7 +624,7 @@ export const ALL_GLASSES: GlassesItem[] = [
   {
     id: 49,
     nameAr: "نظارة أفاتور معدنية",
-    nameEn: "Metal Aviator Frame",
+    nameAr: "Metal Aviator Frame",
     category: "men_regular",
     frameType: "aviator",
     gender: "men",
@@ -636,7 +636,7 @@ export const ALL_GLASSES: GlassesItem[] = [
   {
     id: 50,
     nameAr: "نظارة سكوير كبيرة",
-    nameEn: "Large Square Frame",
+    nameAr: "Large Square Frame",
     category: "men_regular",
     frameType: "square",
     gender: "men",
@@ -650,7 +650,7 @@ export const ALL_GLASSES: GlassesItem[] = [
   {
     id: 51,
     nameAr: "نظارة شمس رجالية كلاسيكية",
-    nameEn: "Classic Men's Sunglasses",
+    nameAr: "Classic Men's Sunglasses",
     category: "men_sun",
     frameType: "aviator",
     gender: "men",
@@ -662,7 +662,7 @@ export const ALL_GLASSES: GlassesItem[] = [
   {
     id: 52,
     nameAr: "نظارة شمس ويفارر رجالية",
-    nameEn: "Men's Wayfarer Sunglasses",
+    nameAr: "Men's Wayfarer Sunglasses",
     category: "men_sun",
     frameType: "wayfarer",
     gender: "men",
@@ -674,7 +674,7 @@ export const ALL_GLASSES: GlassesItem[] = [
   {
     id: 53,
     nameAr: "نظارة شمس أفاتور رجالية",
-    nameEn: "Men's Aviator Sunglasses",
+    nameAr: "Men's Aviator Sunglasses",
     category: "men_sun",
     frameType: "aviator",
     gender: "men",
@@ -686,7 +686,7 @@ export const ALL_GLASSES: GlassesItem[] = [
   {
     id: 54,
     nameAr: "نظارة شمس مستديرة رجالية",
-    nameEn: "Men's Round Sunglasses",
+    nameAr: "Men's Round Sunglasses",
     category: "men_sun",
     frameType: "round",
     gender: "men",
@@ -698,7 +698,7 @@ export const ALL_GLASSES: GlassesItem[] = [
   {
     id: 55,
     nameAr: "نظارة شمس مستطيلة رجالية",
-    nameEn: "Men's Rectangle Sunglasses",
+    nameAr: "Men's Rectangle Sunglasses",
     category: "men_sun",
     frameType: "rectangle",
     gender: "men",
@@ -710,7 +710,7 @@ export const ALL_GLASSES: GlassesItem[] = [
   {
     id: 56,
     nameAr: "نظارة شمس سكوير رجالية",
-    nameEn: "Men's Square Sunglasses",
+    nameAr: "Men's Square Sunglasses",
     category: "men_sun",
     frameType: "square",
     gender: "men",
@@ -722,7 +722,7 @@ export const ALL_GLASSES: GlassesItem[] = [
   {
     id: 57,
     nameAr: "نظارة شمس شيلد رجالية",
-    nameEn: "Men's Shield Sunglasses",
+    nameAr: "Men's Shield Sunglasses",
     category: "men_sun",
     frameType: "shield",
     gender: "men",
@@ -734,7 +734,7 @@ export const ALL_GLASSES: GlassesItem[] = [
   {
     id: 58,
     nameAr: "نظارة شمس راب رجالية",
-    nameEn: "Men's Wrap Sunglasses",
+    nameAr: "Men's Wrap Sunglasses",
     category: "men_sun",
     frameType: "wrap",
     gender: "men",
@@ -746,7 +746,7 @@ export const ALL_GLASSES: GlassesItem[] = [
   {
     id: 59,
     nameAr: "نظارة شمس أوفال رجالية",
-    nameEn: "Men's Oval Sunglasses",
+    nameAr: "Men's Oval Sunglasses",
     category: "men_sun",
     frameType: "oval",
     gender: "men",
@@ -758,7 +758,7 @@ export const ALL_GLASSES: GlassesItem[] = [
   {
     id: 60,
     nameAr: "نظارة شمس ويفارر كبيرة",
-    nameEn: "Oversized Men's Wayfarer",
+    nameAr: "Oversized Men's Wayfarer",
     category: "men_sun",
     frameType: "wayfarer",
     gender: "men",
@@ -770,7 +770,7 @@ export const ALL_GLASSES: GlassesItem[] = [
   {
     id: 61,
     nameAr: "نظارة شمس كاملة رجالية",
-    nameEn: "Men's Full-Rim Sunglasses",
+    nameAr: "Men's Full-Rim Sunglasses",
     category: "men_sun",
     frameType: "full-rim",
     gender: "men",
@@ -782,7 +782,7 @@ export const ALL_GLASSES: GlassesItem[] = [
   {
     id: 62,
     nameAr: "نظارة شمس رياضية",
-    nameEn: "Sports Sunglasses",
+    nameAr: "Sports Sunglasses",
     category: "men_sun",
     frameType: "wrap",
     gender: "men",
@@ -794,7 +794,7 @@ export const ALL_GLASSES: GlassesItem[] = [
   {
     id: 63,
     nameAr: "نظارة شمس رجالية بيست",
-    nameEn: "Men's Clubmaster Sunglasses",
+    nameAr: "Men's Clubmaster Sunglasses",
     category: "men_sun",
     frameType: "half-rim",
     gender: "men",
@@ -806,7 +806,7 @@ export const ALL_GLASSES: GlassesItem[] = [
   {
     id: 64,
     nameAr: "نظارة شمس رجالية ناعمة",
-    nameEn: "Slim Men's Sunglasses",
+    nameAr: "Slim Men's Sunglasses",
     category: "men_sun",
     frameType: "rectangle",
     gender: "men",
@@ -818,7 +818,7 @@ export const ALL_GLASSES: GlassesItem[] = [
   {
     id: 65,
     nameAr: "نظارة شمس أفاتور كبيرة",
-    nameEn: "Oversized Aviator Sunglasses",
+    nameAr: "Oversized Aviator Sunglasses",
     category: "men_sun",
     frameType: "aviator",
     gender: "men",
@@ -830,7 +830,7 @@ export const ALL_GLASSES: GlassesItem[] = [
   {
     id: 66,
     nameAr: "نظارة شمس كلاسيكية بنية",
-    nameEn: "Classic Brown Sunglasses",
+    nameAr: "Classic Brown Sunglasses",
     category: "men_sun",
     frameType: "full-rim",
     gender: "men",
@@ -842,7 +842,7 @@ export const ALL_GLASSES: GlassesItem[] = [
   {
     id: 67,
     nameAr: "نظارة شمس رجالية كربون",
-    nameEn: "Carbon Fiber Sunglasses",
+    nameAr: "Carbon Fiber Sunglasses",
     category: "men_sun",
     frameType: "shield",
     gender: "men",
@@ -854,7 +854,7 @@ export const ALL_GLASSES: GlassesItem[] = [
   {
     id: 68,
     nameAr: "نظارة شمس رجالية فاخرة",
-    nameEn: "Luxury Men's Sunglasses",
+    nameAr: "Luxury Men's Sunglasses",
     category: "men_sun",
     frameType: "rectangle",
     gender: "men",

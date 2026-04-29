@@ -78,7 +78,7 @@ function calculateRecommendations(
     recs.push({
       id: "toric",
       title: "عدسات أسطوانية (Toric)",
-      subtitle: "Toric Lenses",
+      subtitle: "عدسات أسطوانية",
       description: "لديك أستيجماتيزم ويحتاج عدسة خاصة بتصحيح الانحناء",
       icon: Eye,
       color: "#00f0ff",
@@ -88,7 +88,7 @@ function calculateRecommendations(
     recs.push({
       id: "spherical",
       title: "عدسات كروية",
-      subtitle: "Spherical Lenses",
+      subtitle: "عدسات كروية",
       description: "تصحيح بسيط لقصر أو مد البصر",
       icon: Eye,
       color: "#0080ff",
@@ -100,7 +100,7 @@ function calculateRecommendations(
     recs.push({
       id: "progressive",
       title: "عدسات متدرجة (Progressive)",
-      subtitle: "Progressive Lenses",
+      subtitle: "عدسات متدرجة",
       description:
         "تحتاج تصحيح للبعد وللقرب في نفس العدسة بدون خط واضح",
       icon: ChevronDown,
@@ -113,7 +113,7 @@ function calculateRecommendations(
     recs.push({
       id: "highIndex",
       title: "عدسات عالية المؤشر (High Index)",
-      subtitle: "High Index Lenses",
+      subtitle: "عدسات عالية المؤشر",
       description:
         "الوصفة قوية والعدسة العادية ستكون سميكة. المؤشر العالي يسمح بعدسة أرفع",
       icon: Sparkles,
@@ -126,7 +126,7 @@ function calculateRecommendations(
   recs.push({
     id: "blueLight",
     title: "حماية من الضوء الأزرق",
-    subtitle: "Blue Light Protection",
+    subtitle: "حماية من الضوء الأزرق",
     description:
       "شاشات الهاتف والكمبيوتر تصدر ضوء أزرق قد يسبب إجهاد العين واضطرابات النوم",
     icon: Monitor,
@@ -137,7 +137,7 @@ function calculateRecommendations(
   recs.push({
     id: "transition",
     title: "عدسات متحولة الضوء (Transition)",
-    subtitle: "Photochromic Lenses",
+    subtitle: "عدسات متحولة الضوء",
     description:
       "تتغير لونها تلقائياً من شفافة إلى داكنة تحت الشمس. راحة إضافية وبدون حاجة لنظارات شمس منفصلة",
     icon: Sun,
@@ -296,7 +296,7 @@ export default function PrescriptionCalculator({
             حاسبة النظارات
           </h1>
           <p className="text-xs" style={{ color: "#64748b" }}>
-            Prescription Calculator
+            حاسبة النظارات
           </p>
         </div>
         <Button
@@ -399,7 +399,7 @@ export default function PrescriptionCalculator({
                   العين اليمنى (OD)
                 </p>
                 <p className="text-[10px]" style={{ color: "#0080ff" }}>
-                  Oculus Dexter
+                  العين اليمنى
                 </p>
               </div>
             </div>
@@ -467,7 +467,7 @@ export default function PrescriptionCalculator({
                   العين اليسرى (OS)
                 </p>
                 <p className="text-[10px]" style={{ color: "#a855f7" }}>
-                  Oculus Sinister
+                  العين اليسرى
                 </p>
               </div>
             </div>

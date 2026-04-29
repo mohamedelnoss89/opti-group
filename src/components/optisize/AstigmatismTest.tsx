@@ -233,7 +233,7 @@ export default function AstigmatismTest({ onBack }: AstigmatismTestProps) {
             اختبار الاستيجماتيزم
           </h1>
           <p className="text-xs" style={{ color: "#64748b" }}>
-            Astigmatism Test
+            اختبار الاستيجماتيزم
           </p>
         </div>
         <div className="w-10" />

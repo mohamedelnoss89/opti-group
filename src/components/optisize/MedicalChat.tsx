@@ -174,7 +174,7 @@ export default function MedicalChat({ onBack }: MedicalChatProps) {
             محادثة طبية ذكية
           </h1>
           <p className="text-xs" style={{ color: "#64748b" }}>
-            AI Medical Assistant
+            محادثة طبية ذكية
           </p>
         </div>
         <Button

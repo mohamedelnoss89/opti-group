@@ -106,7 +106,7 @@ export default function GlassesCatalog({ onTryOn, onBack }: GlassesCatalogProps)
             معرض النظارات
           </h1>
           <p className="text-xs" style={{ color: "#64748b" }}>
-            Glasses Catalog
+            معرض النظارات
           </p>
         </div>
         <Button

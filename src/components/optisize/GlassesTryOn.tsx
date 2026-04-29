@@ -577,7 +577,7 @@ export default function GlassesTryOn({
           exit={{ opacity: 0, y: -10 }}
           className="flex flex-col min-h-screen"
         >
-          {renderHeader("تجربة افتراضية", "Virtual Try-On")}
+          {renderHeader("تجربة افتراضية", "تجربة النظارات افتراضياً")}
 
           <div className="flex-1 flex flex-col items-center justify-center px-6">
             {/* Selected Glasses Preview */}
@@ -736,7 +736,7 @@ export default function GlassesTryOn({
           exit={{ opacity: 0, y: -10 }}
           className="flex flex-col min-h-screen"
         >
-          {renderHeader("التقاط صورة", "Capture Photo")}
+          {renderHeader("التقاط صورة", "التقط صورة لوجهك")}
 
           {/* Camera View */}
           <div className="flex-1 relative mx-4 rounded-2xl overflow-hidden" style={{ minHeight: 400 }}>
@@ -899,7 +899,7 @@ export default function GlassesTryOn({
               كشف الوجه بالذكاء الاصطناعي
             </h2>
             <p className="text-sm mb-6" style={{ color: "#64748b" }}>
-              {detectionProgress || "AI Face Detection"}
+              {detectionProgress || "كشف الوجه بالذكاء الاصطناعي"}
             </p>
 
             {/* Scanning animation */}
@@ -948,7 +948,7 @@ export default function GlassesTryOn({
           exit={{ opacity: 0, y: -10 }}
           className="flex flex-col min-h-screen"
         >
-          {renderHeader("تجربة النظارة", "Try-On Preview")}
+          {renderHeader("تجربة النظارة", "معاينة النتيجة")}
 
           {/* Photo with Glasses Overlay */}
           <div

@@ -278,7 +278,7 @@ export default function VisualAcuityTest({ onBack }: VisualAcuityTestProps) {
             اختبار حدة البصر
           </h1>
           <p className="text-xs" style={{ color: "#64748b" }}>
-            Tumbling E Test
+            اختبار الحرف E
           </p>
         </div>
         <div className="w-10" />
@@ -349,7 +349,7 @@ export default function VisualAcuityTest({ onBack }: VisualAcuityTestProps) {
                       العين اليمنى
                     </p>
                     <p className="text-xs mt-0.5" style={{ color: "#0080ff" }}>
-                      Right Eye
+                      اختبار العين اليمنى
                     </p>
                     <p
                       className="text-xs mt-1"
@@ -387,7 +387,7 @@ export default function VisualAcuityTest({ onBack }: VisualAcuityTestProps) {
                       العين اليسرى
                     </p>
                     <p className="text-xs mt-0.5" style={{ color: "#a855f7" }}>
-                      Left Eye
+                      اختبار العين اليسرى
                     </p>
                     <p
                       className="text-xs mt-1"
@@ -428,7 +428,7 @@ export default function VisualAcuityTest({ onBack }: VisualAcuityTestProps) {
                       العينين معاً
                     </p>
                     <p className="text-xs mt-0.5" style={{ color: "#00d4aa" }}>
-                      Both Eyes
+                      اختبار العينين معاً
                     </p>
                     <p
                       className="text-xs mt-1"

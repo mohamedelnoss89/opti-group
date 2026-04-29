@@ -94,7 +94,7 @@ export function ScannerPlaceholder({ onBack }: { onBack: () => void }) {
   return (
     <PlaceholderScreen
       title="قياس مسافة البؤبؤ"
-      subtitle="PD Measurement Scanner"
+      subtitle="ماسح قياس مسافة البؤبؤ"
       icon={Eye}
       color="#00f0ff"
       onBack={onBack}
@@ -106,7 +106,7 @@ export function VisionTestPlaceholder({ onBack }: { onBack: () => void }) {
   return (
     <PlaceholderScreen
       title="اختبارات النظر"
-      subtitle="Vision Tests"
+      subtitle="اختبارات النظر"
       icon={Stethoscope}
       color="#a855f7"
       onBack={onBack}
@@ -118,7 +118,7 @@ export function HealthCenterPlaceholder({ onBack }: { onBack: () => void }) {
   return (
     <PlaceholderScreen
       title="مركز صحة العين"
-      subtitle="Eye Health Center"
+      subtitle="مركز صحة العين"
       icon={Heart}
       color="#ff3b30"
       onBack={onBack}
@@ -130,7 +130,7 @@ export function GlassesCatalogPlaceholder({ onBack }: { onBack: () => void }) {
   return (
     <PlaceholderScreen
       title="معرض النظارات"
-      subtitle="Glasses Catalog"
+      subtitle="معرض النظارات"
       icon={Glasses}
       color="#ffa500"
       onBack={onBack}
@@ -142,7 +142,7 @@ export function RecordsPlaceholder({ onBack }: { onBack: () => void }) {
   return (
     <PlaceholderScreen
       title="السجل المحفوظ"
-      subtitle="Saved Records"
+      subtitle="السجلات المحفوظة"
       icon={History}
       color="#0080ff"
       onBack={onBack}
@@ -154,7 +154,7 @@ export function ResultsPlaceholder({ onBack }: { onBack: () => void }) {
   return (
     <PlaceholderScreen
       title="النتائج"
-      subtitle="Results"
+      subtitle="النتائج"
       icon={BarChart3}
       color="#00d4aa"
       onBack={onBack}

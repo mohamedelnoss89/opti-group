@@ -19,7 +19,7 @@ const tests = [
   {
     id: "visual-acuity",
     title: "حدة البصر",
-    subtitle: "Visual Acuity Test",
+    subtitle: "اختبار حدة البصر",
     description: "اختبار حدة الرؤية باستخدام أحرف Snellen بأحجام مختلفة",
     icon: Eye,
     gradient: "linear-gradient(135deg, #a855f7, #6366f1)",
@@ -28,7 +28,7 @@ const tests = [
   {
     id: "color-vision",
     title: "اختبار الألوان",
-    subtitle: "Ishihara Color Test",
+    subtitle: "اختبار إيشيهارا للألوان",
     description: "فحص قدرتك على تمييز الألوان باستخدام ألواح إيشيهارا",
     icon: Palette,
     gradient: "linear-gradient(135deg, #ff3b30, #ff6b6b)",
@@ -37,7 +37,7 @@ const tests = [
   {
     id: "astigmatism",
     title: "الاستيجماتيزم",
-    subtitle: "Astigmatism Test",
+    subtitle: "اختبار الاستيجماتيزم",
     description: "اختبار لفحص عدم انتظام القرنية ومدى تأثيره على رؤيتك",
     icon: CircleDot,
     gradient: "linear-gradient(135deg, #ffa500, #ff6b00)",
@@ -85,7 +85,7 @@ export default function VisionTest({ onSelectTest, onBack }: VisionTestProps) {
             اختبارات النظر
           </h1>
           <p className="text-xs" style={{ color: "#64748b" }}>
-            Vision Tests
+            اختبارات النظر
           </p>
         </div>
         <div className="w-10" />

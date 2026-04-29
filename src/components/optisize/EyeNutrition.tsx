@@ -25,7 +25,7 @@ interface EyeNutritionProps {
 interface Nutrient {
   id: string;
   name: string;
-  nameEn: string;
+  nameAr: string;
   icon: React.ElementType;
   color: string;
   gradient: string;
@@ -44,7 +44,7 @@ const nutrients: Nutrient[] = [
   {
     id: "vitamin-a",
     name: "فيتامين A",
-    nameEn: "Vitamin A",
+    nameAr: "فيتامين أ",
     icon: Carrot,
     color: "#ffa500",
     gradient: "linear-gradient(135deg, #ffa500, #ff6b00)",
@@ -55,7 +55,7 @@ const nutrients: Nutrient[] = [
   {
     id: "omega-3",
     name: "أوميجا 3",
-    nameEn: "Omega-3",
+    nameAr: "أوميجا ٣",
     icon: Fish,
     color: "#0080ff",
     gradient: "linear-gradient(135deg, #0080ff, #0050cc)",
@@ -66,7 +66,7 @@ const nutrients: Nutrient[] = [
   {
     id: "lutein",
     name: "لوتين",
-    nameEn: "Lutein",
+    nameAr: "لوتين وزياكسانثين",
     icon: Leaf,
     color: "#00d4aa",
     gradient: "linear-gradient(135deg, #00d4aa, #00a88a)",
@@ -77,7 +77,7 @@ const nutrients: Nutrient[] = [
   {
     id: "vitamin-c",
     name: "فيتامين C",
-    nameEn: "Vitamin C",
+    nameAr: "فيتامين سي",
     icon: Citrus,
     color: "#ff3b30",
     gradient: "linear-gradient(135deg, #ff3b30, #ff6b6b)",
@@ -88,7 +88,7 @@ const nutrients: Nutrient[] = [
   {
     id: "vitamin-e",
     name: "فيتامين E",
-    nameEn: "Vitamin E",
+    nameAr: "فيتامين إي",
     icon: Nut,
     color: "#a855f7",
     gradient: "linear-gradient(135deg, #a855f7, #6366f1)",
@@ -99,7 +99,7 @@ const nutrients: Nutrient[] = [
   {
     id: "zinc",
     name: "زنك",
-    nameEn: "Zinc",
+    nameAr: "الزنك",
     icon: Egg,
     color: "#00f0ff",
     gradient: "linear-gradient(135deg, #00f0ff, #0080ff)",
@@ -218,7 +218,7 @@ export default function EyeNutrition({ onBack }: EyeNutritionProps) {
             تغذية العين
           </h1>
           <p className="text-xs" style={{ color: "#64748b" }}>
-            Eye Nutrition
+            تغذية العين
           </p>
         </div>
         <Button
@@ -381,7 +381,7 @@ export default function EyeNutrition({ onBack }: EyeNutritionProps) {
                           className="text-[10px] mt-0.5"
                           style={{ color: nutrient.color }}
                         >
-                          {nutrient.nameEn}
+                          {nutrient.nameAr}
                         </p>
                         <p
                           className="text-xs mt-1 line-clamp-1"

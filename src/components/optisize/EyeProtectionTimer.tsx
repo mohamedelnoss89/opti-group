@@ -227,7 +227,7 @@ export default function EyeProtectionTimer({
             وضع حماية العين
           </h1>
           <p className="text-xs" style={{ color: "#64748b" }}>
-            Eye Protection Mode
+            وضع حماية العين
           </p>
         </div>
         <Button

@@ -21,7 +21,7 @@ const tips = [
   {
     icon: Sun,
     title: "التقط صورة في إضاءة جيدة",
-    titleEn: "Good Lighting",
+    titleAr: "إضاءة جيدة",
     description: "تجنب الإضاءة الخلفية القوية واستخدم إضاءة طبيعية أو موزعة بشكل متساوٍ على وجهك",
     color: "#FFA500",
     bgColor: "rgba(255,165,0,0.1)",
@@ -30,7 +30,7 @@ const tips = [
   {
     icon: Eye,
     title: "انظر مباشرة للكاميرا",
-    titleEn: "Face Camera Directly",
+    titleAr: "مواجهة الكاميرا مباشرة",
     description: "اجعل نظرك موجهًا مباشرة نحو الكاميرا مع إبقاء عينيك مفتوحتين بشكل طبيعي",
     color: "#00f0ff",
     bgColor: "rgba(0,240,255,0.1)",
@@ -39,7 +39,7 @@ const tips = [
   {
     icon: Maximize2,
     title: "اجعل وجهك في المنتصف",
-    titleEn: "Center Your Face",
+    titleAr: "توسيط الوجه",
     description: "وجهك يجب أن يكون في منتصف الصورة مع مسافة كافية حوله",
     color: "#00d4aa",
     bgColor: "rgba(0,212,170,0.1)",
@@ -48,7 +48,7 @@ const tips = [
   {
     icon: Smile,
     title: "أبقِ تعبير وجهك طبيعي",
-    titleEn: "Keep Natural Expression",
+    titleAr: "تعبير طبيعي",
     description: "لا تبتسم أو تقطب حاجبيك، أبقِ تعبير وجهك مسترخيًا وطبيعيًا",
     color: "#a855f7",
     bgColor: "rgba(168,85,247,0.1)",
@@ -93,7 +93,7 @@ export default function CalibrationGuide({ onBack, onStart }: CalibrationGuidePr
             دليل التجربة الافتراضية
           </h1>
           <p className="text-xs" style={{ color: "#64748b" }}>
-            Virtual Try-On Guide
+            دليل التجربة الافتراضية
           </p>
         </div>
         <div className="w-10" />
@@ -169,7 +169,7 @@ export default function CalibrationGuide({ onBack, onStart }: CalibrationGuidePr
                         color: "#64748b",
                       }}
                     >
-                      {tip.titleEn}
+                      {tip.titleAr}
                     </span>
                   </div>
                   <p

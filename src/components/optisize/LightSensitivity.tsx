@@ -191,7 +191,7 @@ export default function LightSensitivity({ onBack }: LightSensitivityProps) {
             تحساس الإضاءة
           </h1>
           <p className="text-xs" style={{ color: "#64748b" }}>
-            Light Sensitivity
+            تحسس الإضاءة
           </p>
         </div>
         <div className="w-10" />

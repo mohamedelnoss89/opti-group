@@ -110,7 +110,6 @@ export default function CataractTest({ onBack, onComplete }: CataractTestProps) 
           <h1 className="text-base font-bold" style={{ color: "#e2e8f0" }}>
             {t("cataract.title")}
           </h1>
-          <p className="text-xs" style={{ color: "#64748b" }}>Cataract Screening</p>
         </div>
         <div className="w-10" />
       </div>

@@ -40,3 +40,27 @@ Stage Summary:
 - Prisma database with 6 models
 - All measurements saved to database with export capability
 - Server running on port 3000 with no errors
+
+---
+Task ID: strab-arabic
+Agent: main
+Task: Convert Strabismus Test and all other services to Arabic
+
+Work Log:
+- Added 140+ missing Arabic translation keys to ar.ts (strab.*, cataract.*, glaucoma.*, color.*, common.*, health.acuity/strabismus/cataract/glaucoma/diagnosticSection/toolsSection/disclaimer)
+- Added corresponding English translations to en.ts
+- Removed hardcoded Arabic subtitles from StrabismusTest.tsx, CataractTest.tsx, GlaucomaTest.tsx, ColorVisionTest.tsx headers (now using t() function)
+- Converted HealthCenter.tsx diagnostic tests and health tools from hardcoded Arabic to i18n keys
+- Fixed English subtitles in ar.ts (health.subtitle, vision.subtitle, light.subtitle, calc.subtitle, chat.subtitle, compare.subtitle, protection.subtitle, nutrition.subtitle) to Arabic
+- Fixed PlaceholderScreen.tsx English subtitles to Arabic
+- Removed English terms from calc translations (Toric, Progressive, High Index, Transition, Axis) in ar.ts
+- Build verified successfully
+
+Stage Summary:
+- All services now fully Arabic when locale is "ar"
+- Strabismus test has 6 questions in Arabic about strabismus symptoms, 3 visual pattern tests with Arabic instructions
+- Cataract test has 7 questions in Arabic, 3 visual fog tests with Arabic instructions
+- Glaucoma test has 7 questions in Arabic, visual field test with Arabic instructions
+- Color vision test fully Arabic including Ishihara plate instructions
+- Common keys (yes/no/sometimes/restart/back/risk levels) all Arabic
+- HealthCenter navigation and descriptions all Arabic
