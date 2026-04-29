@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useCallback } from "react";
+import { useState, useCallback, useRef, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   ArrowRight,
@@ -63,6 +63,7 @@ function generateSteps(min: number, max: number, step: number): number[] {
 const sphSteps = generateSteps(-20, 20, 0.25);
 const cylSteps = generateSteps(-10, 10, 0.25);
 const addSteps = generateSteps(0, 4, 0.25);
+const axisSteps = generateSteps(0, 180, 1);
 
 function calculateRecommendations(
   od: EyeValues,
@@ -148,79 +149,133 @@ function calculateRecommendations(
   return recs;
 }
 
-function NumberInput({
+function DropdownSelect({
   label,
   value,
   onChange,
   steps,
-  min,
-  max,
-  step,
   unit,
+  highlightColor,
 }: {
   label: string;
   value: number;
   onChange: (v: number) => void;
-  steps?: number[];
-  min: number;
-  max: number;
-  step: number;
+  steps: number[];
   unit?: string;
+  highlightColor?: string;
 }) {
-  const increment = () => {
-    const next = Math.round((value + step) * 100) / 100;
-    if (next <= max) onChange(next);
-  };
-  const decrement = () => {
-    const next = Math.round((value - step) * 100) / 100;
-    if (next >= min) onChange(next);
-  };
+  const [open, setOpen] = useState(false);
+  const listRef = useRef<HTMLDivElement>(null);
+
+  // Find the index of the current value in steps
+  const currentIndex = steps.findIndex(
+    (s) => Math.abs(s - value) < 0.001
+  );
+
+  // Auto-scroll to selected value when opening
+  useEffect(() => {
+    if (open && listRef.current && currentIndex >= 0) {
+      const itemHeight = 40;
+      listRef.current.scrollTop = currentIndex * itemHeight - listRef.current.clientHeight / 2 + itemHeight / 2;
+    }
+  }, [open, currentIndex]);
+
+  // Close on outside click
+  useEffect(() => {
+    if (!open) return;
+    const handler = (e: MouseEvent) => {
+      if (listRef.current && !listRef.current.contains(e.target as Node)) {
+        setOpen(false);
+      }
+    };
+    document.addEventListener("mousedown", handler);
+    return () => document.removeEventListener("mousedown", handler);
+  }, [open]);
+
+  const displayValue = unit
+    ? `${value}${unit}`
+    : value >= 0
+    ? `+${value.toFixed(2)}`
+    : value.toFixed(2);
 
   return (
-    <div className="flex flex-col items-center gap-1">
+    <div className="flex flex-col items-center gap-1 relative">
       <span className="text-[10px] font-medium" style={{ color: "#64748b" }}>
         {label}
       </span>
-      <div className="flex items-center gap-1">
-        <button
-          onClick={decrement}
-          className="w-8 h-8 rounded-lg flex items-center justify-center text-sm font-bold transition-all active:scale-90"
+      <button
+        onClick={() => setOpen(!open)}
+        className="w-full h-10 rounded-lg flex items-center justify-center gap-1 text-sm font-semibold transition-all active:scale-95"
+        style={{
+          background: open
+            ? `${highlightColor || "#0080ff"}15`
+            : "rgba(255,255,255,0.06)",
+          border: open
+            ? `1px solid ${highlightColor || "#0080ff"}50`
+            : "1px solid rgba(255,255,255,0.12)",
+          color: "#e2e8f0",
+        }}
+      >
+        <span>{displayValue}</span>
+        <ChevronDown
+          className="w-3 h-3 transition-transform"
           style={{
-            background: "rgba(255,255,255,0.05)",
-            border: "1px solid rgba(255,255,255,0.1)",
-            color: "#94a3b8",
+            color: "#64748b",
+            transform: open ? "rotate(180deg)" : "rotate(0deg)",
           }}
-        >
-          −
-        </button>
-        <div
-          className="w-16 h-8 rounded-lg flex items-center justify-center text-sm font-semibold"
-          style={{
-            background: "rgba(255,255,255,0.06)",
-            border: "1px solid rgba(255,255,255,0.12)",
-            color: "#e2e8f0",
-          }}
-        >
-          {value >= 0 ? "+" : ""}
-          {value.toFixed(2)}
-          {unit && (
-            <span className="text-[9px] mr-0.5" style={{ color: "#64748b" }}>
-              {unit}
-            </span>
-          )}
-        </div>
-        <button
-          onClick={increment}
-          className="w-8 h-8 rounded-lg flex items-center justify-center text-sm font-bold transition-all active:scale-90"
-          style={{
-            background: "rgba(255,255,255,0.05)",
-            border: "1px solid rgba(255,255,255,0.1)",
-            color: "#94a3b8",
-          }}
-        >
-          +
-        </button>
-      </div>
+        />
+      </button>
+
+      {/* Dropdown list */}
+      <AnimatePresence>
+        {open && (
+          <motion.div
+            ref={listRef}
+            initial={{ opacity: 0, y: -4, scale: 0.97 }}
+            animate={{ opacity: 1, y: 0, scale: 1 }}
+            exit={{ opacity: 0, y: -4, scale: 0.97 }}
+            transition={{ duration: 0.15 }}
+            className="absolute top-full left-0 right-0 z-50 mt-1 rounded-xl overflow-hidden max-h-[200px] overflow-y-auto"
+            style={{
+              background: "#1a1e2e",
+              border: `1px solid ${highlightColor || "#0080ff"}30`,
+              boxShadow: `0 8px 32px rgba(0,0,0,0.5), 0 0 16px ${highlightColor || "#0080ff"}10`,
+            }}
+          >
+            {steps.map((stepVal) => {
+              const isSelected = Math.abs(stepVal - value) < 0.001;
+              const display = unit
+                ? `${stepVal}${unit}`
+                : stepVal >= 0
+                ? `+${stepVal.toFixed(2)}`
+                : stepVal.toFixed(2);
+
+              return (
+                <button
+                  key={stepVal}
+                  onClick={() => {
+                    onChange(stepVal);
+                    setOpen(false);
+                  }}
+                  className="w-full h-10 flex items-center justify-center text-sm transition-all"
+                  style={{
+                    background: isSelected
+                      ? `${highlightColor || "#0080ff"}20`
+                      : "transparent",
+                    color: isSelected
+                      ? highlightColor || "#0080ff"
+                      : "#94a3b8",
+                    fontWeight: isSelected ? 700 : 400,
+                    borderBottom: "1px solid rgba(255,255,255,0.04)",
+                  }}
+                >
+                  {display}
+                </button>
+              );
+            })}
+          </motion.div>
+        )}
+      </AnimatePresence>
     </div>
   );
 }
@@ -405,41 +460,34 @@ export default function PrescriptionCalculator({
             </div>
 
             <div className="grid grid-cols-2 gap-3">
-              <NumberInput
+              <DropdownSelect
                 label="كروي (SPH)"
                 value={od.sph}
                 onChange={(v) => updateOd("sph", v)}
                 steps={sphSteps}
-                min={-20}
-                max={20}
-                step={0.25}
+                highlightColor="#0080ff"
               />
-              <NumberInput
+              <DropdownSelect
                 label="أسطواني (CYL)"
                 value={od.cyl}
                 onChange={(v) => updateOd("cyl", v)}
                 steps={cylSteps}
-                min={-10}
-                max={10}
-                step={0.25}
+                highlightColor="#0080ff"
               />
-              <NumberInput
-                label="محور (Axis)"
+              <DropdownSelect
+                label="محور"
                 value={od.axis}
                 onChange={(v) => updateOd("axis", v)}
-                min={0}
-                max={180}
-                step={1}
+                steps={axisSteps}
                 unit="°"
+                highlightColor="#0080ff"
               />
-              <NumberInput
+              <DropdownSelect
                 label="إضافة (ADD)"
                 value={od.add}
                 onChange={(v) => updateOd("add", v)}
                 steps={addSteps}
-                min={0}
-                max={4}
-                step={0.25}
+                highlightColor="#0080ff"
               />
             </div>
           </div>
@@ -473,41 +521,34 @@ export default function PrescriptionCalculator({
             </div>
 
             <div className="grid grid-cols-2 gap-3">
-              <NumberInput
+              <DropdownSelect
                 label="كروي (SPH)"
                 value={os.sph}
                 onChange={(v) => updateOs("sph", v)}
                 steps={sphSteps}
-                min={-20}
-                max={20}
-                step={0.25}
+                highlightColor="#a855f7"
               />
-              <NumberInput
+              <DropdownSelect
                 label="أسطواني (CYL)"
                 value={os.cyl}
                 onChange={(v) => updateOs("cyl", v)}
                 steps={cylSteps}
-                min={-10}
-                max={10}
-                step={0.25}
+                highlightColor="#a855f7"
               />
-              <NumberInput
-                label="محور (Axis)"
+              <DropdownSelect
+                label="محور"
                 value={os.axis}
                 onChange={(v) => updateOs("axis", v)}
-                min={0}
-                max={180}
-                step={1}
+                steps={axisSteps}
                 unit="°"
+                highlightColor="#a855f7"
               />
-              <NumberInput
+              <DropdownSelect
                 label="إضافة (ADD)"
                 value={os.add}
                 onChange={(v) => updateOs("add", v)}
                 steps={addSteps}
-                min={0}
-                max={4}
-                step={0.25}
+                highlightColor="#a855f7"
               />
             </div>
           </div>

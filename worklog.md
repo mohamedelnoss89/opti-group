@@ -64,3 +64,24 @@ Stage Summary:
 - Color vision test fully Arabic including Ishihara plate instructions
 - Common keys (yes/no/sometimes/restart/back/risk levels) all Arabic
 - HealthCenter navigation and descriptions all Arabic
+
+---
+Task ID: calc-dropdown
+Agent: main
+Task: Replace + / - buttons with dropdown selects in Prescription Calculator and Comparison
+
+Work Log:
+- Replaced NumberInput component with DropdownSelect in PrescriptionCalculator.tsx
+- DropdownSelect: tap the field → opens a scrollable list of values → tap to select
+- Auto-scrolls to current value when opening
+- Closes on outside click or on value selection
+- Added axisSteps array for axis field (0-180, step 1)
+- Color-coded: OD fields highlight in blue (#0080ff), OS fields in purple (#a855f7)
+- Same change applied to PrescriptionComparison.tsx (RxInput → RxDropdown)
+- Added generateSteps helper and step arrays to PrescriptionComparison
+- Build verified successfully
+
+Stage Summary:
+- Prescription Calculator: 4 dropdown fields per eye (SPH, CYL, Axis, ADD) - tap to pick value
+- Prescription Comparison: Same dropdown pattern for old and new prescriptions
+- No more +/- button tapping to reach a value - just open and select directly

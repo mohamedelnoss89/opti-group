@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useCallback } from "react";
+import { useState, useCallback, useRef, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   ArrowRight,
@@ -11,6 +11,7 @@ import {
   Minus,
   Save,
   RotateCcw,
+  ChevronDown,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
@@ -43,6 +44,19 @@ interface DiffResult {
 
 const defaultRx: EyeRx = { sph: 0, cyl: 0, axis: 0, add: 0 };
 
+function generateSteps(min: number, max: number, step: number): number[] {
+  const steps: number[] = [];
+  for (let v = min; v <= max; v += step) {
+    steps.push(Math.round(v * 100) / 100);
+  }
+  return steps;
+}
+
+const sphSteps = generateSteps(-20, 20, 0.25);
+const cylSteps = generateSteps(-10, 10, 0.25);
+const addSteps = generateSteps(0, 4, 0.25);
+const axisSteps = generateSteps(0, 180, 1);
+
 const containerVariants = {
   hidden: { opacity: 0 },
   visible: {
@@ -56,76 +70,129 @@ const itemVariants = {
   visible: { y: 0, opacity: 1 },
 };
 
-function RxInput({
+function RxDropdown({
   label,
   value,
   onChange,
-  step = 0.25,
-  min,
-  max,
+  steps,
   unit,
+  highlightColor,
 }: {
   label: string;
   value: number;
   onChange: (v: number) => void;
-  step?: number;
-  min: number;
-  max: number;
+  steps: number[];
   unit?: string;
+  highlightColor?: string;
 }) {
+  const [open, setOpen] = useState(false);
+  const listRef = useRef<HTMLDivElement>(null);
+
+  const currentIndex = steps.findIndex(
+    (s) => Math.abs(s - value) < 0.001
+  );
+
+  useEffect(() => {
+    if (open && listRef.current && currentIndex >= 0) {
+      const itemHeight = 36;
+      listRef.current.scrollTop = currentIndex * itemHeight - listRef.current.clientHeight / 2 + itemHeight / 2;
+    }
+  }, [open, currentIndex]);
+
+  useEffect(() => {
+    if (!open) return;
+    const handler = (e: MouseEvent) => {
+      if (listRef.current && !listRef.current.contains(e.target as Node)) {
+        setOpen(false);
+      }
+    };
+    document.addEventListener("mousedown", handler);
+    return () => document.removeEventListener("mousedown", handler);
+  }, [open]);
+
+  const displayValue = unit
+    ? `${Math.round(value)}${unit}`
+    : value >= 0
+    ? `+${value.toFixed(2)}`
+    : value.toFixed(2);
+
   return (
-    <div className="flex flex-col items-center gap-1">
+    <div className="flex flex-col items-center gap-1 relative">
       <span className="text-[10px]" style={{ color: "#64748b" }}>
         {label}
       </span>
-      <div className="flex items-center gap-1">
-        <button
-          onClick={() => {
-            const next = Math.round((value - step) * 100) / 100;
-            if (next >= min) onChange(next);
-          }}
-          className="w-7 h-7 rounded-md flex items-center justify-center text-xs font-bold"
+      <button
+        onClick={() => setOpen(!open)}
+        className="w-full h-9 rounded-lg flex items-center justify-center gap-1 text-xs font-semibold transition-all active:scale-95"
+        style={{
+          background: open
+            ? `${highlightColor || "#0080ff"}15`
+            : "rgba(255,255,255,0.06)",
+          border: open
+            ? `1px solid ${highlightColor || "#0080ff"}50`
+            : "1px solid rgba(255,255,255,0.1)",
+          color: "#e2e8f0",
+        }}
+      >
+        <span>{displayValue}</span>
+        <ChevronDown
+          className="w-3 h-3 transition-transform"
           style={{
-            background: "rgba(255,255,255,0.04)",
-            border: "1px solid rgba(255,255,255,0.08)",
-            color: "#94a3b8",
+            color: "#64748b",
+            transform: open ? "rotate(180deg)" : "rotate(0deg)",
           }}
-        >
-          −
-        </button>
-        <div
-          className="w-14 h-7 rounded-md flex items-center justify-center text-xs font-semibold"
-          style={{
-            background: "rgba(255,255,255,0.06)",
-            border: "1px solid rgba(255,255,255,0.1)",
-            color: "#e2e8f0",
-          }}
-        >
-          {value >= 0 && (label.includes("SPH") || label.includes("CYL") || label.includes("ADD"))
-            ? "+"
-            : ""}
-          {label.includes("Axis") ? Math.round(value) : value.toFixed(2)}
-          {unit && (
-            <span className="text-[8px] mr-0.5" style={{ color: "#64748b" }}>
-              {unit}
-            </span>
-          )}
-        </div>
-        <button
-          onClick={() => {
-            const next = Math.round((value + step) * 100) / 100;
-            if (next <= max) onChange(next);
-          }}
-          className="w-7 h-7 rounded-md flex items-center justify-center text-xs font-bold"
-          style={{
-            background: "rgba(255,255,255,0.04)",
-            border: "1px solid rgba(255,255,255,0.08)",
-            color: "#94a3b8",
-          }}
-        >
-          +
-        </button>
-      </div>
+        />
+      </button>
+
+      <AnimatePresence>
+        {open && (
+          <motion.div
+            ref={listRef}
+            initial={{ opacity: 0, y: -4, scale: 0.97 }}
+            animate={{ opacity: 1, y: 0, scale: 1 }}
+            exit={{ opacity: 0, y: -4, scale: 0.97 }}
+            transition={{ duration: 0.15 }}
+            className="absolute top-full left-0 right-0 z-50 mt-1 rounded-xl overflow-hidden max-h-[180px] overflow-y-auto"
+            style={{
+              background: "#1a1e2e",
+              border: `1px solid ${highlightColor || "#0080ff"}30`,
+              boxShadow: `0 8px 32px rgba(0,0,0,0.5), 0 0 16px ${highlightColor || "#0080ff"}10`,
+            }}
+          >
+            {steps.map((stepVal) => {
+              const isSelected = Math.abs(stepVal - value) < 0.001;
+              const display = unit
+                ? `${Math.round(stepVal)}${unit}`
+                : stepVal >= 0
+                ? `+${stepVal.toFixed(2)}`
+                : stepVal.toFixed(2);
+
+              return (
+                <button
+                  key={stepVal}
+                  onClick={() => {
+                    onChange(stepVal);
+                    setOpen(false);
+                  }}
+                  className="w-full h-9 flex items-center justify-center text-xs transition-all"
+                  style={{
+                    background: isSelected
+                      ? `${highlightColor || "#0080ff"}20`
+                      : "transparent",
+                    color: isSelected
+                      ? highlightColor || "#0080ff"
+                      : "#94a3b8",
+                    fontWeight: isSelected ? 700 : 400,
+                    borderBottom: "1px solid rgba(255,255,255,0.04)",
+                  }}
+                >
+                  {display}
+                </button>
+              );
+            })}
+          </motion.div>
+        )}
+      </AnimatePresence>
     </div>
   );
 }
@@ -164,38 +231,34 @@ function EyeCard({
         </div>
       </div>
       <div className="grid grid-cols-2 gap-2">
-        <RxInput
+        <RxDropdown
           label="كروي"
           value={rx.sph}
           onChange={(v) => onUpdate("sph", v)}
-          min={-20}
-          max={20}
-          step={0.25}
+          steps={sphSteps}
+          highlightColor={color}
         />
-        <RxInput
+        <RxDropdown
           label="أسطواني"
           value={rx.cyl}
           onChange={(v) => onUpdate("cyl", v)}
-          min={-10}
-          max={10}
-          step={0.25}
+          steps={cylSteps}
+          highlightColor={color}
         />
-        <RxInput
+        <RxDropdown
           label="محور"
           value={rx.axis}
           onChange={(v) => onUpdate("axis", v)}
-          min={0}
-          max={180}
-          step={1}
+          steps={axisSteps}
           unit="°"
+          highlightColor={color}
         />
-        <RxInput
+        <RxDropdown
           label="إضافة"
           value={rx.add}
           onChange={(v) => onUpdate("add", v)}
-          min={0}
-          max={4}
-          step={0.25}
+          steps={addSteps}
+          highlightColor={color}
         />
       </div>
     </div>
