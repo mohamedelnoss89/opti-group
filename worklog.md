@@ -212,3 +212,25 @@ Stage Summary:
 - Images are 800x800 RGBA PNG format with transparent backgrounds
 - Average opaque content: 15.2% (frame + lenses), Average transparent: 84.8% (background)
 - Preview grids created for each category in /home/z/my-project/download/
+
+---
+Task ID: 2
+Agent: Main Agent
+Task: Fix 404 error and raw HTML display on mobile
+
+Work Log:
+- Analyzed user screenshot showing raw HTML code displayed on mobile browser
+- Discovered the dev server was not running properly (process kept dying)
+- Created custom 404 page at src/app/not-found.tsx matching app theme
+- Initialized fullstack-dev environment which properly manages the dev server via bun
+- Server now running stably on PID 22074 via `bun run dev`
+- Tested all routes through Caddy proxy (port 81): main page, glasses images, 404 page
+- Verified Content-Type: text/html; charset=utf-8 is correct
+- Browser tested: app renders correctly with Arabic UI, glasses catalog works with categories
+
+Stage Summary:
+- Dev server now running stably via bun (managed by fullstack-dev infrastructure)
+- Custom 404 page created with Arabic theme and "العودة للرئيسية" button
+- All routes tested and working: / (200), glasses images (200), 404 (404)
+- App renders properly on mobile viewport (390x844)
+- Preview URL should now work correctly
