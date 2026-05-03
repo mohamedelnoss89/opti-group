@@ -10,8 +10,8 @@ const DB_PATH = path.join(__dirname, '..', 'db', 'custom.db');
 // Subscription codes storage (JSON file for simplicity, synced with SQLite)
 const CODES_FILE = path.join(__dirname, 'subscription_codes.json');
 
-// QR image path - saved where Next.js API can read it
-const QR_IMAGE_PATH = path.join(__dirname, 'qr_code.png');
+// QR image path - saved in Next.js public folder for direct access
+const QR_IMAGE_PATH = path.join(__dirname, '..', 'public', 'whatsapp-qr.png');
 
 // Bot state
 let userStates = {}; // phone -> state: 'idle' | 'awaiting_payment' | 'awaiting_receipt'
@@ -143,7 +143,7 @@ async function startBot() {
       // Also show small QR in terminal
       console.log('\n📱 امسح الـ QR من واتساب:');
       qrcodeTerminal.generate(qr, { small: true });
-      console.log('\n🌐 افتح صفحة الـ QR في التطبيق: /qr\n');
+      console.log('\n🌐 افتح الصورة دي في البراوزر: /whatsapp-qr.png\n');
     }
 
     if (connection === 'close') {
