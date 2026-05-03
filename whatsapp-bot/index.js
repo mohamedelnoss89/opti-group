@@ -3,7 +3,6 @@ const qrcodeTerminal = require('qrcode-terminal');
 const QRCode = require('qrcode');
 const fs = require('fs');
 const path = require('path');
-const http = require('http');
 
 // Database path - shared with OptiSize app
 const DB_PATH = path.join(__dirname, '..', 'db', 'custom.db');
@@ -11,58 +10,19 @@ const DB_PATH = path.join(__dirname, '..', 'db', 'custom.db');
 // Subscription codes storage (JSON file for simplicity, synced with SQLite)
 const CODES_FILE = path.join(__dirname, 'subscription_codes.json');
 
+// QR image path - saved where Next.js API can read it
+const QR_IMAGE_PATH = path.join(__dirname, 'qr_code.png');
+
 // Bot state
 let userStates = {}; // phone -> state: 'idle' | 'awaiting_payment' | 'awaiting_receipt'
 let ownerChatActive = {}; // phone -> boolean (when owner takes over)
+let botConnected = false;
 
-// QR code server state
-let latestQRData = null; // latest QR string for web page
-let qrImagePath = path.join(__dirname, 'qr_code.png');
-
-// Start a simple HTTP server to show QR in browser
-const QR_PORT = 8787;
-const qrServer = http.createServer((req, res) => {
-  if (latestQRData) {
-    res.writeHead(200, { 'Content-Type': 'text/html; charset=utf-8' });
-    res.end(`<!DOCTYPE html>
-<html dir="rtl">
-<head><title>OptiSize WhatsApp QR</title>
-<style>
-  body{display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:100vh;margin:0;background:#0a0a1a;font-family:Arial,sans-serif;color:#fff}
-  h1{color:#00e5ff;margin-bottom:10px}
-  p{color:#aaa;margin-top:10px;font-size:18px}
-  img{border-radius:16px;box-shadow:0 0 40px rgba(0,229,255,.3)}
-  .hint{color:#666;font-size:14px;margin-top:20px}
-</style></head>
-<body>
-  <h1>📱 امسح الـ QR من واتساب</h1>
-  <img src="data:image/png;base64,${fs.readFileSync(qrImagePath).toString('base64')}" width="300" height="300"/>
-  <p>افتح واتساب → الإعدادات → الأجهزة المرتبطة → ربط جهاز</p>
-  <div class="hint">هذه الصفحة تتحدث تلقائياً عند ظهور QR جديد</div>
-  <script>setTimeout(()=>location.reload(),5000)</script>
-</body>
-</html>`);
-  } else {
-    res.writeHead(200, { 'Content-Type': 'text/html; charset=utf-8' });
-    res.end(`<!DOCTYPE html>
-<html dir="rtl">
-<head><title>OptiSize WhatsApp QR</title>
-<style>
-  body{display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:100vh;margin:0;background:#0a0a1a;font-family:Arial,sans-serif;color:#fff}
-  h2{color:#00e5ff}
-  p{color:#aaa}
-</style></head>
-<body>
-  <h2>⏳ في انتظار الـ QR كود...</h2>
-  <p>الصفحة هتتحدث تلقائياً</p>
-  <script>setTimeout(()=>location.reload(),3000)</script>
-</body>
-</html>`);
-  }
-});
-qrServer.listen(QR_PORT, () => {
-  console.log(`🌐 افتح البراوزر على: http://localhost:${QR_PORT}`);
-});
+// Write connection status to file for Next.js to read
+function writeStatus(status) {
+  const statusPath = path.join(__dirname, 'bot_status.json');
+  fs.writeFileSync(statusPath, JSON.stringify({ status, updatedAt: new Date().toISOString() }));
+}
 
 // Load existing codes
 function loadCodes() {
@@ -169,31 +129,37 @@ async function startBot() {
     const { connection, lastDisconnect, qr } = update;
 
     if (qr) {
-      latestQRData = qr;
+      botConnected = false;
+      writeStatus('qr_ready');
       
-      // Save QR as PNG image
+      // Save QR as PNG image for Next.js API to serve
       try {
-        await QRCode.toFile(qrImagePath, qr, { width: 300, margin: 2 });
-        console.log('📸 QR saved as PNG → ' + qrImagePath);
+        await QRCode.toFile(QR_IMAGE_PATH, qr, { width: 300, margin: 2 });
+        console.log('📸 QR saved → ' + QR_IMAGE_PATH);
       } catch (err) {
         console.error('Error saving QR image:', err.message);
       }
       
-      // Show small QR in terminal
+      // Also show small QR in terminal
       console.log('\n📱 امسح الـ QR من واتساب:');
       qrcodeTerminal.generate(qr, { small: true });
-      console.log('\n🌐 أو افتح البراوزر على: http://localhost:' + QR_PORT);
-      console.log('📂 أو افتح الصورة: ' + qrImagePath + '\n');
+      console.log('\n🌐 افتح صفحة الـ QR في التطبيق: /qr\n');
     }
 
     if (connection === 'close') {
+      botConnected = false;
+      writeStatus('disconnected');
       const shouldReconnect = lastDisconnect?.error?.output?.statusCode !== DisconnectReason.loggedOut;
       console.log('Connection closed. Reconnecting:', shouldReconnect);
       if (shouldReconnect) {
         startBot();
       }
     } else if (connection === 'open') {
+      botConnected = true;
+      writeStatus('connected');
       console.log('✅ البوت متصل بنجاح!');
+      // Remove QR image after successful connection
+      try { fs.unlinkSync(QR_IMAGE_PATH); } catch {}
     }
   });
 
@@ -281,7 +247,7 @@ async function handleReceiptImage(sock, from, phone, msg) {
 
 1. هل يوجد رقم موبايل محول ليه؟ وهل هو 01028900122؟ (نعم/لا)
 2. هل يوجد مبلغ محول؟ وهل هو 50 جنيه أو قريب منه؟ (نعم/لا)
-3. هل يوجد تاريخ ووقت للتحويل؟ (نعم/لا)
+3. هل يوجد تاريخ ووقت التحويل؟ (نعم/لا)
 4. هل يوجد كلام يدل على تم الدفع أو التحويل؟ (نعم/لا)
 5. النتيجة النهائية: مقبول / مرفوض
 
@@ -346,5 +312,6 @@ ${code}
 }
 
 // Start
+writeStatus('starting');
 console.log('🚀 Starting OptiSize WhatsApp Bot...');
 startBot().catch(console.error);
