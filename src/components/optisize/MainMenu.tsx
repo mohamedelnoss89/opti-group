@@ -1,6 +1,7 @@
 "use client";
 
-import { motion } from "framer-motion";
+import { useState, useEffect } from "react";
+import { motion, AnimatePresence } from "framer-motion";
 import {
   Eye,
   Stethoscope,
@@ -19,6 +20,10 @@ import {
   Lock,
   Crown,
   Languages,
+  Bot,
+  X,
+  Copy,
+  Check,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import type { StoredUser } from "@/lib/auth";
@@ -31,6 +36,7 @@ interface MainMenuProps {
   onNavigate: (screen: string) => void;
   onLogout: () => void;
   onRequestLogin: () => void;
+  onOpenBotSetup?: () => void;
 }
 
 const containerVariants = {
@@ -54,10 +60,40 @@ export default function MainMenu({
   onNavigate,
   onLogout,
   onRequestLogin,
+  onOpenBotSetup,
 }: MainMenuProps) {
   const { toast } = useToast();
   const { t, isRTL, locale, setLocale } = useI18n();
   const isGuest = user.isGuest;
+
+  // Bot setup state
+  const [showBotSetup, setShowBotSetup] = useState(false);
+  const [pairingData, setPairingData] = useState<{status: string; code?: string; steps?: string[]} | null>(null);
+  const [copied, setCopied] = useState(false);
+
+  // Fetch pairing status
+  useEffect(() => {
+    if (!showBotSetup) return;
+    const fetchStatus = async () => {
+      try {
+        const res = await fetch('/api/pairing-status');
+        const data = await res.json();
+        setPairingData(data);
+      } catch {}
+    };
+    fetchStatus();
+    const interval = setInterval(fetchStatus, 3000);
+    return () => clearInterval(interval);
+  }, [showBotSetup]);
+
+  const copyCode = () => {
+    if (pairingData?.code) {
+      navigator.clipboard.writeText(pairingData.code.replace(/-/g, ''));
+      setCopied(true);
+      toast({ title: 'تم نسخ الكود!' });
+      setTimeout(() => setCopied(false), 2000);
+    }
+  };
 
   const mainActions = [
     {
@@ -421,6 +457,165 @@ export default function MainMenu({
             })}
           </div>
         </motion.div>
+
+        {/* Bot Setup Button */}
+        {!isGuest && (
+          <motion.div variants={itemVariants} className="mb-6">
+            <button
+              onClick={() => setShowBotSetup(true)}
+              className="w-full rounded-xl p-4 text-right transition-all duration-200 group"
+              style={{
+                background: "linear-gradient(135deg, rgba(0,240,255,0.08), rgba(0,128,255,0.05))",
+                border: "1px solid rgba(0,240,255,0.2)",
+              }}
+            >
+              <div className="flex items-center gap-3">
+                <div
+                  className="w-10 h-10 rounded-xl flex items-center justify-center shrink-0"
+                  style={{ background: "linear-gradient(135deg, #00f0ff, #0080ff)" }}
+                >
+                  <Bot className="w-5 h-5" style={{ color: "#0a0e1a" }} />
+                </div>
+                <div className="flex-1">
+                  <p className="text-sm font-semibold" style={{ color: "#00f0ff" }}>
+                    ربط بوت واتساب
+                  </p>
+                  <p className="text-[10px]" style={{ color: "#64748b" }}>
+                    اربط رقم واتساب بالتطبيق
+                  </p>
+                </div>
+              </div>
+            </button>
+          </motion.div>
+        )}
+
+        {/* Bot Setup Modal */}
+        <AnimatePresence>
+          {showBotSetup && (
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              className="fixed inset-0 z-50 flex items-center justify-center p-4"
+              style={{ background: "rgba(0,0,0,0.8)", backdropFilter: "blur(8px)" }}
+              onClick={() => setShowBotSetup(false)}
+            >
+              <motion.div
+                initial={{ scale: 0.9, opacity: 0 }}
+                animate={{ scale: 1, opacity: 1 }}
+                exit={{ scale: 0.9, opacity: 0 }}
+                onClick={(e) => e.stopPropagation()}
+                className="w-full max-w-sm rounded-2xl p-6"
+                style={{
+                  background: "linear-gradient(135deg, #0d1117, #161b22)",
+                  border: "1px solid rgba(0,240,255,0.2)",
+                  boxShadow: "0 0 40px rgba(0,240,255,0.1)",
+                }}
+              >
+                {/* Close button */}
+                <button
+                  onClick={() => setShowBotSetup(false)}
+                  className="absolute top-4 left-4 w-8 h-8 rounded-full flex items-center justify-center"
+                  style={{ background: "rgba(255,255,255,0.05)" }}
+                >
+                  <X className="w-4 h-4" style={{ color: "#94a3b8" }} />
+                </button>
+
+                {/* Header */}
+                <div className="text-center mb-6">
+                  <div
+                    className="w-14 h-14 rounded-2xl flex items-center justify-center mx-auto mb-3"
+                    style={{ background: "linear-gradient(135deg, #00f0ff, #0080ff)" }}
+                  >
+                    <Bot className="w-7 h-7" style={{ color: "#0a0e1a" }} />
+                  </div>
+                  <h3 className="text-lg font-bold" style={{ color: "#e2e8f0" }}>
+                    ربط بوت واتساب
+                  </h3>
+                </div>
+
+                {/* Content based on status */}
+                {pairingData?.status === 'pairing' && pairingData.code && (
+                  <div className="text-center">
+                    <p className="text-sm mb-4" style={{ color: "#94a3b8" }}>
+                      ادخل الكود ده في واتساب:
+                    </p>
+                    {/* Code display */}
+                    <div
+                      className="rounded-xl p-4 mb-4 cursor-pointer"
+                      onClick={copyCode}
+                      style={{
+                        background: "rgba(0,240,255,0.08)",
+                        border: "1px solid rgba(0,240,255,0.25)",
+                      }}
+                    >
+                      <p
+                        className="text-3xl font-bold tracking-[0.3em] text-center"
+                        style={{ color: "#00f0ff", fontFamily: "monospace" }}
+                      >
+                        {pairingData.code}
+                      </p>
+                      <p className="text-[10px] mt-2" style={{ color: "#64748b" }}>
+                        {copied ? '✅ تم النسخ!' : 'اضغط للنسخ'}
+                      </p>
+                    </div>
+                    {/* Steps */}
+                    <div className="space-y-2 text-right">
+                      {(pairingData.steps || []).map((step, i) => (
+                        <div key={i} className="flex items-start gap-2">
+                          <span
+                            className="w-5 h-5 rounded-full flex items-center justify-center shrink-0 text-[10px] font-bold mt-0.5"
+                            style={{ background: "rgba(0,240,255,0.15)", color: "#00f0ff" }}
+                          >
+                            {i + 1}
+                          </span>
+                          <p className="text-xs" style={{ color: "#c8d6e5" }}>{step}</p>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                {pairingData?.status === 'connected' && (
+                  <div className="text-center">
+                    <div
+                      className="w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-3"
+                      style={{ background: "rgba(0,255,136,0.1)", border: "2px solid rgba(0,255,136,0.3)" }}
+                    >
+                      <Check className="w-8 h-8" style={{ color: "#00ff88" }} />
+                    </div>
+                    <p className="text-base font-bold" style={{ color: "#00ff88" }}>
+                      واتساب مربوط بنجاح!
+                    </p>
+                    <p className="text-xs mt-1" style={{ color: "#64748b" }}>
+                      البوت شغال وجاهز يستقبل الرسائل
+                    </p>
+                  </div>
+                )}
+
+                {(pairingData?.status === 'starting' || pairingData?.status === 'not_started' || !pairingData) && (
+                  <div className="text-center">
+                    <div className="w-12 h-12 rounded-full border-2 border-t-transparent animate-spin mx-auto mb-3" style={{ borderColor: "#00f0ff", borderTopColor: "transparent" }} />
+                    <p className="text-sm" style={{ color: "#94a3b8" }}>
+                      جاري تشغيل البوت...
+                    </p>
+                    <p className="text-[10px] mt-1" style={{ color: "#64748b" }}>
+                      شغّل البوت من التيرمنال: cd whatsapp-bot && node index.js
+                    </p>
+                  </div>
+                )}
+
+                {pairingData?.status === 'disconnected' && (
+                  <div className="text-center">
+                    <p className="text-sm" style={{ color: "#ff6b6b" }}>
+                      البوت مفصول - بيحاول يتصل تاني...
+                    </p>
+                  </div>
+                )}
+              </motion.div>
+            </motion.div>
+          )}
+        </AnimatePresence>
 
         {/* Disclaimer */}
         <motion.div

@@ -10,18 +10,18 @@ const DB_PATH = path.join(__dirname, '..', 'db', 'custom.db');
 // Subscription codes storage (JSON file for simplicity, synced with SQLite)
 const CODES_FILE = path.join(__dirname, 'subscription_codes.json');
 
-// QR image path - saved in Next.js public folder for direct access
-const QR_IMAGE_PATH = path.join(__dirname, '..', 'public', 'whatsapp-qr.png');
+// Pairing code file - shared with Next.js app
+const PAIRING_FILE = path.join(__dirname, '..', 'public', 'pairing.json');
 
 // Bot state
 let userStates = {}; // phone -> state: 'idle' | 'awaiting_payment' | 'awaiting_receipt'
 let ownerChatActive = {}; // phone -> boolean (when owner takes over)
 let botConnected = false;
+let pairingCodeDisplayed = false;
 
-// Write connection status to file for Next.js to read
-function writeStatus(status) {
-  const statusPath = path.join(__dirname, 'bot_status.json');
-  fs.writeFileSync(statusPath, JSON.stringify({ status, updatedAt: new Date().toISOString() }));
+// Write pairing status to file for Next.js app to read
+function writePairingStatus(data) {
+  fs.writeFileSync(PAIRING_FILE, JSON.stringify(data));
 }
 
 // Load existing codes
@@ -128,38 +128,70 @@ async function startBot() {
   sock.ev.on('connection.update', async (update) => {
     const { connection, lastDisconnect, qr } = update;
 
-    if (qr) {
-      botConnected = false;
-      writeStatus('qr_ready');
+    if (qr && !pairingCodeDisplayed) {
+      // Use pairing code instead of QR
+      pairingCodeDisplayed = true;
       
-      // Save QR as PNG image for Next.js API to serve
       try {
-        await QRCode.toFile(QR_IMAGE_PATH, qr, { width: 300, margin: 2 });
-        console.log('📸 QR saved → ' + QR_IMAGE_PATH);
+        const code = await sock.requestPairingCode('201028900122');
+        const formattedCode = code?.match(/.{1,4}/g)?.join('-') || code;
+        
+        console.log('\n' + '='.repeat(40));
+        console.log('🔑 كود الربط بتاعك:');
+        console.log(`   ${formattedCode}`);
+        console.log('='.repeat(40));
+        console.log('\n📋 الخطوات:');
+        console.log('1. افتح واتساب في الموبايل');
+        console.log('2. روح الإعدادات → الأجهزة المرتبطة → ربط جهاز');
+        console.log('3. اختار "ربط برقم الهاتف"');
+        console.log(`4. ادخل الكود: ${formattedCode}\n`);
+        
+        // Save pairing code for app to display
+        writePairingStatus({
+          status: 'pairing',
+          code: formattedCode,
+          rawCode: code,
+          phone: '201028900122',
+          steps: [
+            'افتح واتساب في الموبايل',
+            'روح الإعدادات → الأجهزة المرتبطة → ربط جهاز',
+            'اختار "ربط برقم الهاتف"',
+            `ادخل الكود: ${formattedCode}`
+          ]
+        });
       } catch (err) {
-        console.error('Error saving QR image:', err.message);
+        console.error('❌ Error requesting pairing code:', err.message);
+        // Fallback to QR
+        console.log('\n📱 جاري عرض QR بدل كود الربط...');
+        qrcodeTerminal.generate(qr, { small: true });
+        
+        // Also save QR as image
+        const qrPath = path.join(__dirname, '..', 'public', 'whatsapp-qr.png');
+        try {
+          await QRCode.toFile(qrPath, qr, { width: 300, margin: 2 });
+        } catch {}
+        
+        writePairingStatus({
+          status: 'qr',
+          message: 'افتح الصورة whatsapp-qr.png وامسحها من واتساب'
+        });
       }
-      
-      // Also show small QR in terminal
-      console.log('\n📱 امسح الـ QR من واتساب:');
-      qrcodeTerminal.generate(qr, { small: true });
-      console.log('\n🌐 افتح الصورة دي في البراوزر: /whatsapp-qr.png\n');
     }
 
     if (connection === 'close') {
       botConnected = false;
-      writeStatus('disconnected');
       const shouldReconnect = lastDisconnect?.error?.output?.statusCode !== DisconnectReason.loggedOut;
       console.log('Connection closed. Reconnecting:', shouldReconnect);
       if (shouldReconnect) {
+        pairingCodeDisplayed = false;
+        writePairingStatus({ status: 'disconnected' });
         startBot();
       }
     } else if (connection === 'open') {
       botConnected = true;
-      writeStatus('connected');
-      console.log('✅ البوت متصل بنجاح!');
-      // Remove QR image after successful connection
-      try { fs.unlinkSync(QR_IMAGE_PATH); } catch {}
+      pairingCodeDisplayed = false;
+      console.log('✅ البوت متصل بنجاح! واتساب مربوط!');
+      writePairingStatus({ status: 'connected' });
     }
   });
 
@@ -177,12 +209,11 @@ async function startBot() {
 
     // If owner chat is active for this user, skip bot
     if (ownerChatActive[phone]) {
-      // Check if owner wants to end the chat
       if (text === 'انتهى' || text === 'انهي') {
         ownerChatActive[phone] = false;
         await sock.sendMessage(from, { text: 'شكراً لتواصلك معنا! 🙏\nلو محتاج أي حاجة تاني تواصل معانا في أي وقت.' });
       }
-      return; // Let the owner handle it
+      return;
     }
 
     // Handle image messages (receipt confirmation)
@@ -209,7 +240,6 @@ async function startBot() {
       ownerChatActive[phone] = true;
       await sock.sendMessage(from, { text: '👤 تم تحويلك لفريق الدعم.\nاكتب رسالتك وسيرد عليك أحد الفريق.\n\nلإنهاء المحادثة أرسل: انتهى' });
     } else {
-      // Default: show welcome
       await sock.sendMessage(from, { text: WELCOME_MESSAGE });
     }
   });
@@ -221,15 +251,12 @@ async function handleReceiptImage(sock, from, phone, msg) {
   await sock.sendMessage(from, { text: '⏳ جاري مراجعة صورة الدفع...' });
 
   try {
-    // Download the image
     const buffer = await sock.downloadMediaMessage(msg);
     
-    // Save temporarily for AI analysis
     const tempPath = path.join(__dirname, 'temp_receipts', `${phone}_${Date.now()}.jpg`);
     fs.mkdirSync(path.dirname(tempPath), { recursive: true });
     fs.writeFileSync(tempPath, buffer);
 
-    // Use VLM to analyze the receipt
     const ZAI = (await import('z-ai-web-dev-sdk')).default;
     const zai = await ZAI.create();
     
@@ -266,14 +293,11 @@ async function handleReceiptImage(sock, from, phone, msg) {
     const analysis = response.choices[0]?.message?.content || '';
     console.log(`🔍 Receipt analysis for ${phone}:`, analysis);
 
-    // Check if approved
     const isApproved = analysis.includes('مقبول') && !analysis.includes('مرفوض');
 
-    // Clean up temp file
     try { fs.unlinkSync(tempPath); } catch {}
 
     if (isApproved) {
-      // Generate and save activation code
       const code = generateCode(phone);
       await saveSubscriptionToDB(code, phone);
       
@@ -312,6 +336,6 @@ ${code}
 }
 
 // Start
-writeStatus('starting');
+writePairingStatus({ status: 'starting' });
 console.log('🚀 Starting OptiSize WhatsApp Bot...');
 startBot().catch(console.error);
