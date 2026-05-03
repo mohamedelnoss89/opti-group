@@ -6,7 +6,6 @@ import dynamic from "next/dynamic";
 import SplashScreen from "@/components/optisize/SplashScreen";
 import AuthScreen from "@/components/optisize/AuthScreen";
 import MainMenu from "@/components/optisize/MainMenu";
-import LoginPrompt from "@/components/optisize/LoginPrompt";
 import Results from "@/components/optisize/Results";
 import Records from "@/components/optisize/Records";
 import VisionTest from "@/components/optisize/VisionTest";
@@ -56,7 +55,7 @@ import { getCurrentUser } from "@/lib/auth";
 import { saveRecord, type Record as StoredRecord } from "@/lib/storage";
 import type { StoredUser } from "@/lib/auth";
 import { I18nProvider } from "@/lib/i18n";
-import { LanguageSwitch } from "@/components/optisize/LanguageSwitch";
+import LoginPrompt from "@/components/optisize/LoginPrompt";
 
 type Screen =
   | "splash"
@@ -94,6 +93,7 @@ export default function Home() {
   const [screenHistory, setScreenHistory] = useState<Screen[]>([]);
   const [user, setUser] = useState<StoredUser | null>(null);
   const [showLoginPrompt, setShowLoginPrompt] = useState(false);
+  const [hasSubscription, setHasSubscription] = useState(false);
   const [scanResult, setScanResult] = useState<number | null>(null);
   const [selectedGlasses, setSelectedGlasses] = useState<GlassesItem | null>(null);
 
@@ -129,6 +129,8 @@ export default function Home() {
   const handleAuth = useCallback((authUser: StoredUser) => {
     setUser(authUser);
     setScreenHistory([]);
+    // Check subscription status
+    checkSubscription(authUser.id);
     setScreen("main");
   }, []);
 
@@ -158,6 +160,11 @@ export default function Home() {
     });
   }, []);
 
+  // Guest tries to access a locked service → show login prompt
+  const handleRequestLogin = useCallback(() => {
+    setShowLoginPrompt(true);
+  }, []);
+
   const handleLoginPromptLogin = useCallback(() => {
     setShowLoginPrompt(false);
     setScreenHistory((prev) => [...prev, screen]);
@@ -167,6 +174,39 @@ export default function Home() {
   const handleLoginPromptDismiss = useCallback(() => {
     setShowLoginPrompt(false);
   }, []);
+
+  // Check subscription status from DB
+  const checkSubscription = useCallback(async (userId: string) => {
+    try {
+      const res = await fetch(`/api/subscriptions?userId=${encodeURIComponent(userId)}`);
+      const data = await res.json();
+      if (data.success) {
+        setHasSubscription(data.hasSubscription);
+      }
+    } catch {
+      setHasSubscription(false);
+    }
+  }, []);
+
+  // Handle subscription activation code
+  const handleActivateCode = useCallback(async (code: string): Promise<boolean> => {
+    if (!user) return false;
+    try {
+      const res = await fetch("/api/subscriptions", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ code, userId: user.id }),
+      });
+      const data = await res.json();
+      if (data.success) {
+        setHasSubscription(true);
+        return true;
+      }
+      return false;
+    } catch {
+      return false;
+    }
+  }, [user]);
 
   // Scanner result
   const handleScanResult = useCallback((pd: number) => {
@@ -349,7 +389,6 @@ export default function Home() {
   return (
     <I18nProvider>
       <div style={{ background: "#0a0e1a", minHeight: "100vh" }}>
-        <LanguageSwitch />
         <AnimatePresence mode="wait">
         {screen === "splash" && (
           <motion.div key="splash" variants={pageVariants} initial="initial" animate="animate" exit="exit" transition={{ duration: 0.3 }}>
@@ -365,7 +404,7 @@ export default function Home() {
 
         {screen === "main" && user && (
           <motion.div key="main" variants={pageVariants} initial="initial" animate="animate" exit="exit" transition={{ duration: 0.3 }}>
-            <MainMenu user={user} onNavigate={handleNavigate} onLogout={handleLogout} />
+            <MainMenu user={user} onNavigate={handleNavigate} onLogout={handleLogout} onRequestLogin={handleRequestLogin} />
             <AnimatePresence>
               {showLoginPrompt && (
                 <LoginPrompt onLogin={handleLoginPromptLogin} onDismiss={handleLoginPromptDismiss} />
@@ -406,7 +445,7 @@ export default function Home() {
 
         {screen === "health-center" && (
           <motion.div key="health-center" variants={pageVariants} initial="initial" animate="animate" exit="exit" transition={{ duration: 0.3 }}>
-            <HealthCenter onSelectTest={handleSelectHealthTest} onBack={handleBack} />
+            <HealthCenter onSelectTest={handleSelectHealthTest} onBack={handleBack} hasSubscription={hasSubscription} onRequestSubscription={() => {}} onActivateCode={handleActivateCode} />
           </motion.div>
         )}
 

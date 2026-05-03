@@ -289,6 +289,25 @@ const ar: Record<string, string> = {
   "color.plate": "اللوح {n}",
   "color.picked": "اخترت {n}",
   "color.saveExit": "حفظ وخروج",
+
+  // Subscription
+  "sub.vipLabel": "المميز",
+  "sub.desc": "هذا الاشتراك يوفر لك جميع خدمات VIP التي تحتاجها لصحة عينك من خلال المركز",
+  "sub.planTitle": "الاشتراك في الخدمة المميزة",
+  "sub.currency": "جنيه",
+  "sub.month": "شهر",
+  "sub.f1": "جميع الفحوصات التشخيصية",
+  "sub.f2": "فحوصات متقدمة للعين",
+  "sub.f3": "تقييم شامل لصحة العين",
+  "sub.f4": "محادثة طبية ذكية",
+  "sub.subscribeBtn": "ابدأ مع الاشتراك",
+  "sub.enterCode": "لديك كود تفعيل؟ أدخله هنا",
+  "sub.codePlaceholder": "مثال: ABC12345",
+  "sub.activate": "تفعيل",
+  "sub.codeError": "الكود لازم يكون 8 حروف/أرقام على الأقل",
+  "sub.invalidCode": "كود التفعيل غير صحيح، حاول مرة تانية",
+  "sub.successMsg": "تم التفعيل بنجاح! جميع الخدمات متاحة الآن",
+  "sub.locked": "يتطلب اشتراك VIP",
 };
 
 export default ar;

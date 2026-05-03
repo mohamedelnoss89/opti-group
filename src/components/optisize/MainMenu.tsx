@@ -16,6 +16,9 @@ import {
   Cpu,
   Sun,
   Download,
+  Lock,
+  Crown,
+  Languages,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import type { StoredUser } from "@/lib/auth";
@@ -27,6 +30,7 @@ interface MainMenuProps {
   user: StoredUser;
   onNavigate: (screen: string) => void;
   onLogout: () => void;
+  onRequestLogin: () => void;
 }
 
 const containerVariants = {
@@ -42,13 +46,18 @@ const itemVariants = {
   visible: { y: 0, opacity: 1 },
 };
 
+// Services that are free for guests (only PD measurement)
+const GUEST_ALLOWED = ["scanner"];
+
 export default function MainMenu({
   user,
   onNavigate,
   onLogout,
+  onRequestLogin,
 }: MainMenuProps) {
   const { toast } = useToast();
-  const { t, isRTL } = useI18n();
+  const { t, isRTL, locale, setLocale } = useI18n();
+  const isGuest = user.isGuest;
 
   const mainActions = [
     {
@@ -74,6 +83,7 @@ export default function MainMenu({
       icon: Heart,
       gradient: "linear-gradient(135deg, #ff3b30, #ff6b6b)",
       glowClass: "glow-red",
+      vip: true,
     },
     {
       id: "glasses-catalog",
@@ -142,6 +152,16 @@ export default function MainMenu({
     onLogout();
   };
 
+  const handleActionClick = (actionId: string) => {
+    if (isGuest && !GUEST_ALLOWED.includes(actionId)) {
+      onRequestLogin();
+      return;
+    }
+    onNavigate(actionId);
+  };
+
+  const isLocked = (actionId: string) => isGuest && !GUEST_ALLOWED.includes(actionId);
+
   return (
     <div
       className="min-h-screen pb-8"
@@ -186,6 +206,15 @@ export default function MainMenu({
 
           {/* User bar */}
           <div className="flex items-center gap-2">
+            <Button
+              onClick={handleLogout}
+              variant="ghost"
+              size="icon"
+              className="w-9 h-9 rounded-lg hover:bg-white/5 transition-colors"
+              style={{ color: "#94a3b8" }}
+            >
+              <LogOut className="w-4 h-4" />
+            </Button>
             <div className="text-left">
               <p className="text-sm font-medium" style={{ color: "#e2e8f0" }}>
                 {user.name}
@@ -196,73 +225,123 @@ export default function MainMenu({
                 </p>
               )}
             </div>
-            <Button
-              onClick={handleLogout}
-              variant="ghost"
-              size="icon"
-              className="w-9 h-9 rounded-lg hover:bg-white/5 transition-colors"
-              style={{ color: "#94a3b8" }}
-            >
-              <LogOut className="w-4 h-4" />
-            </Button>
           </div>
         </motion.div>
 
         {/* Main Action Cards */}
         <motion.div variants={itemVariants} className="space-y-3 mb-6">
-          <h2
-            className="text-sm font-semibold mb-3"
-            style={{ color: "#94a3b8" }}
-          >
-            {t("menu.services")}
-          </h2>
+          <div className="flex items-center justify-between mb-3">
+            <h2
+              className="text-sm font-semibold"
+              style={{ color: "#94a3b8" }}
+            >
+              {t("menu.services")}
+            </h2>
+            <button
+              onClick={() => setLocale(locale === "ar" ? "en" : "ar")}
+              className="flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[10px] font-medium transition-all duration-200 active:scale-95 hover:bg-white/10"
+              style={{
+                background: "rgba(0,240,255,0.08)",
+                border: "1px solid rgba(0,240,255,0.2)",
+                color: "#00f0ff",
+              }}
+            >
+              <Languages className="w-3 h-3" />
+              {locale === "ar" ? "EN" : "عربي"}
+            </button>
+          </div>
           <div className="grid grid-cols-1 gap-3">
-            {mainActions.map((action, index) => (
-              <motion.button
-                key={action.id}
-                onClick={() => onNavigate(action.id)}
-                className="w-full text-right rounded-xl p-4 transition-all duration-200 group"
-                style={{
-                  background: "linear-gradient(135deg, rgba(255,255,255,0.05) 0%, rgba(255,255,255,0.02) 100%)",
-                  border: "1px solid rgba(255,255,255,0.08)",
-                }}
-                whileHover={{
-                  scale: 1.015,
-                  borderColor: "rgba(255,255,255,0.15)",
-                  boxShadow: "0 8px 32px rgba(0,0,0,0.3)",
-                }}
-                whileTap={{ scale: 0.985 }}
-                initial={{ opacity: 0, y: 15 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: 0.1 + index * 0.06, duration: 0.3 }}
-              >
-                <div className="flex items-center gap-4">
-                  <div
-                    className="w-12 h-12 rounded-xl flex items-center justify-center shrink-0 group-hover:scale-110 transition-transform duration-200"
-                    style={{ background: action.gradient }}
-                  >
-                    <action.icon className="w-6 h-6" style={{ color: "#0a0e1a" }} />
+            {mainActions.map((action, index) => {
+              const locked = isLocked(action.id);
+              return (
+                <motion.button
+                  key={action.id}
+                  onClick={() => handleActionClick(action.id)}
+                  className="w-full text-right rounded-xl p-4 transition-all duration-200 group relative overflow-hidden"
+                  style={{
+                    background: locked
+                      ? "linear-gradient(135deg, rgba(255,255,255,0.02) 0%, rgba(255,255,255,0.01) 100%)"
+                      : "linear-gradient(135deg, rgba(255,255,255,0.05) 0%, rgba(255,255,255,0.02) 100%)",
+                    border: locked
+                      ? "1px solid rgba(255,255,255,0.04)"
+                      : "1px solid rgba(255,255,255,0.08)",
+                    opacity: locked ? 0.55 : 1,
+                  }}
+                  whileHover={locked ? {} : {
+                    scale: 1.015,
+                    borderColor: "rgba(255,255,255,0.15)",
+                    boxShadow: "0 8px 32px rgba(0,0,0,0.3)",
+                  }}
+                  whileTap={locked ? { scale: 0.98 } : { scale: 0.985 }}
+                  initial={{ opacity: 0, y: 15 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: 0.1 + index * 0.06, duration: 0.3 }}
+                >
+                  <div className="flex items-center gap-4">
+                    <div className="relative">
+                      <div
+                        className="w-12 h-12 rounded-xl flex items-center justify-center shrink-0 group-hover:scale-110 transition-transform duration-200"
+                        style={{
+                          background: locked
+                            ? "rgba(255,255,255,0.06)"
+                            : action.gradient,
+                        }}
+                      >
+                        <action.icon
+                          className="w-6 h-6"
+                          style={{ color: locked ? "#475569" : "#0a0e1a" }}
+                        />
+                      </div>
+                      {/* Lock icon for guest */}
+                      {locked && (
+                        <div
+                          className="absolute -top-1 -right-1 w-5 h-5 rounded-full flex items-center justify-center"
+                          style={{ background: "rgba(255,255,255,0.1)", border: "1px solid rgba(255,255,255,0.15)" }}
+                        >
+                          <Lock className="w-2.5 h-2.5" style={{ color: "#94a3b8" }} />
+                        </div>
+                      )}
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-center gap-2">
+                        <p
+                          className="text-base font-semibold"
+                          style={{ color: locked ? "#64748b" : "#e2e8f0" }}
+                        >
+                          {action.label}
+                        </p>
+                        {/* VIP Badge for health center */}
+                        {action.vip && (
+                          <div
+                            className="flex items-center gap-0.5 px-1.5 py-0.5 rounded-full"
+                            style={{
+                              background: locked
+                                ? "rgba(255,215,0,0.08)"
+                                : "linear-gradient(135deg, rgba(255,215,0,0.2), rgba(255,170,0,0.15))",
+                              border: locked
+                                ? "1px solid rgba(255,215,0,0.15)"
+                                : "1px solid rgba(255,215,0,0.35)",
+                            }}
+                          >
+                            <Crown className="w-2.5 h-2.5" style={{ color: locked ? "#92400e" : "#ffd700" }} />
+                            <span className="text-[8px] font-bold" style={{ color: locked ? "#92400e" : "#ffd700" }}>VIP</span>
+                          </div>
+                        )}
+                      </div>
+                      <p className="text-xs mt-0.5" style={{ color: locked ? "#475569" : "#64748b" }}>
+                        {locked ? "سجّل دخولك للوصول" : action.description}
+                      </p>
+                    </div>
+                    <div
+                      className="w-2 h-2 rounded-full shrink-0 opacity-40 group-hover:opacity-100 transition-opacity"
+                      style={{
+                        background: locked ? "#475569" : action.gradient,
+                      }}
+                    />
                   </div>
-                  <div className="flex-1 min-w-0">
-                    <p
-                      className="text-base font-semibold"
-                      style={{ color: "#e2e8f0" }}
-                    >
-                      {action.label}
-                    </p>
-                    <p className="text-xs mt-0.5" style={{ color: "#64748b" }}>
-                      {action.description}
-                    </p>
-                  </div>
-                  <div
-                    className="w-2 h-2 rounded-full shrink-0 opacity-40 group-hover:opacity-100 transition-opacity"
-                    style={{
-                      background: action.gradient,
-                    }}
-                  />
-                </div>
-              </motion.button>
-            ))}
+                </motion.button>
+              );
+            })}
           </div>
         </motion.div>
 
@@ -305,31 +384,41 @@ export default function MainMenu({
             أدوات سريعة
           </h2>
           <div className="grid grid-cols-2 gap-3">
-            {quickTools.map((tool, index) => (
-              <motion.button
-                key={tool.id}
-                onClick={() => onNavigate(tool.id)}
-                className="glass-card rounded-xl p-4 text-center transition-all duration-200 group"
-                initial={{ opacity: 0, scale: 0.95 }}
-                animate={{ opacity: 1, scale: 1 }}
-                transition={{ delay: 0.5 + index * 0.06 }}
-                whileHover={{ scale: 1.03, borderColor: `${tool.color}30` }}
-                whileTap={{ scale: 0.97 }}
-              >
-                <div
-                  className="w-10 h-10 rounded-xl flex items-center justify-center mx-auto mb-2 group-hover:scale-110 transition-transform"
-                  style={{ background: tool.gradient }}
+            {quickTools.map((tool, index) => {
+              const locked = isGuest;
+              return (
+                <motion.button
+                  key={tool.id}
+                  onClick={() => handleActionClick(tool.id)}
+                  className="glass-card rounded-xl p-4 text-center transition-all duration-200 group relative"
+                  initial={{ opacity: 0, scale: 0.95 }}
+                  animate={{ opacity: 1, scale: 1 }}
+                  transition={{ delay: 0.5 + index * 0.06 }}
+                  whileHover={locked ? {} : { scale: 1.03, borderColor: `${tool.color}30` }}
+                  whileTap={locked ? { scale: 0.97 } : { scale: 0.97 }}
+                  style={locked ? { opacity: 0.45 } : {}}
                 >
-                  <tool.icon className="w-5 h-5" style={{ color: "#0a0e1a" }} />
-                </div>
-                <p className="text-xs font-semibold" style={{ color: "#e2e8f0" }}>
-                  {tool.label}
-                </p>
-                <p className="text-[10px] mt-0.5" style={{ color: tool.color }}>
-                  {tool.subtitle}
-                </p>
-              </motion.button>
-            ))}
+                  {/* Lock overlay for guests */}
+                  {locked && (
+                    <div className="absolute top-2 left-2">
+                      <Lock className="w-3 h-3" style={{ color: "#94a3b8" }} />
+                    </div>
+                  )}
+                  <div
+                    className="w-10 h-10 rounded-xl flex items-center justify-center mx-auto mb-2 group-hover:scale-110 transition-transform"
+                    style={{ background: locked ? "rgba(255,255,255,0.04)" : tool.gradient }}
+                  >
+                    <tool.icon className="w-5 h-5" style={{ color: locked ? "#475569" : "#0a0e1a" }} />
+                  </div>
+                  <p className="text-xs font-semibold" style={{ color: locked ? "#64748b" : "#e2e8f0" }}>
+                    {tool.label}
+                  </p>
+                  <p className="text-[10px] mt-0.5" style={{ color: locked ? "#475569" : tool.color }}>
+                    {locked ? "سجّل دخولك" : tool.subtitle}
+                  </p>
+                </motion.button>
+              );
+            })}
           </div>
         </motion.div>
 

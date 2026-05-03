@@ -289,6 +289,25 @@ const en: Record<string, string> = {
   "color.plate": "Plate {n}",
   "color.picked": "Picked {n}",
   "color.saveExit": "Save & Exit",
+
+  // Subscription
+  "sub.vipLabel": "Premium",
+  "sub.desc": "This subscription gives you access to all VIP services you need for your eye health through the center",
+  "sub.planTitle": "Premium Subscription",
+  "sub.currency": "EGP",
+  "sub.month": "month",
+  "sub.f1": "All diagnostic tests",
+  "sub.f2": "Advanced eye examinations",
+  "sub.f3": "Comprehensive eye health assessment",
+  "sub.f4": "AI Medical Chat",
+  "sub.subscribeBtn": "Start Subscription",
+  "sub.enterCode": "Have an activation code? Enter it here",
+  "sub.codePlaceholder": "e.g. ABC12345",
+  "sub.activate": "Activate",
+  "sub.codeError": "Code must be at least 8 characters",
+  "sub.invalidCode": "Invalid activation code, please try again",
+  "sub.successMsg": "Activation successful! All services are now available",
+  "sub.locked": "Requires VIP subscription",
 };
 
 export default en;
