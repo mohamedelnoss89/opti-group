@@ -1,7 +1,9 @@
 const { default: makeWASocket, useMultiFileAuthState, DisconnectReason, fetchLatestBaileysVersion } = require('@whiskeysockets/baileys');
-const qrcode = require('qrcode-terminal');
+const qrcodeTerminal = require('qrcode-terminal');
+const QRCode = require('qrcode');
 const fs = require('fs');
 const path = require('path');
+const http = require('http');
 
 // Database path - shared with OptiSize app
 const DB_PATH = path.join(__dirname, '..', 'db', 'custom.db');
@@ -12,6 +14,55 @@ const CODES_FILE = path.join(__dirname, 'subscription_codes.json');
 // Bot state
 let userStates = {}; // phone -> state: 'idle' | 'awaiting_payment' | 'awaiting_receipt'
 let ownerChatActive = {}; // phone -> boolean (when owner takes over)
+
+// QR code server state
+let latestQRData = null; // latest QR string for web page
+let qrImagePath = path.join(__dirname, 'qr_code.png');
+
+// Start a simple HTTP server to show QR in browser
+const QR_PORT = 8787;
+const qrServer = http.createServer((req, res) => {
+  if (latestQRData) {
+    res.writeHead(200, { 'Content-Type': 'text/html; charset=utf-8' });
+    res.end(`<!DOCTYPE html>
+<html dir="rtl">
+<head><title>OptiSize WhatsApp QR</title>
+<style>
+  body{display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:100vh;margin:0;background:#0a0a1a;font-family:Arial,sans-serif;color:#fff}
+  h1{color:#00e5ff;margin-bottom:10px}
+  p{color:#aaa;margin-top:10px;font-size:18px}
+  img{border-radius:16px;box-shadow:0 0 40px rgba(0,229,255,.3)}
+  .hint{color:#666;font-size:14px;margin-top:20px}
+</style></head>
+<body>
+  <h1>📱 امسح الـ QR من واتساب</h1>
+  <img src="data:image/png;base64,${fs.readFileSync(qrImagePath).toString('base64')}" width="300" height="300"/>
+  <p>افتح واتساب → الإعدادات → الأجهزة المرتبطة → ربط جهاز</p>
+  <div class="hint">هذه الصفحة تتحدث تلقائياً عند ظهور QR جديد</div>
+  <script>setTimeout(()=>location.reload(),5000)</script>
+</body>
+</html>`);
+  } else {
+    res.writeHead(200, { 'Content-Type': 'text/html; charset=utf-8' });
+    res.end(`<!DOCTYPE html>
+<html dir="rtl">
+<head><title>OptiSize WhatsApp QR</title>
+<style>
+  body{display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:100vh;margin:0;background:#0a0a1a;font-family:Arial,sans-serif;color:#fff}
+  h2{color:#00e5ff}
+  p{color:#aaa}
+</style></head>
+<body>
+  <h2>⏳ في انتظار الـ QR كود...</h2>
+  <p>الصفحة هتتحدث تلقائياً</p>
+  <script>setTimeout(()=>location.reload(),3000)</script>
+</body>
+</html>`);
+  }
+});
+qrServer.listen(QR_PORT, () => {
+  console.log(`🌐 افتح البراوزر على: http://localhost:${QR_PORT}`);
+});
 
 // Load existing codes
 function loadCodes() {
@@ -108,7 +159,7 @@ async function startBot() {
   const sock = makeWASocket({
     version,
     auth: state,
-    printQRInTerminal: true,
+    printQRInTerminal: false,
     browser: ['OptiSize Bot', 'Chrome', '1.0'],
   });
 
@@ -118,8 +169,21 @@ async function startBot() {
     const { connection, lastDisconnect, qr } = update;
 
     if (qr) {
-      console.log('\n📱 امسح الـ QR كود ده من واتساب:');
-      qrcode.generate(qr, { small: true });
+      latestQRData = qr;
+      
+      // Save QR as PNG image
+      try {
+        await QRCode.toFile(qrImagePath, qr, { width: 300, margin: 2 });
+        console.log('📸 QR saved as PNG → ' + qrImagePath);
+      } catch (err) {
+        console.error('Error saving QR image:', err.message);
+      }
+      
+      // Show small QR in terminal
+      console.log('\n📱 امسح الـ QR من واتساب:');
+      qrcodeTerminal.generate(qr, { small: true });
+      console.log('\n🌐 أو افتح البراوزر على: http://localhost:' + QR_PORT);
+      console.log('📂 أو افتح الصورة: ' + qrImagePath + '\n');
     }
 
     if (connection === 'close') {
