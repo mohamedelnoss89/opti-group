@@ -460,30 +460,46 @@ async function startWA() {
   }
 }
 
-// ====== Receipt Handler (STRICT AI Verification) ======
-const RECEIPT_VERIFY_PROMPT = `أنت نظام تحقق صارم من إيصالات الدفع.
+// ====== Receipt Handler (STRICT AI + Code Verification) ======
+const RECEIPT_VERIFY_PROMPT = `أنت نظام تحقق صارم من إيصالات تحويل فودافون كاش.
 
-اقرأ الإيصال بدقة واستخرج البيانات التالية:
-1. الرقم المحول ليه (آخر رقم في الإيصال)
-2. المبلغ المحول (الرقم اللي بيتحول)
-3. تاريخ ووقت التحويل
+الخطوة 1: أولاً تأكد إن الصورة دي فعلاً إيصال تحويل فودافون كاش
+- لازم تشوف كلمات تدل على التحويل زي: "تم التحويل" أو "مرسل" أو "تم الإرسال" أو "تحويل ناجح" أو "Sent" أو "Transferred"
+- لو مفيش كلمات تدل على إن فيه تحويل حصل → مش إيصال دفع → مرفوض
 
-الشروط الصارمة:
-- الرقم المحول ليه لازم يكون 01028900122 بالظبط
-- المبلغ لازم يكون 50 جنيه بالظبط - حتى لو المبلغ قريب زي 5 جنيه أو 500 جنيه أو أي مبلغ تاني غير 50 → مرفوض
-- لازم يكون إيصال فودافون كاش حقيقي
+الخطوة 2: استخرج البيانات من الإيصال
+1. الرقم المحول ليه (رقم المستقبل)
+2. المبلغ المحول بالظبط
+3. تاريخ التحويل (يوم/شهر/سنة)
+4. وقت التحويل (ساعة:دقيقة)
 
-⚠️ تحذير مهم: لو المبلغ أي حاجة غير 50 جنيه بالظبط → مرفوض
-لو المبلغ 1 جنيه أو 5 جنيه أو 10 جنيه أو 100 جنيه → مرفوض
-المبلغ لازم 50 جنيه بس لا غير!
+الخطوة 3: تحقق من البيانات
+- الرقم لازم يكون 01028900122 بالظبط
+- المبلغ لازم يكون 50 جنيه بالظبط - لو أي مبلغ تاني → مرفوض
+- التاريخ لازم يكون تاريخ اليوم أو أمس فقط - لو التاريخ أقدم من كده → مرفوض
+- الوقت لازم يكون موجود وواضح
 
-أجب بالتنسيق ده بالظبط ولا تزود أي حاجة:
-NUMBER: [الرقم اللي في الإيصال]
-AMOUNT: [المبلغ اللي في الإيصال]
+⚠️ تحذيرات مهمة:
+- لو المبلغ مش 50 جنيه بالظبط → مرفوض (حتى لو 5 أو 10 أو 100)
+- لو التاريخ أقدم من أمس → مرفوض
+- لو مفيش كلمة تدل على التحويل → مرفوض
+- لو الصورة مش إيصال فودافون كاش → مرفوض
+
+أجب بالتنسيق ده بالظبط:
+TYPE: [إيصال فودافون كاش / مش إيصال / أخرى]
+KEYWORD: [الكلمة اللي تدل على التحويل أو "لا يوجد"]
+NUMBER: [الرقم المحول ليه]
+AMOUNT: [المبلغ بالظبط]
+DATE: [التاريخ]
+TIME: [الوقت]
 RESULT: مقبول
 أو
-NUMBER: [الرقم اللي في الإيصال]
-AMOUNT: [المبلغ اللي في الإيصال]
+TYPE: [...]
+KEYWORD: [...]
+NUMBER: [...]
+AMOUNT: [...]
+DATE: [...]
+TIME: [...]
 RESULT: مرفوض
 REASON: [سبب الرفض]`;
 
@@ -524,37 +540,85 @@ async function handleReceipt(from, phone, msg) {
       const aiResponse = r.choices[0]?.message?.content || '';
       log('🤖 AI response: ' + aiResponse);
       
-      // ====== DUAL VERIFICATION: AI + Code ======
-      // 1. Extract data from AI response
+      // ====== TRIPLE VERIFICATION: AI + Keyword + Code ======
+      // 1. Extract ALL data from AI response
+      const typeMatch = aiResponse.match(/TYPE:\s*(.+)/);
+      const keywordMatch = aiResponse.match(/KEYWORD:\s*(.+)/);
       const numberMatch = aiResponse.match(/NUMBER:\s*(.+)/);
       const amountMatch = aiResponse.match(/AMOUNT:\s*(.+)/);
+      const dateMatch = aiResponse.match(/DATE:\s*(.+)/);
+      const timeMatch = aiResponse.match(/TIME:\s*(.+)/);
       const resultMatch = aiResponse.match(/RESULT:\s*(مقبول|مرفوض)/);
       const reasonMatch = aiResponse.match(/REASON:\s*(.+)/);
       
+      const aiType = typeMatch ? typeMatch[1].trim() : '';
+      const aiKeyword = keywordMatch ? keywordMatch[1].trim() : '';
       const aiNumber = numberMatch ? numberMatch[1].trim() : '';
       const aiAmount = amountMatch ? amountMatch[1].trim() : '';
+      const aiDate = dateMatch ? dateMatch[1].trim() : '';
+      const aiTime = timeMatch ? timeMatch[1].trim() : '';
       const aiResult = resultMatch ? resultMatch[1].trim() : '';
       const aiReason = reasonMatch ? reasonMatch[1].trim() : '';
       
-      log(`🔍 Extracted: number=${aiNumber} amount=${aiAmount} result=${aiResult}`);
+      log(`🔍 Extracted: type=${aiType} keyword=${aiKeyword} number=${aiNumber} amount=${aiAmount} date=${aiDate} time=${aiTime} result=${aiResult}`);
       
-      // 2. CODE-LEVEL VERIFICATION (not just trusting AI)
+      // 2. CODE-LEVEL VERIFICATION
       const REQUIRED_NUMBER = '01028900122';
       const REQUIRED_AMOUNT = '50';
       
-      // Check if number contains the required number
+      // Check: Must be a Vodafone Cash receipt
+      const isVodafoneReceipt = aiType.includes('فودافون') || aiType.includes('Vodafone');
+      
+      // Check: Must have a payment keyword
+      const hasPaymentKeyword = aiKeyword !== 'لا يوجد' && aiKeyword !== '' && aiKeyword !== 'لايوجد';
+      
+      // Check: Number must be correct
       const numberOk = aiNumber.includes(REQUIRED_NUMBER) || aiNumber.replace(/\s/g, '').includes(REQUIRED_NUMBER);
       
-      // Check if amount is exactly 50 - look for "50" as the amount
+      // Check: Amount must be exactly 50
       const amountClean = aiAmount.replace(/\s/g, '');
-      // Must contain "50" and NOT contain other suspicious amounts like 500, 5, 150, etc.
       const amountHas50 = amountClean.includes(REQUIRED_AMOUNT);
       const amountHas500 = amountClean.includes('500');
       const amountHas5Only = /(^|[^\d])5($|[^\d])/.test(amountClean) && !amountHas50;
       const amountOk = amountHas50 && !amountHas500 && !amountHas5Only;
       
-      // 3. Final decision: BOTH code verification AND AI must agree
-      if (numberOk && amountOk && aiResult === 'مقبول') {
+      // Check: Date must be recent (today or yesterday)
+      const now = new Date();
+      const todayStr = `${now.getDate()}/${now.getMonth()+1}/${now.getFullYear()}`;
+      const yesterday = new Date(now);
+      yesterday.setDate(yesterday.getDate() - 1);
+      const yesterdayStr = `${yesterday.getDate()}/${yesterday.getMonth()+1}/${yesterday.getFullYear()}`;
+      
+      // Also try with different separators and formats
+      const dateClean = aiDate.replace(/\s/g, '');
+      const todayClean = todayStr.replace(/\s/g, '');
+      const yesterdayClean = yesterdayStr.replace(/\s/g, '');
+      
+      // Check multiple date formats: d/m/yyyy, dd/mm/yyyy, yyyy/m/d, etc.
+      const todayParts = [now.getDate(), now.getMonth()+1, now.getFullYear()];
+      const yestParts = [yesterday.getDate(), yesterday.getMonth()+1, yesterday.getFullYear()];
+      
+      const dateIsToday = dateClean.includes(`${todayParts[0]}/${todayParts[1]}`) || 
+                          dateClean.includes(`${todayParts[0]}-${todayParts[1]}`) ||
+                          dateClean.includes(`${todayParts[2]}/${todayParts[1]}/${todayParts[0]}`) ||
+                          dateClean.includes(`${todayParts[2]}-${todayParts[1]}-${todayParts[0]}`);
+      
+      const dateIsYesterday = dateClean.includes(`${yestParts[0]}/${yestParts[1]}`) ||
+                              dateClean.includes(`${yestParts[0]}-${yestParts[1]}`) ||
+                              dateClean.includes(`${yestParts[2]}/${yestParts[1]}/${yestParts[0]}`) ||
+                              dateClean.includes(`${yestParts[2]}-${yestParts[1]}-${yestParts[0]}`);
+      
+      const dateOk = dateIsToday || dateIsYesterday;
+      
+      // Check: Time must be present
+      const timeOk = aiTime !== '' && aiTime !== 'لا يوجد' && aiTime !== 'لايوجد' && /\d/.test(aiTime);
+      
+      // 3. Final decision: ALL checks must pass
+      const allOk = isVodafoneReceipt && hasPaymentKeyword && numberOk && amountOk && dateOk && timeOk && aiResult === 'مقبول';
+      
+      log(`✅ Checks: vodafone=${isVodafoneReceipt} keyword=${hasPaymentKeyword} number=${numberOk} amount=${amountOk} date=${dateOk} time=${timeOk} aiResult=${aiResult}`);
+      
+      if (allOk) {
         const code = generateCode(phone);
         await saveSubscriptionToDB(code, phone);
         userStates[phone] = 'idle';
@@ -563,21 +627,29 @@ async function handleReceipt(from, phone, msg) {
         return;
       }
       
-      // Rejected - give specific reason
-      let reason = aiReason;
-      if (!numberOk && !amountOk) {
+      // Rejected - give SPECIFIC reason
+      let reason = '';
+      if (!isVodafoneReceipt) {
+        reason = 'الصورة مش إيصال فودافون كاش';
+      } else if (!hasPaymentKeyword) {
+        reason = 'مفيش كلمة تدل على إن فيه تحويل حصل (زي "تم التحويل" أو "مرسل")';
+      } else if (!numberOk && !amountOk) {
         reason = 'الرقم والمبلغ مختلفين عن المطلوب (01028900122 - 50 جنيه)';
       } else if (!numberOk) {
         reason = 'الرقم المحول ليه مختلف عن 01028900122';
       } else if (!amountOk) {
         reason = 'المبلغ مختلف عن 50 جنيه (المبلغ في الإيصال: ' + aiAmount + ')';
+      } else if (!dateOk) {
+        reason = 'التاريخ مش تاريخ اليوم أو أمس (التاريخ في الإيصال: ' + aiDate + ')';
+      } else if (!timeOk) {
+        reason = 'مفيش وقت واضح للتحويل في الإيصال';
       } else if (aiResult !== 'مقبول') {
         reason = aiReason || 'الإيصال غير مقبول';
       }
       
       userStates[phone] = 'awaiting_receipt';
       await safeSend(from, { 
-        text: `❌ الإيصال غير مقبول.\nالسبب: ${reason}\n\nتأكد إن الإيصال بيوضح:\n- الرقم: 01028900122\n- المبلغ: 50 جنيه بالظبط\n- تاريخ ووقت التحويل\n\nأرسل صورة الإيصال الصحيحة تاني ✅` 
+        text: `❌ الإيصال غير مقبول.\nالسبب: ${reason}\n\nتأكد إن الإيصال بيوضح:\n- كلمة تدل على التحويل (تم التحويل/مرسل)\n- الرقم: 01028900122\n- المبلغ: 50 جنيه بالظبط\n- تاريخ ووقت التحويل (اليوم أو أمس)\n\nأرسل صورة الإيصال الصحيحة تاني ✅` 
       });
       log('❌ Receipt REJECTED for ' + phone + ': ' + reason);
       
