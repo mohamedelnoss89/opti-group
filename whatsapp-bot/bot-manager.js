@@ -1,7 +1,7 @@
-const { default: makeWASocket, useMultiFileAuthState, DisconnectReason, fetchLatestBaileysVersion, makeInMemoryStore } = require('@whiskeysockets/baileys');
+const { default: makeWASocket, useMultiFileAuthState, DisconnectReason, fetchLatestBaileysVersion } = require('@whiskeysockets/baileys');
+const QRCode = require('qrcode');
 const fs = require('fs');
 const path = require('path');
-const http = require('http');
 
 const CODES_FILE = path.join(__dirname, 'subscription_codes.json');
 const PAIRING_FILE = path.join(__dirname, '..', 'public', 'pairing.json');
@@ -15,7 +15,6 @@ let presenceInterval = null;
 let reconnectAttempts = 0;
 const MAX_RECONNECT = 10;
 
-// ====== Logging ======
 function log(msg) {
   const ts = new Date().toISOString();
   const line = `[${ts}] ${msg}\n`;
@@ -23,12 +22,10 @@ function log(msg) {
   try { fs.appendFileSync(LOG_FILE, line); } catch {}
 }
 
-// ====== File helpers ======
 function writePairingStatus(data) { try { fs.writeFileSync(PAIRING_FILE, JSON.stringify(data)); } catch {} }
 function loadCodes() { try { if (fs.existsSync(CODES_FILE)) return JSON.parse(fs.readFileSync(CODES_FILE, 'utf-8')); } catch {} return {}; }
 function saveCodes(codes) { try { fs.writeFileSync(CODES_FILE, JSON.stringify(codes, null, 2)); } catch {} }
 
-// ====== Code Generator ======
 function generateCode(phone) {
   const letters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
   const last4 = phone.replace(/\D/g, '').slice(-4);
@@ -37,7 +34,6 @@ function generateCode(phone) {
   return code;
 }
 
-// ====== Subscription DB ======
 async function saveSubscriptionToDB(code, phone) {
   try {
     const { PrismaClient } = require('@prisma/client');
@@ -46,12 +42,11 @@ async function saveSubscriptionToDB(code, phone) {
     catch (e) { const c = loadCodes(); c[code] = { phone, createdAt: new Date().toISOString(), activated: false }; saveCodes(c); }
     finally { await prisma.$disconnect(); }
   } catch (e) {
-    log('DB error, falling back to JSON: ' + e.message);
+    log('DB error, fallback to JSON: ' + e.message);
     const c = loadCodes(); c[code] = { phone, createdAt: new Date().toISOString(), activated: false }; saveCodes(c);
   }
 }
 
-// ====== Message Templates ======
 const WELCOME = `مرحباً بك في OptiSize! 👁️
 
 كيف يمكنني مساعدتك؟
@@ -78,240 +73,107 @@ const PAY_CONFIRM = `📸 أرسل صورة تأكيد الدفع الآن
 - المبلغ (50 جنيه)
 - تاريخ ووقت التحويل`;
 
-// ====== Presence / Online ======
 async function setOnline() {
   if (!sock || !botConnected) return;
-  try {
-    await sock.sendPresenceUpdate('available');
-    log('🟢 Presence: online/available');
-  } catch (e) {
-    log('⚠️ Presence update failed: ' + e.message);
-  }
+  try { await sock.sendPresenceUpdate('available'); } catch {}
 }
 
 function startPresenceKeepAlive() {
   if (presenceInterval) clearInterval(presenceInterval);
   setOnline();
-  presenceInterval = setInterval(setOnline, 45000); // every 45 seconds
+  presenceInterval = setInterval(setOnline, 45000);
 }
 
 function stopPresenceKeepAlive() {
   if (presenceInterval) { clearInterval(presenceInterval); presenceInterval = null; }
 }
 
-// ====== Safe Send ======
 async function safeSend(jid, content) {
   if (!sock || !botConnected) return false;
-  try {
-    await sock.sendMessage(jid, content);
-    return true;
-  } catch (e) {
-    log('❌ Send failed: ' + e.message);
-    return false;
-  }
+  try { await sock.sendMessage(jid, content); return true; }
+  catch (e) { log('Send failed: ' + e.message); return false; }
 }
 
-// ====== HTTP API ======
-const apiServer = http.createServer(async (req, res) => {
-  res.writeHead(200, { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*' });
-  
-  if (req.url === '/status') {
-    res.end(JSON.stringify({ connected: botConnected, uptime: process.uptime() }));
-    return;
-  }
-  
-  if (req.url === '/request-code') {
-    if (botConnected) {
-      writePairingStatus({ status: 'connected' });
-      res.end(JSON.stringify({ status: 'connected' }));
-      return;
-    }
-    if (!sock) {
-      res.end(JSON.stringify({ status: 'error', message: 'لا يوجد اتصال' }));
-      return;
-    }
-    try {
-      const code = await Promise.race([
-        sock.requestPairingCode('201028900122'),
-        new Promise((_, reject) => setTimeout(() => reject(new Error('timeout')), 15000))
-      ]);
-      const fmt = code?.match(/.{1,4}/g)?.join('-') || code;
-      log('🔑 Pairing code: ' + fmt);
-      const result = { status: 'pairing', code: fmt, rawCode: code, phone: '201028900122' };
-      writePairingStatus(result);
-      res.end(JSON.stringify(result));
-    } catch (e) {
-      log('❌ Code error: ' + e.message);
-      res.end(JSON.stringify({ status: 'error', message: e.message }));
-    }
-    return;
-  }
-  
-  if (req.url === '/log') {
-    try {
-      const logContent = fs.existsSync(LOG_FILE) ? fs.readFileSync(LOG_FILE, 'utf-8') : 'No logs yet';
-      res.writeHead(200, { 'Content-Type': 'text/plain; charset=utf-8' });
-      res.end(logContent.slice(-3000)); // last 3KB
-    } catch { res.end('Error reading log'); }
-    return;
-  }
-  
-  res.end(JSON.stringify({ status: 'ok', connected: botConnected }));
-});
-
-apiServer.listen(8787, '0.0.0.0', () => {
-  log('🌐 API server on :8787');
-  startWA();
-});
-
-// ====== WhatsApp Connection ======
 async function startWA() {
-  log('🚀 Starting WhatsApp connection...');
-  
+  log('Starting WhatsApp connection...');
   try {
     const { version } = await fetchLatestBaileysVersion();
-    log('📱 Baileys version: ' + version.join('.'));
-    
     const authPath = path.join(__dirname, 'auth_info');
     const { state, saveCreds } = await useMultiFileAuthState(authPath);
-    
+
     sock = makeWASocket({
-      version,
-      auth: state,
+      version, auth: state,
       printQRInTerminal: false,
       browser: ['OptiSize Bot', 'Chrome', '1.0'],
       markOnlineOnConnect: true,
       connectTimeoutMs: 30000,
       keepAliveIntervalMs: 25000,
-      // Don't receive our own messages
       emitOwnEvents: false,
     });
-    
-    // Save credentials on update
+
     sock.ev.on('creds.update', saveCreds);
-    
-    // Connection updates
+
     sock.ev.on('connection.update', async (update) => {
-      log('📡 Connection update: ' + JSON.stringify(update, null, 0));
-      
       const { connection, lastDisconnect, qr } = update;
-      
       if (qr) {
         botConnected = false;
-        // Generate QR as PNG for web display
         try {
-          const QRCode = require('qrcode');
           const qrPath = path.join(__dirname, '..', 'public', 'whatsapp-qr.png');
           await QRCode.toFile(qrPath, qr, { width: 400, margin: 2 });
           writePairingStatus({ status: 'ready', qrAvailable: true });
-          log('📱 QR saved to public/whatsapp-qr.png');
-        } catch (e) {
-          log('⚠️ QR save error: ' + e.message);
-          writePairingStatus({ status: 'ready' });
-        }
+          log('QR saved');
+        } catch (e) { writePairingStatus({ status: 'ready' }); }
       }
-      
       if (connection === 'close') {
         botConnected = false;
         stopPresenceKeepAlive();
-        
         const statusCode = lastDisconnect?.error?.output?.statusCode;
         const shouldReconnect = statusCode !== DisconnectReason.loggedOut;
-        
-        log('🔴 Connection closed. Status: ' + statusCode + ', Reconnect: ' + shouldReconnect);
-        
+        log('Connection closed. Status=' + statusCode + ' Reconnect=' + shouldReconnect);
         if (shouldReconnect && reconnectAttempts < MAX_RECONNECT) {
           reconnectAttempts++;
-          const delay = Math.min(3000 * reconnectAttempts, 30000); // exponential backoff
-          log(`🔄 Reconnecting in ${delay}ms... (attempt ${reconnectAttempts}/${MAX_RECONNECT})`);
-          setTimeout(startWA, delay);
+          setTimeout(startWA, Math.min(3000 * reconnectAttempts, 30000));
         } else if (statusCode === DisconnectReason.loggedOut) {
           writePairingStatus({ status: 'logged_out' });
-          log('🔴 Logged out permanently. Need to re-scan QR.');
-          // Reset reconnect attempts so user can try again
-          reconnectAttempts = 0;
-        } else {
-          log('🔴 Max reconnect attempts reached.');
           reconnectAttempts = 0;
         }
       }
-      
       if (connection === 'open') {
         botConnected = true;
-        reconnectAttempts = 0; // reset on successful connection
-        log('✅ WhatsApp CONNECTED successfully!');
+        reconnectAttempts = 0;
+        log('WhatsApp CONNECTED!');
         writePairingStatus({ status: 'connected' });
-        
-        // Set bot online
         startPresenceKeepAlive();
-        
-        // Send test message to self to confirm bot is alive
-        log('🤖 Bot is alive and online!');
       }
     });
-    
-    // Message handler
+
     sock.ev.on('messages.upsert', async ({ messages, type }) => {
       try {
-        // Only process new messages, not old/history ones
         if (type !== 'notify' && type !== 'append') return;
-        
         const m = messages[0];
-        if (!m) return;
-        
-        // Skip messages from self
-        if (m.key.fromMe) return;
-        
+        if (!m || m.key.fromMe) return;
+
         const from = m.key.remoteJid;
-        
-        // ===== IMPORTANT: Only respond to DMs, NOT groups =====
-        if (from.endsWith('@g.us')) {
-          log('📨 Group message ignored from: ' + from);
-          // Just mark as read, don't respond
-          try { await sock.readMessages([m.key]); } catch {}
-          return;
-        }
-        
-        // Only respond to individual chats (@s.whatsapp.net)
-        if (!from.endsWith('@s.whatsapp.net')) {
-          log('📨 Unknown JID type: ' + from);
-          return;
-        }
-        
+        if (from.endsWith('@g.us')) return; // Ignore groups
+        if (!from.endsWith('@s.whatsapp.net')) return; // Only DMs
+
         const phone = from.replace('@s.whatsapp.net', '');
-        
-        // Extract text
-        const text = m.message?.conversation 
-          || m.message?.extendedTextMessage?.text 
-          || m.message?.imageMessage?.caption 
-          || '';
-        
-        log(`📩 DM from ${phone}: ${text || '[IMAGE]'}`);
-        
-        // Mark as read
+        const text = m.message?.conversation || m.message?.extendedTextMessage?.text || m.message?.imageMessage?.caption || '';
+        log(`DM from ${phone}: ${text || '[IMAGE]'}`);
+
         try { await sock.readMessages([m.key]); } catch {}
-        
-        // Show typing indicator
         try { await sock.sendPresenceUpdate('composing', from); } catch {}
-        
-        // Small delay for typing effect
         await new Promise(r => setTimeout(r, 800));
-        
-        // Handle owner chat mode
+
         if (ownerChatActive[phone]) {
           if (text.trim() === 'انتهى' || text.trim() === 'انهى') {
             ownerChatActive[phone] = false;
             await safeSend(from, { text: 'شكراً! 🙏' });
-          } else {
-            // Forward to owner or just acknowledge
-            log(`💬 Owner chat active for ${phone}, message: ${text}`);
           }
-          // Set back to available
           try { await sock.sendPresenceUpdate('available'); } catch {}
           return;
         }
-        
-        // Handle image messages (payment receipt)
+
         if (m.message?.imageMessage) {
           if (userStates[phone] === 'awaiting_receipt') {
             await handleReceipt(from, phone, m);
@@ -321,85 +183,50 @@ async function startWA() {
           try { await sock.sendPresenceUpdate('available'); } catch {}
           return;
         }
-        
-        // Handle text commands
+
         const cmd = text.trim();
-        
         if (cmd === '1' || cmd === 'اشتراك' || cmd === 'اشترك') {
           userStates[phone] = 'awaiting_receipt';
           await safeSend(from, { text: SUB_INFO });
           await new Promise(r => setTimeout(r, 1000));
           await safeSend(from, { text: PAY_CONFIRM });
-        }
-        else if (cmd === '2' || cmd === 'تحدث') {
+        } else if (cmd === '2' || cmd === 'تحدث') {
           ownerChatActive[phone] = true;
           await safeSend(from, { text: '👤 تم تحويلك لفريق الدعم.\nلإنهاء المحادثة أرسل: انتهى' });
-        }
-        else {
-          // Default: send welcome
+        } else {
           await safeSend(from, { text: WELCOME });
         }
-        
-        // Set back to available after responding
         try { await sock.sendPresenceUpdate('available'); } catch {}
-        
       } catch (err) {
-        log('❌ Message handler error: ' + err.message);
-        log('Stack: ' + err.stack);
+        log('Message handler error: ' + err.message);
       }
     });
-    
-    // Handle group participant updates (join/leave) silently
-    sock.ev.on('group-participants.update', (update) => {
-      // Ignore group events
-    });
-    
-    // Handle presence updates from contacts
-    sock.ev.on('presence.update', (update) => {
-      // We don't need to do anything with others' presence
-    });
-    
+
   } catch (err) {
-    log('❌ Fatal startWA error: ' + err.message);
-    log('Stack: ' + err.stack);
+    log('startWA error: ' + err.message);
     botConnected = false;
-    
-    // Try to reconnect after delay
     if (reconnectAttempts < MAX_RECONNECT) {
       reconnectAttempts++;
-      const delay = Math.min(5000 * reconnectAttempts, 60000);
-      log(`🔄 Retrying startWA in ${delay}ms... (attempt ${reconnectAttempts}/${MAX_RECONNECT})`);
-      setTimeout(startWA, delay);
+      setTimeout(startWA, Math.min(5000 * reconnectAttempts, 60000));
     }
   }
 }
 
-// ====== Receipt Handler ======
 async function handleReceipt(from, phone, msg) {
   await safeSend(from, { text: '⏳ جاري المراجعة...' });
-  
   try {
     const buf = await sock.downloadMediaMessage(msg);
-    
-    // Try AI verification
     try {
       const ZAI = (await import('z-ai-web-dev-sdk')).default;
       const zai = await ZAI.create();
       const b64 = buf.toString('base64');
-      
       const r = await zai.chat.completions.create({
-        messages: [{
-          role: 'user',
-          content: [
-            { type: 'text', text: `تحقق من إيصال الدفع:\n1. الرقم 01028900122؟ (نعم/لا)\n2. المبلغ 50 جنيه؟ (نعم/لا)\n3. تاريخ/وقت؟ (نعم/لا)\n4. تم الدفع؟ (نعم/لا)\n5. النتيجة: مقبول/مرفوض\nبالعربية باختصار.` },
-            { type: 'image_url', image_url: { url: `data:image/jpeg;base64,${b64}` } }
-          ]
-        }]
+        messages: [{ role: 'user', content: [
+          { type: 'text', text: `تحقق من إيصال الدفع:\n1. الرقم 01028900122؟ (نعم/لا)\n2. المبلغ 50 جنيه؟ (نعم/لا)\n3. تاريخ/وقت؟ (نعم/لا)\n4. تم الدفع؟ (نعم/لا)\n5. النتيجة: مقبول/مرفوض\nبالعربية باختصار.` },
+          { type: 'image_url', image_url: { url: `data:image/jpeg;base64,${b64}` } }
+        ]}]
       });
-      
       const a = r.choices[0]?.message?.content || '';
-      log('🤖 AI response: ' + a);
-      
       if (a.includes('مقبول') && !a.includes('مرفوض')) {
         const code = generateCode(phone);
         await saveSubscriptionToDB(code, phone);
@@ -409,45 +236,57 @@ async function handleReceipt(from, phone, msg) {
         await safeSend(from, { text: '❌ غير مقبول. حاول تاني بصورة أوضح.' });
       }
     } catch (aiErr) {
-      log('⚠️ AI verification failed: ' + aiErr.message);
-      // Fallback: accept manually for now
+      log('AI verification failed: ' + aiErr.message);
       const code = generateCode(phone);
       await saveSubscriptionToDB(code, phone);
       userStates[phone] = 'idle';
       await safeSend(from, { text: `✅ تم استلام الدفع!\n\n🔑 الكود: ${code}\n\nأدخله في OptiSize في مركز صحة العين\n⏰ صالح شهر\nشكراً! 🙏` });
     }
-    
   } catch (e) {
-    log('❌ Receipt handler error: ' + e.message);
+    log('Receipt error: ' + e.message);
     await safeSend(from, { text: '⚠️ خطأ في معالجة الصورة. حاول تاني.' });
   }
 }
 
-// ====== Process error handlers ======
 process.on('uncaughtException', (err) => {
-  log('💥 Uncaught Exception: ' + err.message);
-  log('Stack: ' + err.stack);
-  // Don't exit - try to keep running
+  log('Uncaught: ' + err.message);
 });
 
-process.on('unhandledRejection', (reason, promise) => {
-  log('💥 Unhandled Rejection: ' + reason);
-  // Don't exit - try to keep running
+process.on('unhandledRejection', (reason) => {
+  log('Unhandled Rejection: ' + reason);
 });
 
-process.on('SIGINT', () => {
-  log('👋 SIGINT received, shutting down...');
-  stopPresenceKeepAlive();
-  process.exit(0);
-});
+// ====== Export for use in Next.js API ======
+function getStatus() {
+  return { connected: botConnected, uptime: process.uptime() };
+}
 
-process.on('SIGTERM', () => {
-  log('👋 SIGTERM received, shutting down...');
-  stopPresenceKeepAlive();
-  process.exit(0);
-});
+async function requestPairingCode() {
+  if (botConnected) return { status: 'connected' };
+  if (!sock) return { status: 'error', message: 'No connection' };
+  try {
+    const code = await sock.requestPairingCode('201028900122');
+    const fmt = code?.match(/.{1,4}/g)?.join('-') || code;
+    writePairingStatus({ status: 'pairing', code: fmt });
+    return { status: 'pairing', code: fmt };
+  } catch (e) { return { status: 'error', message: e.message }; }
+}
 
-// ====== Start ======
-log('🚀 OptiSize Bot starting...');
-log('Node version: ' + process.version);
-log('PID: ' + process.pid);
+module.exports = { startWA, getStatus, requestPairingCode, log };
+
+// If run directly (not imported), start the bot and HTTP API
+if (require.main === module) {
+  log('Bot starting as standalone...');
+  const http = require('http');
+  http.createServer(async (req, res) => {
+    res.writeHead(200, { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*' });
+    if (req.url === '/status') { res.end(JSON.stringify(getStatus())); return; }
+    if (req.url === '/request-code') { res.end(JSON.stringify(await requestPairingCode())); return; }
+    if (req.url === '/log') {
+      res.writeHead(200, { 'Content-Type': 'text/plain; charset=utf-8' });
+      try { res.end(fs.readFileSync(LOG_FILE, 'utf-8').slice(-3000)); } catch { res.end('No logs'); }
+      return;
+    }
+    res.end(JSON.stringify({ status: 'ok' }));
+  }).listen(8787, '0.0.0.0', () => { log('API on :8787'); startWA(); });
+}
