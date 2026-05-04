@@ -593,32 +593,99 @@ async function handleReceipt(from, phone, msg) {
       
       // Check: Date must be recent (today or yesterday)
       const now = new Date();
-      const todayParts = [now.getDate(), now.getMonth()+1, now.getFullYear()];
+      const todayDay = now.getDate();
+      const todayMonth = now.getMonth() + 1;
+      const todayYear = now.getFullYear();
       const yesterday = new Date(now);
       yesterday.setDate(yesterday.getDate() - 1);
-      const yestParts = [yesterday.getDate(), yesterday.getMonth()+1, yesterday.getFullYear()];
+      const yestDay = yesterday.getDate();
+      const yestMonth = yesterday.getMonth() + 1;
+      const yestYear = yesterday.getFullYear();
       
+      // Robust date check: extract all digit sequences and check against today/yesterday
       const dateClean = aiDate.replace(/\s/g, '');
       
-      const dateIsToday = dateClean.includes(`${todayParts[0]}/${todayParts[1]}`) || 
-                          dateClean.includes(`${todayParts[0]}-${todayParts[1]}`) ||
-                          dateClean.includes(`${todayParts[2]}/${todayParts[1]}/${todayParts[0]}`) ||
-                          dateClean.includes(`${todayParts[2]}-${todayParts[1]}-${todayParts[0]}`);
+      // Arabic month names mapping
+      const arabicMonths = {
+        'يناير': 1, 'فبراير': 2, 'مارس': 3, 'أبريل': 4, 'إبريل': 4, 'مايو': 5, 'يونيو': 6,
+        'يوليو': 7, 'أغسطس': 8, 'سبتمبر': 9, 'أكتوبر': 10, 'نوفمبر': 11, 'ديسمبر': 12
+      };
       
-      const dateIsYesterday = dateClean.includes(`${yestParts[0]}/${yestParts[1]}`) ||
-                              dateClean.includes(`${yestParts[0]}-${yestParts[1]}`) ||
-                              dateClean.includes(`${yestParts[2]}/${yestParts[1]}/${yestParts[0]}`) ||
-                              dateClean.includes(`${yestParts[2]}-${yestParts[1]}-${yestParts[0]}`);
+      function checkDateMatch(day, month, year) {
+        // Check against today
+        if (day === todayDay && month === todayMonth && (year === todayYear || year === undefined)) return true;
+        // Check against yesterday
+        if (day === yestDay && month === yestMonth && (year === yestYear || year === undefined)) return true;
+        return false;
+      }
       
-      const dateOk = dateIsToday || dateIsYesterday;
+      let dateOk = false;
       
-      // Check: Time must be present
-      const timeOk = aiTime !== '' && aiTime !== 'لا يوجد' && aiTime !== 'لايوجد' && /\d/.test(aiTime);
+      // Try format: dd/mm/yyyy or dd-mm-yyyy or d/m/yy etc.
+      const slashMatch = dateClean.match(/(\d{1,2})[\/\-](\d{1,2})[\/\-](\d{2,4})/);
+      if (slashMatch) {
+        const d = parseInt(slashMatch[1]);
+        const m = parseInt(slashMatch[2]);
+        let y = parseInt(slashMatch[3]);
+        if (y < 100) y += 2000;
+        dateOk = checkDateMatch(d, m, y);
+      }
       
-      // 3. Final decision: ALL checks must pass (payment method doesn't matter)
+      // Try format: yyyy/mm/dd or yyyy-mm-dd
+      if (!dateOk) {
+        const isoMatch = dateClean.match(/(\d{4})[\/\-](\d{1,2})[\/\-](\d{1,2})/);
+        if (isoMatch) {
+          const y = parseInt(isoMatch[1]);
+          const m = parseInt(isoMatch[2]);
+          const d = parseInt(isoMatch[3]);
+          dateOk = checkDateMatch(d, m, y);
+        }
+      }
+      
+      // Try Arabic month names (e.g. "4مايو2026" or "4 مايو 2026")
+      if (!dateOk) {
+        for (const [monthName, monthNum] of Object.entries(arabicMonths)) {
+          if (aiDate.includes(monthName)) {
+            const dayMatch = aiDate.match(/(\d{1,2})/);
+            const yearMatch = aiDate.match(/(\d{4})/);
+            if (dayMatch) {
+              const d = parseInt(dayMatch[1]);
+              const y = yearMatch ? parseInt(yearMatch[1]) : undefined;
+              dateOk = checkDateMatch(d, monthNum, y);
+            }
+            if (dateOk) break;
+          }
+        }
+      }
+      
+      // Try dd/mm or d/m without year
+      if (!dateOk) {
+        const shortMatch = dateClean.match(/(\d{1,2})[\/\-](\d{1,2})/);
+        if (shortMatch && !slashMatch) {
+          const d = parseInt(shortMatch[1]);
+          const m = parseInt(shortMatch[2]);
+          if (m <= 12 && d <= 31) {
+            dateOk = checkDateMatch(d, m, undefined);
+          }
+        }
+      }
+      
+      // Check: Time must be present and look like a real time (HH:MM or similar)
+      const timeClean = aiTime.replace(/\s/g, '');
+      const timeOk = timeClean !== '' && 
+                     aiTime !== 'لا يوجد' && 
+                     aiTime !== 'لايوجد' && 
+                     /\d{1,2}[:.]\d{2}/.test(timeClean) &&  // Must have HH:MM or HH.MM pattern
+                     parseInt(timeClean.match(/\d{1,2}/)?.[0] || '99') < 24;  // Hour must be valid
+      
+      // 3. Final decision: ALL 5 checks must pass + AI must agree
+      // Checks: (1) payment receipt (2) payment keyword (3) phone number (4) amount (5) date (6) time
+      // Payment method can be ANY method (Vodafone Cash, Instapay, Fawry, bank transfer, etc.)
       const allOk = isPaymentReceipt && hasPaymentKeyword && numberOk && amountOk && dateOk && timeOk && aiResult === 'مقبول';
       
       log(`✅ Checks: receipt=${isPaymentReceipt} keyword=${hasPaymentKeyword} number=${numberOk} amount=${amountOk} date=${dateOk} time=${timeOk} method=${aiMethod} aiResult=${aiResult}`);
+      log(`📅 Date details: aiDate="${aiDate}" today=${todayDay}/${todayMonth}/${todayYear} yesterday=${yestDay}/${yestMonth}/${yestYear} dateOk=${dateOk}`);
+      log(`⏰ Time details: aiTime="${aiTime}" timeOk=${timeOk}`);
       
       if (allOk) {
         const code = generateCode(phone);
