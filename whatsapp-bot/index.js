@@ -281,7 +281,7 @@ async function startWA() {
     sock = makeWASocket({
       version,
       auth: state,
-      printQRInTerminal: false,
+      printQRInTerminal: true,
       browser: ['OptiSize Bot', 'Chrome', '1.0'],
       markOnlineOnConnect: true,
       connectTimeoutMs: 30000,
@@ -299,11 +299,16 @@ async function startWA() {
       if (qr) {
         botConnected = false;
         try {
-          const QRCode = require('qrcode');
-          await QRCode.toFile(path.join(__dirname, '..', 'public', 'whatsapp-qr.png'), qr, { width: 400, margin: 2 });
+          const QRCode = require('qrcode-terminal');
+          QRCode.generate(qr, { small: true });
+          console.log('\n📱 Scan this QR code with WhatsApp!\n');
+        } catch (e) { console.log('QR Error: ' + e.message); }
+        try {
+          const QRCodeFile = require('qrcode');
+          await QRCodeFile.toFile(path.join(__dirname, '..', 'public', 'whatsapp-qr.png'), qr, { width: 400, margin: 2 });
           writePairingStatus({ status: 'ready', qrAvailable: true });
-          log('QR code saved');
-        } catch { writePairingStatus({ status: 'ready' }); }
+        } catch {}
+        log('QR code generated');
       }
       
       if (connection === 'close') {
