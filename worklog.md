@@ -264,3 +264,26 @@ Stage Summary:
 - Anti-ban rate limiting in place to prevent spam detection
 - Bot responds only to DMs, ignores groups and newsletters
 - Messages are sent with natural delays and cooldowns
+
+---
+Task ID: 2
+Agent: Main Agent
+Task: Fix WhatsApp bot not responding to DMs - root cause found and fixed
+
+Work Log:
+- Discovered bot was receiving messages but ignoring them
+- Root cause 1: `type !== 'notify'` was too strict - changed to accept both 'notify' AND 'append'
+- Root cause 2: `syncFullHistory: false` was preventing proper message sync - removed it
+- Root cause 3 (CRITICAL): WhatsApp now sends DMs using LID format (278597432508583@lid) instead of phone@whatsapp.net
+- The bot was rejecting ALL DMs because they didn't end with @s.whatsapp.net
+- Added LID-to-phone mapping system that reads from auth_info/lid-mapping-*_reverse.json files
+- Added resolveLidToPhone() function that converts LID to phone number
+- Bot now sends responses to phone@s.whatsapp.net even when message came from @lid
+- Added respondTo variable to track the correct JID for responses
+- Verified bot successfully received and responded to: "مرحباً، أريد الاشتراك في مركز صحة العين" from 201065526264
+
+Stage Summary:
+- Bot is now working! Successfully receives and responds to WhatsApp DMs
+- LID mapping loaded 14 phone numbers at startup
+- Anti-ban rate limiting still in place
+- Messages are received via both @s.whatsapp.net and @lid formats
