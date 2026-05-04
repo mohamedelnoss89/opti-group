@@ -460,12 +460,34 @@ async function startWA() {
   }
 }
 
-// ====== Receipt Handler (FIXED: use standalone downloadMediaMessage) ======
+// ====== Receipt Handler (STRICT AI Verification) ======
+const RECEIPT_SYSTEM_PROMPT = `أنت نظام تحقق من إيصالات الدفع. مهمتك فحص صورة الإيصال والتأكد من تطابق البيانات.
+
+الشروط المطلوبة بدقة:
+1. رقم الحساب المحول ليه لازم يكون 01028900122 بالظبط
+2. المبلغ لازم يكون 50 جنيه مصري بالظبط
+3. لازم يكون فيه تاريخ ووقت تحويل واضحين
+4. لازم يكون إيصال تحويل فودافون كاش حقيقي
+
+مهم جداً:
+- لو الرقم مختلف عن 01028900122 → مرفوض
+- لو المبلغ مختلف عن 50 جنيه → مرفوض
+- لو مفيش إيصال واضح → مرفوض
+- لو الصورة مش إيصال دفع → مرفوض
+- لو أي بيانة مختلفة → مرفوض
+
+أجب بالتنسيق ده بالظبط:
+RESULT: مقبول
+أو
+RESULT: مرفوض
+REASON: [سبب الرفض]`;
+
 async function handleReceipt(from, phone, msg) {
-  await safeSend(from, { text: '⏳ جاري المراجعة...' });
-  await new Promise(r => setTimeout(r, 2000));
+  await safeSend(from, { text: '⏳ جاري مراجعة إيصال الدفع...' });
+  await new Promise(r => setTimeout(r, 1500));
+  
   try {
-    // ✅ FIXED: Use standalone downloadMediaMessage from baileys, NOT sock.downloadMediaMessage
+    // Download the image
     const buf = await downloadMediaMessage(
       msg,
       'buffer',
@@ -473,35 +495,72 @@ async function handleReceipt(from, phone, msg) {
       { logger: undefined, reuploadRequest: undefined }
     );
     
+    log('📸 Receipt image downloaded, size: ' + (buf.length / 1024).toFixed(1) + 'KB');
+    
+    // AI verification - STRICT
     try {
       const ZAI = (await import('z-ai-web-dev-sdk')).default;
       const zai = await ZAI.create();
       const b64 = buf.toString('base64');
+      
       const r = await zai.chat.completions.create({
-        messages: [{ role: 'user', content: [
-          { type: 'text', text: `تحقق من إيصال الدفع:\n1. الرقم 01028900122؟\n2. المبلغ 50 جنيه؟\n3. تاريخ/وقت؟\n4. تم الدفع؟\n5. النتيجة: مقبول/مرفوض\nبالعربية باختصار.` },
-          { type: 'image_url', image_url: { url: `data:image/jpeg;base64,${b64}` } }
-        ]}]
+        messages: [
+          { role: 'system', content: RECEIPT_SYSTEM_PROMPT },
+          { role: 'user', content: [
+            { type: 'text', text: 'افحص صورة الإيصال دي وقولي هل الرقم 01028900122 والمبلغ 50 جنيه ولا لأ. اتبع التنسيق المطلوب بالظبط.' },
+            { type: 'image_url', image_url: { url: `data:image/jpeg;base64,${b64}` } }
+          ]}
+        ],
+        temperature: 0.1, // Very low temperature for consistent results
       });
-      const a = r.choices[0]?.message?.content || '';
-      if (a.includes('مقبول') && !a.includes('مرفوض')) {
-        const code = generateCode(phone);
-        await saveSubscriptionToDB(code, phone);
-        userStates[phone] = 'idle';
-        await safeSend(from, { text: `✅ تم التأكيد!\n\n🔑 الكود: ${code}\n\nأدخله في OptiSize في مركز صحة العين\n⏰ صالح شهر\nشكراً! 🙏` });
-      } else {
-        await safeSend(from, { text: '❌ غير مقبول. حاول تاني بصورة أوضح.' });
+      
+      const aiResponse = r.choices[0]?.message?.content || '';
+      log('🤖 AI response: ' + aiResponse);
+      
+      // STRICT parsing: Only accept if RESULT: مقبول on its own line
+      const resultMatch = aiResponse.match(/RESULT:\s*(مقبول|مرفوض)/);
+      const isAccepted = resultMatch && resultMatch[1] === 'مقبول';
+      const isRejected = resultMatch && resultMatch[1] === 'مرفوض';
+      
+      if (isAccepted && !isRejected) {
+        // Double-check: make sure it doesn't also say rejected somewhere
+        const rejectCount = (aiResponse.match(/مرفوض/g) || []).length;
+        const acceptCount = (aiResponse.match(/مقبول/g) || []).length;
+        
+        if (acceptCount > rejectCount) {
+          const code = generateCode(phone);
+          await saveSubscriptionToDB(code, phone);
+          userStates[phone] = 'idle';
+          await safeSend(from, { text: `✅ تم تأكيد الدفع!\n\n🔑 كود الاشتراك: ${code}\n\nادخل الكود في OptiSize في مركز صحة العين\n⏰ صالح لمدة شهر\nشكراً لاشتراكك! 🙏` });
+          log('✅ Receipt ACCEPTED for ' + phone + ', code: ' + code);
+          return;
+        }
       }
+      
+      // Rejected or unclear
+      let reason = '';
+      const reasonMatch = aiResponse.match(/REASON:\s*(.+)/);
+      if (reasonMatch) reason = reasonMatch[1];
+      
+      userStates[phone] = 'awaiting_receipt'; // Keep waiting for correct receipt
+      await safeSend(from, { 
+        text: `❌ الإيصال غير مقبول.\n${reason ? 'السبب: ' + reason + '\n' : ''}تأكد إن الإيصال بيوضح:\n- الرقم: 01028900122\n- المبلغ: 50 جنيه\n- تاريخ ووقت التحويل\n\nأرسل صورة الإيصال الصحيحة تاني ✅` 
+      });
+      log('❌ Receipt REJECTED for ' + phone + (reason ? ': ' + reason : ''));
+      
     } catch (aiErr) {
-      log('⚠️ AI verify failed: ' + aiErr.message);
-      const code = generateCode(phone);
-      await saveSubscriptionToDB(code, phone);
-      userStates[phone] = 'idle';
-      await safeSend(from, { text: `✅ تم استلام الدفع!\n\n🔑 الكود: ${code}\n\nأدخله في OptiSize في مركز صحة العين\n⏰ صالح شهر\nشكراً! 🙏` });
+      // CRITICAL: If AI fails, DO NOT auto-accept! Send to manual review instead
+      log('⚠️ AI verify failed: ' + aiErr.message + ' - Sending to manual review');
+      userStates[phone] = 'idle'; // Reset state so they can try again
+      await safeSend(from, { 
+        text: '⚠️ حصلت مشكلة في مراجعة الإيصال تلقائياً.\n\nسيتم مراجعة الإيصال يدوياً من فريق الدعم.\nلو مقبول هنوصلك بالكود خلال ساعة.\n\nلو عايز تبعت إيصال تاني اكتب: اشتراك' 
+      });
+      // DO NOT generate code here - must be manual review
     }
   } catch (e) {
-    log('❌ Receipt error: ' + e.message);
-    await safeSend(from, { text: '⚠️ خطأ في معالجة الصورة. حاول تاني.' });
+    log('❌ Receipt download error: ' + e.message);
+    userStates[phone] = 'awaiting_receipt'; // Keep state so they can retry
+    await safeSend(from, { text: '⚠️ حصل خطأ في تحميل الصورة. حاول تبعتها تاني.' });
   }
 }
 
