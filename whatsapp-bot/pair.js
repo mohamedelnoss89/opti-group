@@ -1,35 +1,55 @@
 #!/usr/bin/env node
 /**
- * Standalone pairing code generator for OptiSize WhatsApp Bot
- * Usage: node pair.js [--fresh]
- * --fresh: Delete auth_info first to force a completely fresh pairing
+ * QR Code generator for OptiSize WhatsApp Bot
+ * Uses QR code instead of pairing code (since pairing code keeps getting rejected)
  * 
  * This script:
- * 1. Optionally clears auth_info for a fresh start
- * 2. Connects to WhatsApp via Baileys
- * 3. Auto-generates a pairing code
- * 4. Writes it to ../public/pairing.json
- * 5. Stays running to accept the pairing
- * 6. Once connected, writes status to pairing.json
+ * 1. Connects to WhatsApp via Baileys
+ * 2. Generates QR code as PNG image saved to ../public/whatsapp-qr.png
+ * 3. Updates ../public/pairing.json with QR status
+ * 4. Stays running to accept the scan
+ * 5. Once connected, updates status to connected
+ * 
+ * Usage: node pair.js [--fresh]
  */
 
 const { default: makeWASocket, useMultiFileAuthState, DisconnectReason, fetchLatestBaileysVersion } = require('@whiskeysockets/baileys');
+const QRCode = require('qrcode');
 const fs = require('fs');
 const path = require('path');
 
 const PAIRING_FILE = path.join(__dirname, '..', 'public', 'pairing.json');
+const QR_IMAGE_FILE = path.join(__dirname, '..', 'public', 'whatsapp-qr.png');
 const AUTH_DIR = path.join(__dirname, 'auth_info');
-const PHONE = '201028900122';
 
 let sock = null;
-let paired = false;
 
-function writePairingStatus(data) {
+function writeStatus(data) {
   try {
     fs.writeFileSync(PAIRING_FILE, JSON.stringify(data, null, 2));
-    console.log('📝 Wrote pairing status:', JSON.stringify(data));
+    console.log('📝 Status:', JSON.stringify(data));
   } catch (e) {
-    console.error('Failed to write pairing status:', e.message);
+    console.error('Failed to write status:', e.message);
+  }
+}
+
+// Save QR as PNG image
+async function saveQrImage(qrString) {
+  try {
+    await QRCode.toFile(QR_IMAGE_FILE, qrString, {
+      width: 512,
+      margin: 2,
+      color: {
+        dark: '#000000',
+        light: '#ffffff',
+      },
+      errorCorrectionLevel: 'H',
+    });
+    console.log('🖼️ QR image saved to:', QR_IMAGE_FILE);
+    return true;
+  } catch (e) {
+    console.error('Failed to save QR image:', e.message);
+    return false;
   }
 }
 
@@ -48,20 +68,19 @@ if (args.includes('--fresh')) {
 }
 
 // Write initial status
-writePairingStatus({ status: 'starting', message: 'جاري تشغيل البوت...' });
+writeStatus({ status: 'starting', message: 'جاري تشغيل البوت...' });
 
-async function startPairing() {
+async function start() {
   try {
     console.log('🔄 Fetching latest Baileys version...');
     const { version } = await fetchLatestBaileysVersion();
     console.log(`📦 Baileys version: ${version}`);
 
     const { state, saveCreds } = await useMultiFileAuthState(AUTH_DIR);
-    
-    // Check if already authenticated
+
     if (state.creds?.registered) {
       console.log('✅ Already authenticated! Connecting...');
-      writePairingStatus({ status: 'connecting', message: 'جاري الاتصال...' });
+      writeStatus({ status: 'connecting', message: 'جاري الاتصال...' });
     }
 
     sock = makeWASocket({
@@ -76,41 +95,33 @@ async function startPairing() {
     sock.ev.on('connection.update', async (update) => {
       const { connection, lastDisconnect, qr } = update;
 
-      // If QR code is shown, it means we need to pair
-      if (qr && !paired) {
-        console.log('📱 QR received - requesting pairing code instead...');
-        writePairingStatus({ status: 'requesting_code', message: 'جاري طلب كود الربط...' });
+      // QR code received - save as image
+      if (qr) {
+        console.log('📱 QR code received!');
+        writeStatus({ status: 'qr_ready', message: 'امسح الكود من واتساب', timestamp: Date.now() });
         
-        try {
-          const code = await sock.requestPairingCode(PHONE);
-          const formatted = code?.match(/.{1,4}/g)?.join('-') || code;
-          console.log('🔑 Pairing code:', formatted);
-          
-          const result = {
-            status: 'pairing',
-            code: formatted,
-            rawCode: code,
-            phone: PHONE,
+        // Save QR as PNG image
+        const saved = await saveQrImage(qr);
+        if (saved) {
+          writeStatus({ 
+            status: 'qr_ready', 
+            message: 'امسح الكود من واتساب',
+            qrImage: '/whatsapp-qr.png',
             timestamp: Date.now(),
             steps: [
               'افتح واتساب في الموبايل',
               'روح الإعدادات → الأجهزة المرتبطة → ربط جهاز',
-              'اختار "ربط برقم الهاتف"',
-              `ادخل الكود: ${formatted}`
+              'امسح كود الـ QR ده',
             ]
-          };
-          writePairingStatus(result);
-          paired = true;
-        } catch (e) {
-          console.error('❌ Failed to request pairing code:', e.message);
-          writePairingStatus({ status: 'error', message: 'فشل في طلب كود الربط: ' + e.message });
+          });
         }
       }
 
       if (connection === 'open') {
         console.log('✅ WhatsApp connected successfully!');
-        writePairingStatus({ status: 'connected', message: 'واتساب مربوط بنجاح!', timestamp: Date.now() });
-        // Keep running to maintain connection
+        // Remove QR image since we don't need it anymore
+        try { fs.unlinkSync(QR_IMAGE_FILE); } catch {}
+        writeStatus({ status: 'connected', message: 'واتساب مربوط بنجاح! ✅', timestamp: Date.now() });
       }
 
       if (connection === 'close') {
@@ -120,20 +131,17 @@ async function startPairing() {
         console.log(`❌ Connection closed. Status: ${statusCode}, Reconnect: ${shouldReconnect}`);
         
         if (shouldReconnect) {
-          writePairingStatus({ status: 'reconnecting', message: 'بيحاول يتصل تاني...' });
-          // Reconnect
-          paired = false;
-          setTimeout(() => startPairing(), 3000);
+          writeStatus({ status: 'reconnecting', message: 'بيحاول يتصل تاني...' });
+          setTimeout(() => start(), 3000);
         } else {
-          writePairingStatus({ status: 'logged_out', message: 'تم تسجيل الخروج - محتاج ربط جديد' });
-          console.log('🔴 Logged out. Need to re-pair.');
+          writeStatus({ status: 'logged_out', message: 'تم تسجيل الخروج - محتاج ربط جديد' });
+          console.log('🔴 Logged out. Need to re-scan QR.');
           process.exit(1);
         }
       }
     });
 
     sock.ev.on('messages.upsert', async ({ messages }) => {
-      // Basic message handling - just log for now
       const m = messages[0];
       if (!m.message || m.key.fromMe) return;
       const from = m.key.remoteJid;
@@ -144,13 +152,13 @@ async function startPairing() {
 
   } catch (error) {
     console.error('❌ Fatal error:', error.message);
-    writePairingStatus({ status: 'error', message: 'خطأ: ' + error.message });
+    writeStatus({ status: 'error', message: 'خطأ: ' + error.message });
     process.exit(1);
   }
 }
 
-console.log('🚀 OptiSize Pairing Script starting...');
-startPairing();
+console.log('🚀 OptiSize QR Pairing Script starting...');
+start();
 
 // Keep the process alive
 setInterval(() => {}, 60000);

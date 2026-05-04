@@ -10,7 +10,6 @@ function getPairingFile() { return path.join(process.cwd(), 'public', 'pairing.j
 function getBotDir() { return path.join(process.cwd(), 'whatsapp-bot'); }
 function getPidFile() { return path.join(getBotDir(), 'bot.pid'); }
 
-// Check if the bot process is still running
 function isProcessRunning(pid: number): boolean {
   try {
     process.kill(pid, 0);
@@ -20,7 +19,6 @@ function isProcessRunning(pid: number): boolean {
   }
 }
 
-// Kill existing bot process
 function killExistingBot(): void {
   try {
     const pidFile = getPidFile();
@@ -37,7 +35,6 @@ function killExistingBot(): void {
   } catch {}
 }
 
-// Start the pairing script using exec (avoids Next.js build-time path analysis)
 function startPairScript(fresh: boolean): void {
   const botDir = getBotDir();
   const pidFile = getPidFile();
@@ -48,14 +45,11 @@ function startPairScript(fresh: boolean): void {
     cwd: botDir,
     env: { ...process.env, NODE_ENV: 'production' },
   }, (error, stdout, stderr) => {
-    if (error) {
-      console.error('Pair script error:', error.message);
-    }
-    if (stdout) console.log('Pair script stdout:', stdout);
-    if (stderr) console.log('Pair script stderr:', stderr);
+    if (error) console.error('Pair script error:', error.message);
+    if (stdout) console.log('Pair stdout:', stdout);
+    if (stderr) console.log('Pair stderr:', stderr);
   });
 
-  // Save PID
   if (child.pid) {
     fs.writeFileSync(pidFile, child.pid.toString());
     console.log(`Started pair script with PID: ${child.pid}`);
@@ -71,47 +65,29 @@ function writePairingStatus(data: any) {
 export async function POST(request: Request) {
   try {
     let body: any = {};
-    try {
-      body = await request.json();
-    } catch {}
-    
+    try { body = await request.json(); } catch {}
     const fresh = body.fresh !== false;
 
-    // Step 1: Try calling the already-running bot first
+    // Step 1: Check if already connected via existing bot
     try {
       const res = await fetch('http://localhost:8787/status', { 
         signal: AbortSignal.timeout(3000) 
       });
       const status = await res.json();
-      
       if (status.connected) {
         return NextResponse.json({ status: 'connected', message: 'واتساب مربوط بالفعل!' });
       }
-      
-      // Bot is running but not connected - request new code via its API
-      try {
-        const codeRes = await fetch('http://localhost:8787/request-code', {
-          signal: AbortSignal.timeout(15000),
-        });
-        const codeData = await codeRes.json();
-        return NextResponse.json(codeData);
-      } catch {}
     } catch {}
 
-    // Step 2: Clear old pairing data
+    // Step 2: Kill existing bot and start fresh
     writePairingStatus({ status: 'starting', message: 'جاري تشغيل البوت...' });
-
-    // Step 3: Kill any existing bot
     killExistingBot();
-
-    // Step 4: Wait a moment for process to die
     await new Promise(r => setTimeout(r, 1000));
-
-    // Step 5: Start fresh pairing script
     startPairScript(fresh);
 
-    // Step 6: Wait for pairing code to appear (with timeout)
+    // Step 3: Wait for QR code to appear (with timeout)
     const pairingFile = getPairingFile();
+    const qrImageFile = path.join(process.cwd(), 'public', 'whatsapp-qr.png');
     const startTime = Date.now();
     const maxWait = 30000;
     
@@ -122,7 +98,8 @@ export async function POST(request: Request) {
         if (fs.existsSync(pairingFile)) {
           const data = JSON.parse(fs.readFileSync(pairingFile, 'utf-8'));
           
-          if (data.status === 'pairing' && data.code && data.timestamp && data.timestamp > startTime) {
+          // QR is ready and image file exists
+          if (data.status === 'qr_ready' && fs.existsSync(qrImageFile) && data.timestamp && data.timestamp > startTime) {
             return NextResponse.json(data);
           }
           if (data.status === 'connected') {

@@ -68,7 +68,7 @@ export default function MainMenu({
 
   // Bot setup state
   const [showBotSetup, setShowBotSetup] = useState(false);
-  const [pairingData, setPairingData] = useState<{status: string; code?: string; steps?: string[]; message?: string} | null>(null);
+  const [pairingData, setPairingData] = useState<{status: string; code?: string; qrImage?: string; steps?: string[]; message?: string; timestamp?: number} | null>(null);
   const [copied, setCopied] = useState(false);
   const [requestingCode, setRequestingCode] = useState(false);
 
@@ -87,11 +87,10 @@ export default function MainMenu({
     return () => clearInterval(interval);
   }, [showBotSetup]);
 
-  // Request fresh pairing code on demand
+  // Request fresh QR code on demand
   const requestFreshCode = async () => {
     setRequestingCode(true);
-    // Clear old code immediately so UI shows loading
-    setPairingData({ status: 'starting', message: 'جاري توليد كود جديد...' });
+    setPairingData({ status: 'starting', message: 'جاري توليد QR كود...' });
     try {
       const res = await fetch('/api/request-pairing', { 
         method: 'POST',
@@ -101,9 +100,8 @@ export default function MainMenu({
       const data = await res.json();
       setPairingData(data);
       
-      // If we got a new pairing code, show a toast
-      if (data.status === 'pairing' && data.code) {
-        toast({ title: '🔑 كود ربط جديد!', description: data.code });
+      if (data.status === 'qr_ready') {
+        toast({ title: '📱 QR كود جاهز!', description: 'امسحه من واتساب' });
       } else if (data.status === 'error') {
         toast({ title: '❌ خطأ', description: data.message || 'حصل مشكلة' });
       }
@@ -562,30 +560,27 @@ export default function MainMenu({
                   </h3>
                 </div>
 
-                {/* Content based on status */}
-                {pairingData?.status === 'pairing' && pairingData.code && (
+                {/* QR Code Ready state */}
+                {pairingData?.status === 'qr_ready' && (
                   <div className="text-center">
-                    <p className="text-sm mb-4" style={{ color: "#94a3b8" }}>
-                      ادخل الكود ده في واتساب:
+                    <p className="text-sm mb-3" style={{ color: "#94a3b8" }}>
+                      امسح الكود ده من واتساب:
                     </p>
-                    {/* Code display */}
+                    {/* QR Image */}
                     <div
-                      className="rounded-xl p-4 mb-4 cursor-pointer"
-                      onClick={copyCode}
+                      className="rounded-xl p-3 mb-3 mx-auto"
                       style={{
-                        background: "rgba(0,240,255,0.08)",
-                        border: "1px solid rgba(0,240,255,0.25)",
+                        background: "#ffffff",
+                        border: "2px solid rgba(0,240,255,0.3)",
+                        maxWidth: "280px",
                       }}
                     >
-                      <p
-                        className="text-3xl font-bold tracking-[0.3em] text-center"
-                        style={{ color: "#00f0ff", fontFamily: "monospace" }}
-                      >
-                        {pairingData.code}
-                      </p>
-                      <p className="text-[10px] mt-2" style={{ color: "#64748b" }}>
-                        {copied ? '✅ تم النسخ!' : 'اضغط للنسخ'}
-                      </p>
+                      <img
+                        src={`/whatsapp-qr.png?t=${pairingData.timestamp || Date.now()}`}
+                        alt="WhatsApp QR Code"
+                        className="w-full h-auto"
+                        style={{ imageRendering: "pixelated" }}
+                      />
                     </div>
                     {/* Steps */}
                     <div className="space-y-2 text-right mb-4">
@@ -601,7 +596,47 @@ export default function MainMenu({
                         </div>
                       ))}
                     </div>
-                    {/* Request new code button */}
+                    {/* Request new QR button */}
+                    <button
+                      onClick={requestFreshCode}
+                      disabled={requestingCode}
+                      className="w-full py-2.5 rounded-xl text-sm font-medium transition-all active:scale-95"
+                      style={{
+                        background: "rgba(0,240,255,0.1)",
+                        border: "1px solid rgba(0,240,255,0.25)",
+                        color: "#00f0ff",
+                      }}
+                    >
+                      {requestingCode ? 'جاري توليد QR جديد...' : '🔄 توليد QR كود جديد'}
+                    </button>
+                  </div>
+                )
+                }
+
+                {/* Pairing code state (fallback) */}
+                {pairingData?.status === 'pairing' && pairingData.code && (
+                  <div className="text-center">
+                    <p className="text-sm mb-4" style={{ color: "#94a3b8" }}>
+                      ادخل الكود ده في واتساب:
+                    </p>
+                    <div
+                      className="rounded-xl p-4 mb-4 cursor-pointer"
+                      onClick={copyCode}
+                      style={{
+                        background: "rgba(0,240,255,0.08)",
+                        border: "1px solid rgba(0,240,255,0.25)",
+                      }}
+                    >
+                      <p
+                        className="text-3xl font-bold tracking-[0.3em] text-center"
+                        style={{ color: "#00f0ff", fontFamily: "monospace" }}
+                      >
+                        {pairingData.code}
+                      </p>
+                      <p className="text-[10px] mt-2" style={{ color: "#64748b" }}>
+                        {copied ? 'تم النسخ!' : 'اضغط للنسخ'}
+                      </p>
+                    </div>
                     <button
                       onClick={requestFreshCode}
                       disabled={requestingCode}
@@ -644,10 +679,10 @@ export default function MainMenu({
                       <span className="w-7 h-7 rounded-full border-3 border-t-transparent animate-spin" style={{ borderColor: "#00f0ff", borderTopColor: "transparent", borderWidth: "3px" }} />
                     </div>
                     <p className="text-sm mb-2" style={{ color: "#00f0ff" }}>
-                      {pairingData?.status === 'requesting_code' ? 'جاري طلب كود الربط...' : 
+                      {pairingData?.status === 'requesting_code' ? 'جاري طلب QR كود...' : 
                        pairingData?.status === 'reconnecting' ? 'بيحاول يتصل تاني...' :
                        pairingData?.status === 'connecting' ? 'جاري الاتصال...' :
-                       'جاري تشغيل البوت...'}
+                       'جاري تشغيل البوت وتوليد QR...'}
                     </p>
                     <p className="text-[10px]" style={{ color: "#64748b" }}>
                       استنى ثواني...
@@ -666,8 +701,8 @@ export default function MainMenu({
                     </div>
                     <p className="text-sm mb-4" style={{ color: "#94a3b8" }}>
                       {pairingData?.status === 'logged_out' ? 'تم تسجيل الخروج - محتاج ربط جديد' :
-                       pairingData?.status === 'ready' ? 'البوت جاهز! اضغط الزرار عشان يطلع كود ربط جديد' :
-                       'اضغط الزرار عشان تشغل البوت وتولد كود ربط'}
+                       pairingData?.status === 'ready' ? 'البوت جاهز! اضغط الزرار عشان يطلع QR كود' :
+                       'اضغط الزرار عشان تشغل البوت وتولد QR كود'}
                     </p>
                     <button
                       onClick={requestFreshCode}
@@ -682,10 +717,10 @@ export default function MainMenu({
                       {requestingCode ? (
                         <span className="flex items-center gap-2">
                           <span className="w-4 h-4 rounded-full border-2 border-t-transparent animate-spin" style={{ borderColor: "#00f0ff", borderTopColor: "transparent" }} />
-                          جاري توليد الكود...
+                          جاري توليد QR...
                         </span>
                       ) : (
-                        '🔑 طلب كود ربط جديد'
+                        '📱 توليد QR كود'
                       )}
                     </button>
                   </div>
