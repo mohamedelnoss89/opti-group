@@ -264,8 +264,8 @@ http.createServer(async (req, res) => {
     return;
   }
   res.end(JSON.stringify({ status: 'ok', connected: botConnected, pid: process.pid }));
-}).listen(8787, '0.0.0.0', () => {
-  log('🌐 API on :8787');
+}).listen(process.env.PORT || 8787, '0.0.0.0', () => {
+  log('🌐 API on :' + (process.env.PORT || 8787));
   startWA();
 });
 
