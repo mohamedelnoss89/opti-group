@@ -87,6 +87,27 @@ export default function MainMenu({
     return () => clearInterval(interval);
   }, [showBotSetup]);
 
+  // Start/restart the WhatsApp bot
+  const startBot = async () => {
+    setRequestingCode(true);
+    setPairingData({ status: 'starting', message: 'جاري تشغيل البوت...' });
+    try {
+      const res = await fetch('/api/whatsapp-status', { method: 'POST' });
+      const data = await res.json();
+      if (data.connected) {
+        setPairingData({ status: 'connected', message: 'واتساب مربوط ونشط! ✅' });
+        toast({ title: '✅ البوت شغال!', description: 'واتساب متصل ونشط' });
+      } else {
+        setPairingData({ status: 'error', message: 'البوت اشتغل بس مش متصل بعد' });
+        toast({ title: '⚠️ جاري الاتصال...', description: 'استنى شوية' });
+      }
+    } catch (error) {
+      setPairingData({ status: 'error', message: 'فشل تشغيل البوت' });
+      toast({ title: '❌ خطأ', description: 'فشل تشغيل البوت' });
+    }
+    setRequestingCode(false);
+  };
+
   // Request fresh QR code on demand
   const requestFreshCode = async () => {
     setRequestingCode(true);
@@ -663,9 +684,21 @@ export default function MainMenu({
                     <p className="text-base font-bold" style={{ color: "#00ff88" }}>
                       واتساب مربوط بنجاح!
                     </p>
-                    <p className="text-xs mt-1" style={{ color: "#64748b" }}>
+                    <p className="text-xs mt-1 mb-4" style={{ color: "#64748b" }}>
                       البوت شغال وجاهز يستقبل الرسائل
                     </p>
+                    <button
+                      onClick={startBot}
+                      disabled={requestingCode}
+                      className="w-full py-2.5 rounded-xl text-sm font-medium transition-all active:scale-95"
+                      style={{
+                        background: "rgba(0,255,136,0.1)",
+                        border: "1px solid rgba(0,255,136,0.25)",
+                        color: "#00ff88",
+                      }}
+                    >
+                      {requestingCode ? 'جاري إعادة التشغيل...' : '🔄 إعادة تشغيل البوت'}
+                    </button>
                   </div>
                 )}
 
