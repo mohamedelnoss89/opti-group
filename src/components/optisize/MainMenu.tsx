@@ -90,11 +90,27 @@ export default function MainMenu({
   // Request fresh pairing code on demand
   const requestFreshCode = async () => {
     setRequestingCode(true);
+    // Clear old code immediately so UI shows loading
+    setPairingData({ status: 'starting', message: 'جاري توليد كود جديد...' });
     try {
-      const res = await fetch('/api/request-pairing', { method: 'POST' });
+      const res = await fetch('/api/request-pairing', { 
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ fresh: true })
+      });
       const data = await res.json();
       setPairingData(data);
-    } catch {}
+      
+      // If we got a new pairing code, show a toast
+      if (data.status === 'pairing' && data.code) {
+        toast({ title: '🔑 كود ربط جديد!', description: data.code });
+      } else if (data.status === 'error') {
+        toast({ title: '❌ خطأ', description: data.message || 'حصل مشكلة' });
+      }
+    } catch (error) {
+      setPairingData({ status: 'error', message: 'فشل الاتصال بالسيرفر' });
+      toast({ title: '❌ خطأ', description: 'فشل الاتصال - جرب تاني' });
+    }
     setRequestingCode(false);
   };
 
@@ -618,7 +634,29 @@ export default function MainMenu({
                   </div>
                 )}
 
-                {(pairingData?.status === 'starting' || pairingData?.status === 'not_started' || pairingData?.status === 'ready' || !pairingData) && (
+                {/* Starting / Loading state */}
+                {(pairingData?.status === 'starting' || pairingData?.status === 'requesting_code' || pairingData?.status === 'reconnecting' || pairingData?.status === 'connecting') && (
+                  <div className="text-center">
+                    <div
+                      className="w-14 h-14 rounded-2xl flex items-center justify-center mx-auto mb-3"
+                      style={{ background: "rgba(0,240,255,0.1)", border: "1px solid rgba(0,240,255,0.2)" }}
+                    >
+                      <span className="w-7 h-7 rounded-full border-3 border-t-transparent animate-spin" style={{ borderColor: "#00f0ff", borderTopColor: "transparent", borderWidth: "3px" }} />
+                    </div>
+                    <p className="text-sm mb-2" style={{ color: "#00f0ff" }}>
+                      {pairingData?.status === 'requesting_code' ? 'جاري طلب كود الربط...' : 
+                       pairingData?.status === 'reconnecting' ? 'بيحاول يتصل تاني...' :
+                       pairingData?.status === 'connecting' ? 'جاري الاتصال...' :
+                       'جاري تشغيل البوت...'}
+                    </p>
+                    <p className="text-[10px]" style={{ color: "#64748b" }}>
+                      استنى ثواني...
+                    </p>
+                  </div>
+                )}
+
+                {/* Not started / Ready state - show button */}
+                {(pairingData?.status === 'not_started' || pairingData?.status === 'ready' || pairingData?.status === 'logged_out' || !pairingData) && (
                   <div className="text-center">
                     <div
                       className="w-14 h-14 rounded-2xl flex items-center justify-center mx-auto mb-3"
@@ -627,7 +665,9 @@ export default function MainMenu({
                       <Bot className="w-7 h-7" style={{ color: "#00f0ff" }} />
                     </div>
                     <p className="text-sm mb-4" style={{ color: "#94a3b8" }}>
-                      {pairingData?.status === 'ready' ? 'البوت جاهز! اضغط الزرار ده عشان يطلع كود ربط جديد' : 'جاري تشغيل البوت...'}
+                      {pairingData?.status === 'logged_out' ? 'تم تسجيل الخروج - محتاج ربط جديد' :
+                       pairingData?.status === 'ready' ? 'البوت جاهز! اضغط الزرار عشان يطلع كود ربط جديد' :
+                       'اضغط الزرار عشان تشغل البوت وتولد كود ربط'}
                     </p>
                     <button
                       onClick={requestFreshCode}
@@ -642,25 +682,69 @@ export default function MainMenu({
                       {requestingCode ? (
                         <span className="flex items-center gap-2">
                           <span className="w-4 h-4 rounded-full border-2 border-t-transparent animate-spin" style={{ borderColor: "#00f0ff", borderTopColor: "transparent" }} />
-                          جاري طلب الكود...
+                          جاري توليد الكود...
                         </span>
                       ) : (
                         '🔑 طلب كود ربط جديد'
                       )}
                     </button>
-                    {pairingData?.status !== 'ready' && (
-                      <p className="text-[10px] mt-3" style={{ color: "#64748b" }}>
-                        شغّل البوت من التيرمنال: cd whatsapp-bot && node index.js
-                      </p>
-                    )}
                   </div>
                 )}
 
+                {/* Error state */}
+                {pairingData?.status === 'error' && (
+                  <div className="text-center">
+                    <div
+                      className="w-14 h-14 rounded-2xl flex items-center justify-center mx-auto mb-3"
+                      style={{ background: "rgba(255,107,107,0.1)", border: "1px solid rgba(255,107,107,0.2)" }}
+                    >
+                      <X className="w-7 h-7" style={{ color: "#ff6b6b" }} />
+                    </div>
+                    <p className="text-sm mb-2" style={{ color: "#ff6b6b" }}>
+                      حصل خطأ
+                    </p>
+                    <p className="text-xs mb-4" style={{ color: "#94a3b8" }}>
+                      {pairingData?.message || 'حاجة غلط حصلت'}
+                    </p>
+                    <button
+                      onClick={requestFreshCode}
+                      disabled={requestingCode}
+                      className="px-6 py-3 rounded-xl font-bold text-base transition-all active:scale-95"
+                      style={{
+                        background: requestingCode ? "rgba(0,240,255,0.2)" : "linear-gradient(135deg, #00f0ff, #0080ff)",
+                        color: requestingCode ? "#00f0ff" : "#0a0e1a",
+                        border: "none",
+                      }}
+                    >
+                      {requestingCode ? 'جاري المحاولة...' : '🔄 حاول تاني'}
+                    </button>
+                  </div>
+                )}
+
+                {/* Disconnected state */}
                 {pairingData?.status === 'disconnected' && (
                   <div className="text-center">
-                    <p className="text-sm" style={{ color: "#ff6b6b" }}>
-                      البوت مفصول - بيحاول يتصل تاني...
+                    <div
+                      className="w-14 h-14 rounded-2xl flex items-center justify-center mx-auto mb-3"
+                      style={{ background: "rgba(255,170,0,0.1)", border: "1px solid rgba(255,170,0,0.2)" }}
+                    >
+                      <Bot className="w-7 h-7" style={{ color: "#ffaa00" }} />
+                    </div>
+                    <p className="text-sm mb-4" style={{ color: "#ffaa00" }}>
+                      البوت مفصول
                     </p>
+                    <button
+                      onClick={requestFreshCode}
+                      disabled={requestingCode}
+                      className="px-6 py-3 rounded-xl font-bold text-base transition-all active:scale-95"
+                      style={{
+                        background: "linear-gradient(135deg, #00f0ff, #0080ff)",
+                        color: "#0a0e1a",
+                        border: "none",
+                      }}
+                    >
+                      🔄 إعادة الربط
+                    </button>
                   </div>
                 )}
               </motion.div>
