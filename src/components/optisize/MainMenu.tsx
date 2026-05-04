@@ -68,8 +68,9 @@ export default function MainMenu({
 
   // Bot setup state
   const [showBotSetup, setShowBotSetup] = useState(false);
-  const [pairingData, setPairingData] = useState<{status: string; code?: string; steps?: string[]} | null>(null);
+  const [pairingData, setPairingData] = useState<{status: string; code?: string; steps?: string[]; message?: string} | null>(null);
   const [copied, setCopied] = useState(false);
+  const [requestingCode, setRequestingCode] = useState(false);
 
   // Fetch pairing status
   useEffect(() => {
@@ -85,6 +86,17 @@ export default function MainMenu({
     const interval = setInterval(fetchStatus, 3000);
     return () => clearInterval(interval);
   }, [showBotSetup]);
+
+  // Request fresh pairing code on demand
+  const requestFreshCode = async () => {
+    setRequestingCode(true);
+    try {
+      const res = await fetch('/api/request-pairing', { method: 'POST' });
+      const data = await res.json();
+      setPairingData(data);
+    } catch {}
+    setRequestingCode(false);
+  };
 
   const copyCode = () => {
     if (pairingData?.code) {
@@ -560,7 +572,7 @@ export default function MainMenu({
                       </p>
                     </div>
                     {/* Steps */}
-                    <div className="space-y-2 text-right">
+                    <div className="space-y-2 text-right mb-4">
                       {(pairingData.steps || []).map((step, i) => (
                         <div key={i} className="flex items-start gap-2">
                           <span
@@ -573,6 +585,19 @@ export default function MainMenu({
                         </div>
                       ))}
                     </div>
+                    {/* Request new code button */}
+                    <button
+                      onClick={requestFreshCode}
+                      disabled={requestingCode}
+                      className="w-full py-2.5 rounded-xl text-sm font-medium transition-all active:scale-95"
+                      style={{
+                        background: "rgba(0,240,255,0.1)",
+                        border: "1px solid rgba(0,240,255,0.25)",
+                        color: "#00f0ff",
+                      }}
+                    >
+                      {requestingCode ? 'جاري طلب كود جديد...' : '🔄 طلب كود جديد'}
+                    </button>
                   </div>
                 )}
 
@@ -593,15 +618,41 @@ export default function MainMenu({
                   </div>
                 )}
 
-                {(pairingData?.status === 'starting' || pairingData?.status === 'not_started' || !pairingData) && (
+                {(pairingData?.status === 'starting' || pairingData?.status === 'not_started' || pairingData?.status === 'ready' || !pairingData) && (
                   <div className="text-center">
-                    <div className="w-12 h-12 rounded-full border-2 border-t-transparent animate-spin mx-auto mb-3" style={{ borderColor: "#00f0ff", borderTopColor: "transparent" }} />
-                    <p className="text-sm" style={{ color: "#94a3b8" }}>
-                      جاري تشغيل البوت...
+                    <div
+                      className="w-14 h-14 rounded-2xl flex items-center justify-center mx-auto mb-3"
+                      style={{ background: "rgba(0,240,255,0.1)", border: "1px solid rgba(0,240,255,0.2)" }}
+                    >
+                      <Bot className="w-7 h-7" style={{ color: "#00f0ff" }} />
+                    </div>
+                    <p className="text-sm mb-4" style={{ color: "#94a3b8" }}>
+                      {pairingData?.status === 'ready' ? 'البوت جاهز! اضغط الزرار ده عشان يطلع كود ربط جديد' : 'جاري تشغيل البوت...'}
                     </p>
-                    <p className="text-[10px] mt-1" style={{ color: "#64748b" }}>
-                      شغّل البوت من التيرمنال: cd whatsapp-bot && node index.js
-                    </p>
+                    <button
+                      onClick={requestFreshCode}
+                      disabled={requestingCode}
+                      className="px-6 py-3 rounded-xl font-bold text-base transition-all active:scale-95"
+                      style={{
+                        background: requestingCode ? "rgba(0,240,255,0.2)" : "linear-gradient(135deg, #00f0ff, #0080ff)",
+                        color: requestingCode ? "#00f0ff" : "#0a0e1a",
+                        border: "none",
+                      }}
+                    >
+                      {requestingCode ? (
+                        <span className="flex items-center gap-2">
+                          <span className="w-4 h-4 rounded-full border-2 border-t-transparent animate-spin" style={{ borderColor: "#00f0ff", borderTopColor: "transparent" }} />
+                          جاري طلب الكود...
+                        </span>
+                      ) : (
+                        '🔑 طلب كود ربط جديد'
+                      )}
+                    </button>
+                    {pairingData?.status !== 'ready' && (
+                      <p className="text-[10px] mt-3" style={{ color: "#64748b" }}>
+                        شغّل البوت من التيرمنال: cd whatsapp-bot && node index.js
+                      </p>
+                    )}
                   </div>
                 )}
 
