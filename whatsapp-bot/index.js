@@ -461,24 +461,29 @@ async function startWA() {
 }
 
 // ====== Receipt Handler (STRICT AI Verification) ======
-const RECEIPT_SYSTEM_PROMPT = `أنت نظام تحقق من إيصالات الدفع. مهمتك فحص صورة الإيصال والتأكد من تطابق البيانات.
+const RECEIPT_VERIFY_PROMPT = `أنت نظام تحقق صارم من إيصالات الدفع.
 
-الشروط المطلوبة بدقة:
-1. رقم الحساب المحول ليه لازم يكون 01028900122 بالظبط
-2. المبلغ لازم يكون 50 جنيه مصري بالظبط
-3. لازم يكون فيه تاريخ ووقت تحويل واضحين
-4. لازم يكون إيصال تحويل فودافون كاش حقيقي
+اقرأ الإيصال بدقة واستخرج البيانات التالية:
+1. الرقم المحول ليه (آخر رقم في الإيصال)
+2. المبلغ المحول (الرقم اللي بيتحول)
+3. تاريخ ووقت التحويل
 
-مهم جداً:
-- لو الرقم مختلف عن 01028900122 → مرفوض
-- لو المبلغ مختلف عن 50 جنيه → مرفوض
-- لو مفيش إيصال واضح → مرفوض
-- لو الصورة مش إيصال دفع → مرفوض
-- لو أي بيانة مختلفة → مرفوض
+الشروط الصارمة:
+- الرقم المحول ليه لازم يكون 01028900122 بالظبط
+- المبلغ لازم يكون 50 جنيه بالظبط - حتى لو المبلغ قريب زي 5 جنيه أو 500 جنيه أو أي مبلغ تاني غير 50 → مرفوض
+- لازم يكون إيصال فودافون كاش حقيقي
 
-أجب بالتنسيق ده بالظبط:
+⚠️ تحذير مهم: لو المبلغ أي حاجة غير 50 جنيه بالظبط → مرفوض
+لو المبلغ 1 جنيه أو 5 جنيه أو 10 جنيه أو 100 جنيه → مرفوض
+المبلغ لازم 50 جنيه بس لا غير!
+
+أجب بالتنسيق ده بالظبط ولا تزود أي حاجة:
+NUMBER: [الرقم اللي في الإيصال]
+AMOUNT: [المبلغ اللي في الإيصال]
 RESULT: مقبول
 أو
+NUMBER: [الرقم اللي في الإيصال]
+AMOUNT: [المبلغ اللي في الإيصال]
 RESULT: مرفوض
 REASON: [سبب الرفض]`;
 
@@ -508,7 +513,7 @@ async function handleReceipt(from, phone, msg) {
           {
             role: 'user',
             content: [
-              { type: 'text', text: RECEIPT_SYSTEM_PROMPT + '\n\nافحص صورة الإيصال دي وقولي هل الرقم 01028900122 والمبلغ 50 جنيه ولا لأ. اتبع التنسيق المطلوب بالظبط.' },
+              { type: 'text', text: RECEIPT_VERIFY_PROMPT },
               { type: 'image_url', image_url: { url: `data:image/jpeg;base64,${b64}` } }
             ]
           }
@@ -519,36 +524,62 @@ async function handleReceipt(from, phone, msg) {
       const aiResponse = r.choices[0]?.message?.content || '';
       log('🤖 AI response: ' + aiResponse);
       
-      // STRICT parsing: Only accept if RESULT: مقبول on its own line
+      // ====== DUAL VERIFICATION: AI + Code ======
+      // 1. Extract data from AI response
+      const numberMatch = aiResponse.match(/NUMBER:\s*(.+)/);
+      const amountMatch = aiResponse.match(/AMOUNT:\s*(.+)/);
       const resultMatch = aiResponse.match(/RESULT:\s*(مقبول|مرفوض)/);
-      const isAccepted = resultMatch && resultMatch[1] === 'مقبول';
-      const isRejected = resultMatch && resultMatch[1] === 'مرفوض';
+      const reasonMatch = aiResponse.match(/REASON:\s*(.+)/);
       
-      if (isAccepted && !isRejected) {
-        // Double-check: make sure it doesn't also say rejected somewhere
-        const rejectCount = (aiResponse.match(/مرفوض/g) || []).length;
-        const acceptCount = (aiResponse.match(/مقبول/g) || []).length;
-        
-        if (acceptCount > rejectCount) {
-          const code = generateCode(phone);
-          await saveSubscriptionToDB(code, phone);
-          userStates[phone] = 'idle';
-          await safeSend(from, { text: `✅ تم تأكيد الدفع!\n\n🔑 كود الاشتراك: ${code}\n\nادخل الكود في OptiSize في مركز صحة العين\n⏰ صالح لمدة شهر\nشكراً لاشتراكك! 🙏` });
-          log('✅ Receipt ACCEPTED for ' + phone + ', code: ' + code);
-          return;
-        }
+      const aiNumber = numberMatch ? numberMatch[1].trim() : '';
+      const aiAmount = amountMatch ? amountMatch[1].trim() : '';
+      const aiResult = resultMatch ? resultMatch[1].trim() : '';
+      const aiReason = reasonMatch ? reasonMatch[1].trim() : '';
+      
+      log(`🔍 Extracted: number=${aiNumber} amount=${aiAmount} result=${aiResult}`);
+      
+      // 2. CODE-LEVEL VERIFICATION (not just trusting AI)
+      const REQUIRED_NUMBER = '01028900122';
+      const REQUIRED_AMOUNT = '50';
+      
+      // Check if number contains the required number
+      const numberOk = aiNumber.includes(REQUIRED_NUMBER) || aiNumber.replace(/\s/g, '').includes(REQUIRED_NUMBER);
+      
+      // Check if amount is exactly 50 - look for "50" as the amount
+      const amountClean = aiAmount.replace(/\s/g, '');
+      // Must contain "50" and NOT contain other suspicious amounts like 500, 5, 150, etc.
+      const amountHas50 = amountClean.includes(REQUIRED_AMOUNT);
+      const amountHas500 = amountClean.includes('500');
+      const amountHas5Only = /(^|[^\d])5($|[^\d])/.test(amountClean) && !amountHas50;
+      const amountOk = amountHas50 && !amountHas500 && !amountHas5Only;
+      
+      // 3. Final decision: BOTH code verification AND AI must agree
+      if (numberOk && amountOk && aiResult === 'مقبول') {
+        const code = generateCode(phone);
+        await saveSubscriptionToDB(code, phone);
+        userStates[phone] = 'idle';
+        await safeSend(from, { text: `✅ تم تأكيد الدفع!\n\n🔑 كود الاشتراك: ${code}\n\nادخل الكود في OptiSize في مركز صحة العين\n⏰ صالح لمدة شهر\nشكراً لاشتراكك! 🙏` });
+        log('✅ Receipt ACCEPTED for ' + phone + ', code: ' + code);
+        return;
       }
       
-      // Rejected or unclear
-      let reason = '';
-      const reasonMatch = aiResponse.match(/REASON:\s*(.+)/);
-      if (reasonMatch) reason = reasonMatch[1];
+      // Rejected - give specific reason
+      let reason = aiReason;
+      if (!numberOk && !amountOk) {
+        reason = 'الرقم والمبلغ مختلفين عن المطلوب (01028900122 - 50 جنيه)';
+      } else if (!numberOk) {
+        reason = 'الرقم المحول ليه مختلف عن 01028900122';
+      } else if (!amountOk) {
+        reason = 'المبلغ مختلف عن 50 جنيه (المبلغ في الإيصال: ' + aiAmount + ')';
+      } else if (aiResult !== 'مقبول') {
+        reason = aiReason || 'الإيصال غير مقبول';
+      }
       
-      userStates[phone] = 'awaiting_receipt'; // Keep waiting for correct receipt
+      userStates[phone] = 'awaiting_receipt';
       await safeSend(from, { 
-        text: `❌ الإيصال غير مقبول.\n${reason ? 'السبب: ' + reason + '\n' : ''}تأكد إن الإيصال بيوضح:\n- الرقم: 01028900122\n- المبلغ: 50 جنيه\n- تاريخ ووقت التحويل\n\nأرسل صورة الإيصال الصحيحة تاني ✅` 
+        text: `❌ الإيصال غير مقبول.\nالسبب: ${reason}\n\nتأكد إن الإيصال بيوضح:\n- الرقم: 01028900122\n- المبلغ: 50 جنيه بالظبط\n- تاريخ ووقت التحويل\n\nأرسل صورة الإيصال الصحيحة تاني ✅` 
       });
-      log('❌ Receipt REJECTED for ' + phone + (reason ? ': ' + reason : ''));
+      log('❌ Receipt REJECTED for ' + phone + ': ' + reason);
       
     } catch (aiErr) {
       // CRITICAL: If AI fails, DO NOT auto-accept! Send to manual review instead
