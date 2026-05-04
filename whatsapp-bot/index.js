@@ -497,21 +497,23 @@ async function handleReceipt(from, phone, msg) {
     
     log('📸 Receipt image downloaded, size: ' + (buf.length / 1024).toFixed(1) + 'KB');
     
-    // AI verification - STRICT
+    // AI verification - STRICT (must use createVision for images!)
     try {
       const ZAI = (await import('z-ai-web-dev-sdk')).default;
       const zai = await ZAI.create();
       const b64 = buf.toString('base64');
       
-      const r = await zai.chat.completions.create({
+      const r = await zai.chat.completions.createVision({
         messages: [
-          { role: 'system', content: RECEIPT_SYSTEM_PROMPT },
-          { role: 'user', content: [
-            { type: 'text', text: 'افحص صورة الإيصال دي وقولي هل الرقم 01028900122 والمبلغ 50 جنيه ولا لأ. اتبع التنسيق المطلوب بالظبط.' },
-            { type: 'image_url', image_url: { url: `data:image/jpeg;base64,${b64}` } }
-          ]}
+          {
+            role: 'user',
+            content: [
+              { type: 'text', text: RECEIPT_SYSTEM_PROMPT + '\n\nافحص صورة الإيصال دي وقولي هل الرقم 01028900122 والمبلغ 50 جنيه ولا لأ. اتبع التنسيق المطلوب بالظبط.' },
+              { type: 'image_url', image_url: { url: `data:image/jpeg;base64,${b64}` } }
+            ]
+          }
         ],
-        temperature: 0.1, // Very low temperature for consistent results
+        thinking: { type: 'disabled' }
       });
       
       const aiResponse = r.choices[0]?.message?.content || '';

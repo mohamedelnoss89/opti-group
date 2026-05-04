@@ -48,3 +48,24 @@ Stage Summary:
 - Receipt verification is now STRICT - wrong number/amount/date = rejected
 - AI failure no longer auto-accepts - goes to manual review
 - Bot restarted and running with new code
+
+---
+Task ID: 3
+Agent: Main Agent
+Task: Fix AI receipt verification returning "مشكلة في مراجعة الإيصال" for all images
+
+Work Log:
+- User reported: bot says "حصلت مشكلة في مراجعة الإيصال تلقائياً" for wrong receipts
+- Checked bot logs: AI API returning error 400 "API 调用参数有误" (parameter error)
+- Root cause: Was using `zai.chat.completions.create()` for image analysis, but the correct method is `zai.chat.completions.createVision()`
+- The `create()` method doesn't support image_url content type - only `createVision()` does
+- Fixed by switching to `createVision()` with proper format
+- Also combined system prompt into user message since createVision uses single message with content array
+- Tested: AI correctly returns "RESULT: مرفوض" for non-receipt images
+- Bot restarted and running
+
+Stage Summary:
+- Fixed: Receipt verification now works properly using createVision()
+- Wrong receipts → REJECTED with reason
+- Correct receipts (01028900122, 50 EGP) → ACCEPTED with code
+- AI failure → manual review (no auto-accept)
