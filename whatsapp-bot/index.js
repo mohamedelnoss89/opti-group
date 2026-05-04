@@ -724,10 +724,30 @@ async function handleReceipt(from, phone, msg) {
       
     } catch (aiErr) {
       // CRITICAL: If AI fails, DO NOT auto-accept!
-      log('⚠️ AI verify failed: ' + aiErr.message + ' - Rejecting with helpful message');
+      log('⚠️ AI verify failed: ' + aiErr.message);
       userStates[phone] = 'awaiting_receipt'; // Keep state so they can retry
+      
+      // Try to determine a specific reason from the error
+      let reason = 'الصورة مش إيصال دفع صحيح';
+      
+      // If AI gave partial results before failing, try to extract what went wrong
+      if (aiErr.message) {
+        const errMsg = aiErr.message.toLowerCase();
+        if (errMsg.includes('429') || errMsg.includes('rate') || errMsg.includes('limit')) {
+          reason = 'السيرفر مشغول حالياً، حاول تبعت الصورة تاني بعد دقيقة';
+        } else if (errMsg.includes('400') || errMsg.includes('invalid')) {
+          reason = 'صيغة الصورة مش مدعومة، حاول تبعت صورة بصيغة JPG أو PNG';
+        } else if (errMsg.includes('timeout') || errMsg.includes('timed out')) {
+          reason = 'السيرفر بطيء حالياً، حاول تبعت الصورة تاني';
+        } else if (errMsg.includes('size') || errMsg.includes('large') || errMsg.includes('big')) {
+          reason = 'حجم الصورة كبير أوي، حاول تصغرها وتبعتها تاني';
+        } else if (errMsg.includes('content') || errMsg.includes('moderation')) {
+          reason = 'محتوى الصورة مش واضح، حاول تبعت صورة أوضح';
+        }
+      }
+      
       await safeSend(from, { 
-        text: '❌ الصورة المرسلة مش إيصال دفع صحيح.\n\nلو انت حولت فعلاً، تأكد إن الصورة توضح:\n- كلمة تدل على الدفع (تم التحويل / تم الدفع)\n- الرقم: 01028900122\n- المبلغ: 50 جنيه بالظبط\n- تاريخ ووقت التحويل (اليوم أو أمس)\n\nأي طريقة دفع مقبولة (فودافون كاش / إنستاباي / تحويل بنكي)\n\nأرسل صورة الإيصال الصحيحة تاني ✅' 
+        text: `❌ الإيصال غير مقبول.\nالسبب: ${reason}\n\nتأكد إن الإيصال بيوضح:\n- كلمة تدل على الدفع (تم التحويل/تم الدفع)\n- الرقم: 01028900122\n- المبلغ: 50 جنيه بالظبط\n- تاريخ ووقت التحويل (اليوم أو أمس)\n\nأي طريقة دفع مقبولة (فودافون كاش / إنستاباي / تحويل بنكي)\n\nأرسل صورة الإيصال الصحيحة تاني ✅` 
       });
       log('❌ Receipt REJECTED (AI error) for ' + phone + ': ' + aiErr.message);
     }
