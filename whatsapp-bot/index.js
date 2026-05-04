@@ -1,4 +1,4 @@
-const { default: makeWASocket, useMultiFileAuthState, DisconnectReason, fetchLatestBaileysVersion } = require('@whiskeysockets/baileys');
+const { default: makeWASocket, useMultiFileAuthState, DisconnectReason, fetchLatestBaileysVersion, makeInMemoryStore } = require('@whiskeysockets/baileys');
 const QRCode = require('qrcode');
 const fs = require('fs');
 const path = require('path');
@@ -11,6 +11,7 @@ let userStates = {};
 let ownerChatActive = {};
 let botConnected = false;
 let sock = null;
+let presenceInterval = null;
 
 function writePairingStatus(data) { try { fs.writeFileSync(PAIRING_FILE, JSON.stringify(data)); } catch {} }
 function loadCodes() { try { if (fs.existsSync(CODES_FILE)) return JSON.parse(fs.readFileSync(CODES_FILE, 'utf-8')); } catch {} return {}; }
@@ -36,9 +37,27 @@ const WELCOME = `مرحباً بك في OptiSize! 👁️\n\nكيف يمكنني
 const SUB_INFO = `💎 اشتراك مركز صحة العين VIP\n\nقيمة الاشتراك: 50 جنيه شهرياً\n\n💰 طريقة الدفع:\nحول 50 جنيه على رقم فودافون كاش:\n📱 01028900122\n\nبعد الدفع أرسل صورة تأكيد الدفع هنا ✅`;
 const PAY_CONFIRM = `📸 أرسل صورة تأكيد الدفع الآن\n\nملاحظة: تأكد أن الصورة توضح:\n- الرقم المحول ليه (01028900122)\n- المبلغ (50 جنيه)\n- تاريخ ووقت التحويل`;
 
+// Set bot as online/available and keep it that way
+async function setOnline() {
+  if (!sock) return;
+  try {
+    await sock.sendPresenceUpdate('available');
+    console.log('🟢 Bot set to online/available');
+  } catch (e) {
+    console.error('Failed to set online:', e.message);
+  }
+}
+
+// Keep presence alive - resend every 60 seconds
+function startPresenceKeepAlive() {
+  if (presenceInterval) clearInterval(presenceInterval);
+  setOnline(); // Set immediately
+  presenceInterval = setInterval(setOnline, 60000); // Every 60 seconds
+}
+
 // HTTP API
 http.createServer(async (req, res) => {
-  res.writeHead(200, { 'Content-Type': 'application/json' });
+  res.writeHead(200, { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*' });
   if (req.url === '/status') { res.end(JSON.stringify({ connected: botConnected })); return; }
   if (req.url === '/request-code') {
     if (botConnected) { writePairingStatus({ status: 'connected' }); res.end(JSON.stringify({ status: 'connected' })); return; }
@@ -66,24 +85,95 @@ async function startWA() {
   const { version } = await fetchLatestBaileysVersion();
   const authPath = path.join(__dirname, 'auth_info');
   const { state, saveCreds } = await useMultiFileAuthState(authPath);
-  sock = makeWASocket({ version, auth: state, printQRInTerminal: false, browser: ['OptiSize Bot', 'Chrome', '1.0'] });
-  sock.ev.on('creds.update', saveCreds);
-  sock.ev.on('connection.update', async (u) => {
-    if (u.qr) { botConnected = false; writePairingStatus({ status: 'ready' }); console.log('📱 Ready'); }
-    if (u.connection === 'close') { botConnected = false; const r = u.lastDisconnect?.error?.output?.statusCode !== DisconnectReason.loggedOut; if (r) startWA(); else writePairingStatus({ status: 'logged_out' }); }
-    if (u.connection === 'open') { botConnected = true; console.log('✅ Connected!'); writePairingStatus({ status: 'connected' }); }
+  
+  sock = makeWASocket({ 
+    version, 
+    auth: state, 
+    printQRInTerminal: false, 
+    browser: ['OptiSize Bot', 'Chrome', '1.0'],
+    markOnlineOnConnect: true,  // Auto-mark as online on connect
   });
+  
+  sock.ev.on('creds.update', saveCreds);
+  
+  sock.ev.on('connection.update', async (u) => {
+    if (u.qr) { botConnected = false; writePairingStatus({ status: 'ready' }); console.log('📱 Ready for QR'); }
+    if (u.connection === 'close') { 
+      botConnected = false; 
+      if (presenceInterval) { clearInterval(presenceInterval); presenceInterval = null; }
+      const r = u.lastDisconnect?.error?.output?.statusCode !== DisconnectReason.loggedOut; 
+      if (r) { 
+        console.log('🔄 Reconnecting...'); 
+        setTimeout(startWA, 3000); 
+      } else { 
+        writePairingStatus({ status: 'logged_out' }); 
+        console.log('🔴 Logged out permanently'); 
+      } 
+    }
+    if (u.connection === 'open') { 
+      botConnected = true; 
+      console.log('✅ Connected!'); 
+      writePairingStatus({ status: 'connected' });
+      
+      // Set bot as online/available
+      startPresenceKeepAlive();
+    }
+  });
+  
   sock.ev.on('messages.upsert', async ({ messages }) => {
-    const m = messages[0]; if (!m.message || m.key.fromMe) return;
+    const m = messages[0]; 
+    if (!m.message || m.key.fromMe) return;
+    
     const from = m.key.remoteJid, phone = from.replace('@s.whatsapp.net', '');
     const text = m.message?.conversation || m.message?.extendedTextMessage?.text || m.message?.imageMessage?.caption || '';
+    
+    // Mark message as read (blue ticks ✓✓)
+    try {
+      await sock.readMessages([m.key]);
+      console.log(`✓✓ Read message from ${phone}`);
+    } catch (e) {
+      console.error('Failed to mark as read:', e.message);
+    }
+    
+    // Show "typing..." indicator
+    try {
+      await sock.sendPresenceUpdate('composing', from);
+    } catch {}
+    
     console.log(`📩 ${phone}: ${text || '[IMG]'}`);
-    if (ownerChatActive[phone]) { if (text === 'انتهى') { ownerChatActive[phone] = false; await sock.sendMessage(from, { text: 'شكراً! 🙏' }); } return; }
-    if (m.message?.imageMessage) { if (userStates[phone] === 'awaiting_receipt') await handleReceipt(from, phone, m); else await sock.sendMessage(from, { text: WELCOME }); return; }
+    
+    // Small delay to show typing effect
+    await new Promise(r => setTimeout(r, 500));
+    
+    if (ownerChatActive[phone]) { 
+      if (text === 'انتهى') { 
+        ownerChatActive[phone] = false; 
+        await sock.sendMessage(from, { text: 'شكراً! 🙏' }); 
+      } 
+      return; 
+    }
+    
+    if (m.message?.imageMessage) { 
+      if (userStates[phone] === 'awaiting_receipt') await handleReceipt(from, phone, m); 
+      else await sock.sendMessage(from, { text: WELCOME }); 
+      return; 
+    }
+    
     const i = text.trim();
-    if (i === '1' || i === 'اشتراك' || i === 'اشترك') { userStates[phone] = 'awaiting_receipt'; await sock.sendMessage(from, { text: SUB_INFO }); await new Promise(r=>setTimeout(r,1000)); await sock.sendMessage(from, { text: PAY_CONFIRM }); }
-    else if (i === '2' || i === 'تحدث') { ownerChatActive[phone] = true; await sock.sendMessage(from, { text: '👤 تم تحويلك لفريق الدعم.\nلإنهاء المحادثة أرسل: انتهى' }); }
+    if (i === '1' || i === 'اشتراك' || i === 'اشترك') { 
+      userStates[phone] = 'awaiting_receipt'; 
+      await sock.sendMessage(from, { text: SUB_INFO }); 
+      await new Promise(r=>setTimeout(r,1000)); 
+      await sock.sendMessage(from, { text: PAY_CONFIRM }); 
+    }
+    else if (i === '2' || i === 'تحدث') { 
+      ownerChatActive[phone] = true; 
+      await sock.sendMessage(from, { text: '👤 تم تحويلك لفريق الدعم.\nلإنهاء المحادثة أرسل: انتهى' }); 
+    }
     else await sock.sendMessage(from, { text: WELCOME });
+    
+    // Set back to available after responding
+    try { await sock.sendPresenceUpdate('available'); } catch {}
   });
 }
 
