@@ -248,11 +248,27 @@ async function safeSend(jid, content) {
   }
 }
 
+// ====== QR Code Storage ======
+let currentQRCode = null;
+let currentPairingCode = null;
+
 // ====== HTTP API ======
 http.createServer(async (req, res) => {
-  res.writeHead(200, { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*' });
+  // QR code page - shows QR image in browser
+  if (req.url === '/' || req.url === '/qr') {
+    res.writeHead(200, { 'Content-Type': 'text/html; charset=utf-8' });
+    if (botConnected) {
+      res.end('<html><body style="display:flex;justify-content:center;align-items:center;height:100vh;font-family:Arial;background:#1a1a2e;color:#eee"><div style="text-align:center"><h1>\u2705 Bot Connected!</h1><p>The bot is running and connected to WhatsApp.</p></div></body></html>');
+    } else if (currentQRCode) {
+      res.end('<html><body style="display:flex;justify-content:center;align-items:center;height:100vh;font-family:Arial;background:#1a1a2e;color:#eee"><div style="text-align:center"><h2>\u{1F4F1} Scan QR Code with WhatsApp</h2><p>WhatsApp > Settings > Linked Devices > Link a device</p><img src="' + currentQRCode + '" style="border:10px solid white;border-radius:10px;margin:20px"/><p style="color:#aaa">QR refreshes automatically every 20 seconds</p>' + (currentPairingCode ? '<p style="margin-top:20px">Or use pairing code: <b style="font-size:24px;color:#0f0">' + currentPairingCode + '</b></p><p style="color:#aaa">WhatsApp > Settings > Linked Devices > Link with phone number</p>' : '') + '</div></body></html>');
+    } else {
+      res.end('<html><body style="display:flex;justify-content:center;align-items:center;height:100vh;font-family:Arial;background:#1a1a2e;color:#eee"><div style="text-align:center"><h2>\u23F3 Waiting for QR Code...</h2><p>The bot is starting up. Refresh in a few seconds.</p></div></body></html>');
+    }
+    return;
+  }
   if (req.url === '/status') {
-    res.end(JSON.stringify({ connected: botConnected, uptime: process.uptime(), pid: process.pid, sent: totalMessagesSent.length, geminiReady: !!geminiModel }));
+    res.writeHead(200, { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*' });
+    res.end(JSON.stringify({ connected: botConnected, uptime: process.uptime(), pid: process.pid, sent: totalMessagesSent.length, geminiReady: !!geminiModel, pairingCode: currentPairingCode }));
     return;
   }
   if (req.url === '/log') {
@@ -262,6 +278,7 @@ http.createServer(async (req, res) => {
     } catch { res.end('No logs'); }
     return;
   }
+  res.writeHead(200, { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*' });
   res.end(JSON.stringify({ status: 'ok', connected: botConnected, pid: process.pid, geminiReady: !!geminiModel }));
 }).listen(process.env.PORT || 8787, '0.0.0.0', () => {
   log('API on :' + (process.env.PORT || 8787));
@@ -298,26 +315,32 @@ async function startWA() {
       
       if (qr) {
         botConnected = false;
-        // Use phone pairing code instead of QR code (easier on Replit)
-        const OWNER_PHONE = process.env.OWNER_PHONE || '201028900122';
+        currentQRCode = null;
+        currentPairingCode = null;
+        
+        // Generate QR as base64 image for web display
         try {
+          const QRCode = require('qrcode');
+          currentQRCode = await QRCode.toDataURL(qr, { width: 400, margin: 2 });
+          log('QR code generated for web display');
+        } catch (e) { log('QR toDataURL error: ' + e.message); }
+        
+        // Also try pairing code
+        try {
+          const OWNER_PHONE = process.env.OWNER_PHONE || '201028900122';
           const pairingCode = await sock.requestPairingCode(OWNER_PHONE);
+          currentPairingCode = pairingCode;
           console.log('\n========================================');
-          console.log('📱 PAIRING CODE: ' + pairingCode);
+          console.log('PAIRING CODE: ' + pairingCode);
           console.log('========================================');
-          console.log('Open WhatsApp > Settings > Linked Devices > Link with phone number');
-          console.log('Enter this code: ' + pairingCode);
+          console.log('Open the bot URL in browser to see QR code');
+          console.log('Or use pairing code in WhatsApp');
           console.log('========================================\n');
-          log('Pairing code generated: ' + pairingCode);
+          log('Pairing code: ' + pairingCode);
         } catch (e) {
-          console.log('Pairing code error: ' + e.message);
-          // Fallback to QR code
-          try {
-            const QRCode = require('qrcode-terminal');
-            QRCode.generate(qr, { small: true });
-            console.log('\n📱 Scan this QR code with WhatsApp!\n');
-          } catch (e2) { console.log('QR Error: ' + e2.message); }
+          log('Pairing code error: ' + e.message);
         }
+        
         writePairingStatus({ status: 'ready' });
       }
       
@@ -341,6 +364,8 @@ async function startWA() {
       
       if (connection === 'open') {
         botConnected = true;
+        currentQRCode = null;
+        currentPairingCode = null;
         reconnectAttempts = 0;
         log('WHATSAPP CONNECTED!');
         writePairingStatus({ status: 'connected' });
