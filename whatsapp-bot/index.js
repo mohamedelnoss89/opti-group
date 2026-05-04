@@ -298,17 +298,27 @@ async function startWA() {
       
       if (qr) {
         botConnected = false;
+        // Use phone pairing code instead of QR code (easier on Replit)
+        const OWNER_PHONE = process.env.OWNER_PHONE || '201028900122';
         try {
-          const QRCode = require('qrcode-terminal');
-          QRCode.generate(qr, { small: true });
-          console.log('\n📱 Scan this QR code with WhatsApp!\n');
-        } catch (e) { console.log('QR Error: ' + e.message); }
-        try {
-          const QRCodeFile = require('qrcode');
-          await QRCodeFile.toFile(path.join(__dirname, '..', 'public', 'whatsapp-qr.png'), qr, { width: 400, margin: 2 });
-          writePairingStatus({ status: 'ready', qrAvailable: true });
-        } catch {}
-        log('QR code generated');
+          const pairingCode = await sock.requestPairingCode(OWNER_PHONE);
+          console.log('\n========================================');
+          console.log('📱 PAIRING CODE: ' + pairingCode);
+          console.log('========================================');
+          console.log('Open WhatsApp > Settings > Linked Devices > Link with phone number');
+          console.log('Enter this code: ' + pairingCode);
+          console.log('========================================\n');
+          log('Pairing code generated: ' + pairingCode);
+        } catch (e) {
+          console.log('Pairing code error: ' + e.message);
+          // Fallback to QR code
+          try {
+            const QRCode = require('qrcode-terminal');
+            QRCode.generate(qr, { small: true });
+            console.log('\n📱 Scan this QR code with WhatsApp!\n');
+          } catch (e2) { console.log('QR Error: ' + e2.message); }
+        }
+        writePairingStatus({ status: 'ready' });
       }
       
       if (connection === 'close') {
