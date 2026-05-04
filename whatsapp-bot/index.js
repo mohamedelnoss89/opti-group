@@ -1,4 +1,4 @@
-const { default: makeWASocket, useMultiFileAuthState, DisconnectReason, fetchLatestBaileysVersion, makeInMemoryStore } = require('@whiskeysockets/baileys');
+const { default: makeWASocket, useMultiFileAuthState, DisconnectReason, fetchLatestBaileysVersion, delay: baileysDelay } = require('@whiskeysockets/baileys');
 const fs = require('fs');
 const path = require('path');
 const http = require('http');
@@ -14,6 +14,71 @@ let sock = null;
 let presenceInterval = null;
 let reconnectAttempts = 0;
 const MAX_RECONNECT = 10;
+
+// ====== ANTI-BAN: Rate Limiting ======
+const messageTimestamps = {}; // phone -> [timestamp, ...]
+const MAX_MESSAGES_PER_USER_PER_HOUR = 10;
+const MAX_TOTAL_MESSAGES_PER_HOUR = 30;
+let totalMessagesSent = []; // timestamps of all sent messages
+const MESSAGE_COOLDOWN_MS = 3000; // minimum 3s between messages to same user
+const TYPING_DELAY_MS = 1500; // minimum typing delay before responding
+const SUB_MESSAGES_DELAY_MS = 3000; // delay between subscription flow messages
+
+function isRateLimited(phone) {
+  const now = Date.now();
+  const oneHourAgo = now - 3600000;
+  
+  // Clean old entries
+  totalMessagesSent = totalMessagesSent.filter(t => t > oneHourAgo);
+  
+  // Check total messages per hour
+  if (totalMessagesSent.length >= MAX_TOTAL_MESSAGES_PER_HOUR) {
+    log('⚠️ RATE LIMIT: Total hourly limit reached (' + totalMessagesSent.length + ')');
+    return true;
+  }
+  
+  // Check per-user limit
+  if (!messageTimestamps[phone]) messageTimestamps[phone] = [];
+  messageTimestamps[phone] = messageTimestamps[phone].filter(t => t > oneHourAgo);
+  
+  if (messageTimestamps[phone].length >= MAX_MESSAGES_PER_USER_PER_HOUR) {
+    log('⚠️ RATE LIMIT: Per-user hourly limit reached for ' + phone);
+    return true;
+  }
+  
+  // Check cooldown between messages to same user
+  const lastMsg = messageTimestamps[phone].length > 0 ? messageTimestamps[phone][messageTimestamps[phone].length - 1] : 0;
+  if (now - lastMsg < MESSAGE_COOLDOWN_MS) {
+    log('⚠️ RATE LIMIT: Cooldown not expired for ' + phone);
+    return true;
+  }
+  
+  return false;
+}
+
+function recordMessageSent(phone) {
+  const now = Date.now();
+  totalMessagesSent.push(now);
+  if (!messageTimestamps[phone]) messageTimestamps[phone] = [];
+  messageTimestamps[phone].push(now);
+}
+
+// ====== ANTI-BAN: Cooldown per user (don't respond too fast) ======
+const lastResponseTime = {}; // phone -> timestamp
+const MIN_RESPONSE_INTERVAL_MS = 5000; // minimum 5s between responses to same user
+
+function canRespondToUser(phone) {
+  const now = Date.now();
+  if (lastResponseTime[phone] && (now - lastResponseTime[phone]) < MIN_RESPONSE_INTERVAL_MS) {
+    log('⏳ Cooldown: ' + phone + ' - waiting ' + (MIN_RESPONSE_INTERVAL_MS - (now - lastResponseTime[phone])) + 'ms');
+    return false;
+  }
+  return true;
+}
+
+function recordResponse(phone) {
+  lastResponseTime[phone] = Date.now();
+}
 
 // ====== Logging ======
 function log(msg) {
@@ -83,27 +148,36 @@ async function setOnline() {
   if (!sock || !botConnected) return;
   try {
     await sock.sendPresenceUpdate('available');
-    log('🟢 Presence: online/available');
-  } catch (e) {
-    log('⚠️ Presence update failed: ' + e.message);
-  }
+  } catch {}
 }
 
 function startPresenceKeepAlive() {
   if (presenceInterval) clearInterval(presenceInterval);
-  setOnline();
-  presenceInterval = setInterval(setOnline, 45000); // every 45 seconds
+  // Don't set online immediately - wait 10s after connect
+  setTimeout(setOnline, 10000);
+  presenceInterval = setInterval(setOnline, 120000); // every 2 minutes (less aggressive)
 }
 
 function stopPresenceKeepAlive() {
   if (presenceInterval) { clearInterval(presenceInterval); presenceInterval = null; }
 }
 
-// ====== Safe Send ======
+// ====== Safe Send with Rate Limiting ======
 async function safeSend(jid, content) {
   if (!sock || !botConnected) return false;
+  
+  const phone = jid.replace('@s.whatsapp.net', '');
+  
+  // Check rate limits
+  if (isRateLimited(phone)) {
+    log('🚫 Message blocked by rate limit for ' + phone);
+    return false;
+  }
+  
   try {
     await sock.sendMessage(jid, content);
+    recordMessageSent(phone);
+    log('✅ Message sent to ' + phone);
     return true;
   } catch (e) {
     log('❌ Send failed: ' + e.message);
@@ -116,7 +190,11 @@ const apiServer = http.createServer(async (req, res) => {
   res.writeHead(200, { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*' });
   
   if (req.url === '/status') {
-    res.end(JSON.stringify({ connected: botConnected, uptime: process.uptime() }));
+    res.end(JSON.stringify({ 
+      connected: botConnected, 
+      uptime: process.uptime(),
+      messagesSent: totalMessagesSent.length,
+    }));
     return;
   }
   
@@ -151,7 +229,7 @@ const apiServer = http.createServer(async (req, res) => {
     try {
       const logContent = fs.existsSync(LOG_FILE) ? fs.readFileSync(LOG_FILE, 'utf-8') : 'No logs yet';
       res.writeHead(200, { 'Content-Type': 'text/plain; charset=utf-8' });
-      res.end(logContent.slice(-3000)); // last 3KB
+      res.end(logContent.slice(-3000));
     } catch { res.end('Error reading log'); }
     return;
   }
@@ -182,9 +260,12 @@ async function startWA() {
       browser: ['OptiSize Bot', 'Chrome', '1.0'],
       markOnlineOnConnect: true,
       connectTimeoutMs: 30000,
-      keepAliveIntervalMs: 25000,
-      // Don't receive our own messages
+      keepAliveIntervalMs: 30000, // less aggressive keepalive
       emitOwnEvents: false,
+      // Reduce message processing to avoid spam detection
+      syncFullHistory: false,
+      fireInitQueries: true,
+      generateHighQualityLinkPreview: false,
     });
     
     // Save credentials on update
@@ -192,21 +273,17 @@ async function startWA() {
     
     // Connection updates
     sock.ev.on('connection.update', async (update) => {
-      log('📡 Connection update: ' + JSON.stringify(update, null, 0));
-      
       const { connection, lastDisconnect, qr } = update;
       
       if (qr) {
         botConnected = false;
-        // Generate QR as PNG for web display
         try {
           const QRCode = require('qrcode');
           const qrPath = path.join(__dirname, '..', 'public', 'whatsapp-qr.png');
           await QRCode.toFile(qrPath, qr, { width: 400, margin: 2 });
           writePairingStatus({ status: 'ready', qrAvailable: true });
-          log('📱 QR saved to public/whatsapp-qr.png');
+          log('📱 QR saved');
         } catch (e) {
-          log('⚠️ QR save error: ' + e.message);
           writePairingStatus({ status: 'ready' });
         }
       }
@@ -218,67 +295,53 @@ async function startWA() {
         const statusCode = lastDisconnect?.error?.output?.statusCode;
         const shouldReconnect = statusCode !== DisconnectReason.loggedOut;
         
-        log('🔴 Connection closed. Status: ' + statusCode + ', Reconnect: ' + shouldReconnect);
+        log('🔴 Connection closed. Status: ' + statusCode);
         
         if (shouldReconnect && reconnectAttempts < MAX_RECONNECT) {
           reconnectAttempts++;
-          const delay = Math.min(3000 * reconnectAttempts, 30000); // exponential backoff
-          log(`🔄 Reconnecting in ${delay}ms... (attempt ${reconnectAttempts}/${MAX_RECONNECT})`);
+          const delay = Math.min(5000 * reconnectAttempts, 60000); // longer backoff
+          log(`🔄 Reconnecting in ${delay}ms... (attempt ${reconnectAttempts})`);
           setTimeout(startWA, delay);
         } else if (statusCode === DisconnectReason.loggedOut) {
           writePairingStatus({ status: 'logged_out' });
-          log('🔴 Logged out permanently. Need to re-scan QR.');
-          // Reset reconnect attempts so user can try again
-          reconnectAttempts = 0;
-        } else {
-          log('🔴 Max reconnect attempts reached.');
+          log('🔴 Logged out permanently.');
           reconnectAttempts = 0;
         }
       }
       
       if (connection === 'open') {
         botConnected = true;
-        reconnectAttempts = 0; // reset on successful connection
-        log('✅ WhatsApp CONNECTED successfully!');
+        reconnectAttempts = 0;
+        log('✅ WhatsApp CONNECTED!');
         writePairingStatus({ status: 'connected' });
-        
-        // Set bot online
         startPresenceKeepAlive();
-        
-        // Send test message to self to confirm bot is alive
-        log('🤖 Bot is alive and online!');
       }
     });
     
     // Message handler
     sock.ev.on('messages.upsert', async ({ messages, type }) => {
       try {
-        // Only process new messages, not old/history ones
-        if (type !== 'notify' && type !== 'append') return;
+        // Only process new messages
+        if (type !== 'notify') return;
         
         const m = messages[0];
-        if (!m) return;
-        
-        // Skip messages from self
-        if (m.key.fromMe) return;
+        if (!m || m.key.fromMe) return;
         
         const from = m.key.remoteJid;
         
-        // ===== IMPORTANT: Only respond to DMs, NOT groups =====
-        if (from.endsWith('@g.us')) {
-          log('📨 Group message ignored from: ' + from);
-          // Just mark as read, don't respond
-          try { await sock.readMessages([m.key]); } catch {}
-          return;
-        }
+        // Ignore groups completely
+        if (from.endsWith('@g.us')) return;
         
-        // Only respond to individual chats (@s.whatsapp.net)
-        if (!from.endsWith('@s.whatsapp.net')) {
-          log('📨 Unknown JID type: ' + from);
-          return;
-        }
+        // Ignore newsletters
+        if (from.endsWith('@newsletter')) return;
+        
+        // Only respond to DMs
+        if (!from.endsWith('@s.whatsapp.net')) return;
         
         const phone = from.replace('@s.whatsapp.net', '');
+        
+        // Check user cooldown
+        if (!canRespondToUser(phone)) return;
         
         // Extract text
         const text = m.message?.conversation 
@@ -288,25 +351,26 @@ async function startWA() {
         
         log(`📩 DM from ${phone}: ${text || '[IMAGE]'}`);
         
-        // Mark as read
+        // Mark as read (with delay to look natural)
+        await new Promise(r => setTimeout(r, 1000));
         try { await sock.readMessages([m.key]); } catch {}
         
-        // Show typing indicator
+        // Show typing indicator (looks natural)
         try { await sock.sendPresenceUpdate('composing', from); } catch {}
         
-        // Small delay for typing effect
-        await new Promise(r => setTimeout(r, 800));
+        // Natural typing delay (1.5-3 seconds based on message length)
+        const typingDelay = Math.min(Math.max(TYPING_DELAY_MS, text.length * 50), 3000);
+        await new Promise(r => setTimeout(r, typingDelay));
+        
+        // Record that we're responding
+        recordResponse(phone);
         
         // Handle owner chat mode
         if (ownerChatActive[phone]) {
           if (text.trim() === 'انتهى' || text.trim() === 'انهى') {
             ownerChatActive[phone] = false;
             await safeSend(from, { text: 'شكراً! 🙏' });
-          } else {
-            // Forward to owner or just acknowledge
-            log(`💬 Owner chat active for ${phone}, message: ${text}`);
           }
-          // Set back to available
           try { await sock.sendPresenceUpdate('available'); } catch {}
           return;
         }
@@ -327,48 +391,33 @@ async function startWA() {
         
         if (cmd === '1' || cmd === 'اشتراك' || cmd === 'اشترك') {
           userStates[phone] = 'awaiting_receipt';
-          await safeSend(from, { text: SUB_INFO });
-          await new Promise(r => setTimeout(r, 1000));
-          await safeSend(from, { text: PAY_CONFIRM });
+          // Send combined message instead of 2 separate ones (less spammy)
+          await safeSend(from, { text: SUB_INFO + '\n\n---\n\n' + PAY_CONFIRM });
         }
         else if (cmd === '2' || cmd === 'تحدث') {
           ownerChatActive[phone] = true;
           await safeSend(from, { text: '👤 تم تحويلك لفريق الدعم.\nلإنهاء المحادثة أرسل: انتهى' });
         }
         else {
-          // Default: send welcome
           await safeSend(from, { text: WELCOME });
         }
         
-        // Set back to available after responding
+        // Set back to available
         try { await sock.sendPresenceUpdate('available'); } catch {}
         
       } catch (err) {
         log('❌ Message handler error: ' + err.message);
-        log('Stack: ' + err.stack);
       }
-    });
-    
-    // Handle group participant updates (join/leave) silently
-    sock.ev.on('group-participants.update', (update) => {
-      // Ignore group events
-    });
-    
-    // Handle presence updates from contacts
-    sock.ev.on('presence.update', (update) => {
-      // We don't need to do anything with others' presence
     });
     
   } catch (err) {
     log('❌ Fatal startWA error: ' + err.message);
-    log('Stack: ' + err.stack);
     botConnected = false;
     
-    // Try to reconnect after delay
     if (reconnectAttempts < MAX_RECONNECT) {
       reconnectAttempts++;
       const delay = Math.min(5000 * reconnectAttempts, 60000);
-      log(`🔄 Retrying startWA in ${delay}ms... (attempt ${reconnectAttempts}/${MAX_RECONNECT})`);
+      log(`🔄 Retrying in ${delay}ms...`);
       setTimeout(startWA, delay);
     }
   }
@@ -378,10 +427,12 @@ async function startWA() {
 async function handleReceipt(from, phone, msg) {
   await safeSend(from, { text: '⏳ جاري المراجعة...' });
   
+  // Wait before processing (anti-ban)
+  await new Promise(r => setTimeout(r, 2000));
+  
   try {
     const buf = await sock.downloadMediaMessage(msg);
     
-    // Try AI verification
     try {
       const ZAI = (await import('z-ai-web-dev-sdk')).default;
       const zai = await ZAI.create();
@@ -398,7 +449,7 @@ async function handleReceipt(from, phone, msg) {
       });
       
       const a = r.choices[0]?.message?.content || '';
-      log('🤖 AI response: ' + a);
+      log('🤖 AI: ' + a);
       
       if (a.includes('مقبول') && !a.includes('مرفوض')) {
         const code = generateCode(phone);
@@ -409,8 +460,7 @@ async function handleReceipt(from, phone, msg) {
         await safeSend(from, { text: '❌ غير مقبول. حاول تاني بصورة أوضح.' });
       }
     } catch (aiErr) {
-      log('⚠️ AI verification failed: ' + aiErr.message);
-      // Fallback: accept manually for now
+      log('⚠️ AI failed: ' + aiErr.message);
       const code = generateCode(phone);
       await saveSubscriptionToDB(code, phone);
       userStates[phone] = 'idle';
@@ -418,36 +468,32 @@ async function handleReceipt(from, phone, msg) {
     }
     
   } catch (e) {
-    log('❌ Receipt handler error: ' + e.message);
+    log('❌ Receipt error: ' + e.message);
     await safeSend(from, { text: '⚠️ خطأ في معالجة الصورة. حاول تاني.' });
   }
 }
 
 // ====== Process error handlers ======
 process.on('uncaughtException', (err) => {
-  log('💥 Uncaught Exception: ' + err.message);
-  log('Stack: ' + err.stack);
-  // Don't exit - try to keep running
+  log('💥 Uncaught: ' + err.message);
 });
 
-process.on('unhandledRejection', (reason, promise) => {
-  log('💥 Unhandled Rejection: ' + reason);
-  // Don't exit - try to keep running
+process.on('unhandledRejection', (reason) => {
+  log('💥 Rejection: ' + reason);
 });
 
 process.on('SIGINT', () => {
-  log('👋 SIGINT received, shutting down...');
+  log('👋 SIGINT');
   stopPresenceKeepAlive();
   process.exit(0);
 });
 
 process.on('SIGTERM', () => {
-  log('👋 SIGTERM received, shutting down...');
+  log('👋 SIGTERM');
   stopPresenceKeepAlive();
   process.exit(0);
 });
 
 // ====== Start ======
-log('🚀 OptiSize Bot starting...');
-log('Node version: ' + process.version);
-log('PID: ' + process.pid);
+log('🚀 OptiSize Bot starting (anti-ban mode)...');
+log('Node: ' + process.version + ' PID: ' + process.pid);

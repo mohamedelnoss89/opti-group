@@ -234,3 +234,33 @@ Stage Summary:
 - All routes tested and working: / (200), glasses images (200), 404 (404)
 - App renders properly on mobile viewport (390x844)
 - Preview URL should now work correctly
+
+---
+Task ID: 1
+Agent: Main Agent
+Task: Fix WhatsApp bot not responding and anti-ban measures
+
+Work Log:
+- Found bot process was dying because background processes from Bash tool get killed when session closes
+- Discovered bot was responding to group messages (causing crashes and spam)
+- Rewrote bot with group filtering (only respond to DMs @s.whatsapp.net)
+- Added uncaughtException/unhandledRejection handlers to prevent crashes
+- Started bot via Next.js API using spawn() with detached:true + unref()
+- Bot now stays alive and connected (verified 56+ seconds uptime)
+- User reported WhatsApp spam warning: "من فضلك لا ترسل رسائل لعدد كبير من الأشخاص"
+- Added comprehensive anti-ban measures:
+  - Rate limiting: max 10 messages/user/hour, max 30 total messages/hour
+  - Message cooldown: 3s minimum between messages to same user
+  - User response cooldown: 5s between responses
+  - Natural typing delays: 1.5-3 seconds before responding
+  - Combined subscription flow into 1 message instead of 2 (less spammy)
+  - Reduced presence updates from 45s to 120s intervals
+  - Disabled full history sync
+  - Read receipts with 1s delay (looks natural)
+  - Only process 'notify' type messages (not history)
+
+Stage Summary:
+- Bot is now running stably and connected to WhatsApp
+- Anti-ban rate limiting in place to prevent spam detection
+- Bot responds only to DMs, ignores groups and newsletters
+- Messages are sent with natural delays and cooldowns
