@@ -18,35 +18,45 @@ export async function POST(req: NextRequest) {
     const ZAI = (await import('z-ai-web-dev-sdk')).default;
     const zai = await ZAI.create();
 
-    const RECEIPT_VERIFY_PROMPT = `أنت نظام تحقق صارم من إيصالات الدفع والتحويل.
+    const RECEIPT_VERIFY_PROMPT = `أنت نظام تحقق صارم جداً من إيصالات الدفع والتحويل المصرية. مهمتك الأساسية هي كشف الإيصالات الوهمية والمزورة.
 
-الخطوة 1: أولاً تأكد إن الصورة دي فعلاً إيصال دفع أو تحويل
-- لازم تشوف كلمات تدل على الدفع أو التحويل زي: "تم التحويل" أو "مرسل" أو "تم الإرسال" أو "تحويل ناجح" أو "تم الدفع" أو "دفع ناجح" أو "Sent" أو "Transferred" أو "Payment" أو "Paid"
-- لو مفيش كلمات تدل على إن فيه دفع أو تحويل حصل → مش إيصال دفع → مرفوض
+🚨 تحذير خطير: فيه ناس بيستخدموا مواقع عمل إيصالات وهمية (زي receipt-generator و fake-receipt-maker) عشان يعملوا إيصالات مزورة. لازم تكتشف ده!
 
-الخطوة 2: استخرج البيانات من الإيصال
+الخطوة 1: كشف الوهمي - ده أهم خطوة
+- الإيصال الحقيقي من فودافون كاش: فيه شعار فودافون أحمر، تصميم التطبيق الأصلي، ألوان حقيقية، تفاصيل حقيقية اسم المرسل
+- الإيصال الحقيقي من إنستاباي: فيه شعار إنستاباي، تصميم التطبيق الأصلي، ألوان حقيقية
+- الإيصال الحقيقي من بنك مصري: فيه شعار البنك، تصميم التطبيق الأصلي
+- الإيصال الوهمي علاماته: تصميم بسيط جداً، مفيش شعار، ألوان غريبة، خطوط نظيفة أوي، مفيش تفاصيل حقيقية للمرسل، شكله زي قالب جاهز
+- لو الصورة شكلها زي إنها معمولة من موقع أو قالب جاهز → وهمي → مرفوض فوراً
+
+الخطوة 2: تأكد إن الصورة دي فعلاً إيصال دفع أو تحويل
+- لازم تشوف كلمات تدل على الدفع أو التحويل زي: "تم التحويل" أو "مرسل" أو "تم الإرسال" أو "تحويل ناجح" أو "تم الدفع" أو "Sent" أو "Paid"
+- لو مفيش كلمات تدل على إن فيه دفع أو تحويل حصل → مرفوض
+
+الخطوة 3: استخرج البيانات من الإيصال
 1. الرقم المحول ليه أو رقم المستقبل
 2. المبلغ المحول بالظبط
 3. تاريخ التحويل (يوم/شهر/سنة)
 4. وقت التحويل (ساعة:دقيقة)
 5. طريقة الدفع (فودافون كاش / إنستاباي / تحويل بنكي / غيرها)
 
-الخطوة 3: تحقق من البيانات
+الخطوة 4: تحقق من البيانات
 - الرقم لازم يكون 01028900122 بالظبط
 - المبلغ لازم يكون 50 جنيه بالظبط - لو أي مبلغ تاني → مرفوض
-- التاريخ لازم يكون تاريخ اليوم أو أمس فقط - لو التاريخ أقدم من كده → مرفوض
+- التاريخ لازم يكون تاريخ اليوم أو أمس فقط
 - الوقت لازم يكون موجود وواضح
-- طريقة الدفع ممكن تكون أي طريقة (فودافون كاش، إنستاباي، تحويل بنكي، إلخ)
 
-⚠️ تحذيرات مهمة:
+⚠️ قواعد صارمة:
+- لو الإيصال وهمي أو فيه أي شبهة تزوير → مرفوض فوراً
+- لو مفيش شعار تطبيق أو بنك واضح → مشبوه → مرفوض
+- لو التصميم بسيط أوي ومفيش تفاصيل حقيقية → وهمي → مرفوض
 - لو المبلغ مش 50 جنيه بالظبط → مرفوض
 - لو التاريخ أقدم من أمس → مرفوض
-- لو مفيش كلمة تدل على الدفع أو التحويل → مرفوض
-- لو الصورة مش إيصال دفع → مرفوض
-- طريقة الدفع مش شرط تكون فودافون كاش - أي طريقة مقبولة
 
 أجب بالتنسيق ده بالظبط:
-TYPE: [إيصال دفع / مش إيصال / أخرى]
+TYPE: [إيصال حقيقي / إيصال وهمي / مش إيصال / أخرى]
+IS_FAKE: [نعم / لا]
+FAKE_SIGNS: [لو وهمي: إيه العلامات اللي خلتك تعرف. لو حقيقي: "لا يوجد"]
 KEYWORD: [الكلمة اللي تدل على الدفع أو "لا يوجد"]
 NUMBER: [الرقم المحول ليه]
 AMOUNT: [المبلغ بالظبط]
@@ -77,6 +87,8 @@ REASON: [سبب الرفض]`;
     };
 
     const aiType = extractField(/TYPE:\s*(.+)/);
+    const aiIsFake = extractField(/IS_FAKE:\s*(.+)/);
+    const aiFakeSigns = extractField(/FAKE_SIGNS:\s*(.+)/);
     const aiKeyword = extractField(/KEYWORD:\s*(.+)/);
     const aiNumber = extractField(/NUMBER:\s*(.+)/);
     const aiAmount = extractField(/AMOUNT:\s*(.+)/);
@@ -89,7 +101,9 @@ REASON: [سبب الرفض]`;
     const REQUIRED_NUMBER = '01028900122';
     const REQUIRED_AMOUNT = '50';
 
-    const isPaymentReceipt = aiType.includes('إيصال') || aiType.includes('دفع') || aiType.includes('Receipt');
+    const isRealReceipt = (aiType.includes('حقيقي') && !aiType.includes('وهمي')) || (aiType.includes('إيصال') && !aiType.includes('وهمي') && !aiType.includes('مش'));
+    const isFake = aiIsFake.includes('نعم') && !aiIsFake.includes('لا');
+    const hasFakeSigns = aiFakeSigns !== 'لا يوجد' && aiFakeSigns !== '' && aiFakeSigns !== 'لايوجد';
     const hasPaymentKeyword = aiKeyword !== 'لا يوجد' && aiKeyword !== '' && aiKeyword !== 'لايوجد';
     const numberOk = aiNumber.includes(REQUIRED_NUMBER) || aiNumber.replace(/\s/g, '').includes(REQUIRED_NUMBER);
 
@@ -160,11 +174,13 @@ REASON: [سبب الرفض]`;
       /\d{1,2}[:.]\d{2}/.test(timeClean) &&
       parseInt(timeClean.match(/\d{1,2}/)?.[0] || '99') < 24;
 
-    const allOk = isPaymentReceipt && hasPaymentKeyword && numberOk && amountOk && dateOk && timeOk && aiResult === 'مقبول';
+    const allOk = isRealReceipt && !isFake && !hasFakeSigns && hasPaymentKeyword && numberOk && amountOk && dateOk && timeOk && aiResult === 'مقبول';
 
     let reason = '';
-    if (!isPaymentReceipt) reason = 'الصورة مش إيصال دفع';
-    else if (!hasPaymentKeyword) reason = 'مفيش كلمة تدل على إن فيه دفع أو تحويل حصل (زي "تم التحويل" أو "تم الدفع")';
+    if (!isRealReceipt) reason = 'الصورة مش إيصال دفع حقيقي';
+    else if (isFake) reason = '🚨 الإيصال وهمي! ' + (aiFakeSigns || 'تم اكتشاف علامات تزوير');
+    else if (hasFakeSigns) reason = '🚨 الإيصال فيه علامات تزوير: ' + aiFakeSigns;
+    else if (!hasPaymentKeyword) reason = 'مفيش كلمة تدل على إن فيه دفع أو تحويل حصل';
     else if (!numberOk && !amountOk) reason = 'الرقم والمبلغ مختلفين عن المطلوب (01028900122 - 50 جنيه)';
     else if (!numberOk) reason = 'الرقم المحول ليه مختلف عن 01028900122';
     else if (!amountOk) reason = 'المبلغ مختلف عن 50 جنيه (المبلغ في الإيصال: ' + aiAmount + ')';
@@ -176,7 +192,7 @@ REASON: [سبب الرفض]`;
       success: true,
       verified: allOk,
       reason,
-      details: { type: aiType, keyword: aiKeyword, number: aiNumber, amount: aiAmount, date: aiDate, time: aiTime, method: aiMethod, aiResult }
+      details: { type: aiType, isFake: aiIsFake, fakeSigns: aiFakeSigns, keyword: aiKeyword, number: aiNumber, amount: aiAmount, date: aiDate, time: aiTime, method: aiMethod, aiResult }
     });
 
   } catch (error: any) {
