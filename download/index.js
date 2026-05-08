@@ -20,65 +20,48 @@ const GROQ_API_KEY = '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';
 const GROQ_MODEL = 'meta-llama/llama-4-scout-17b-16e-instruct';
 const GROQ_API_URL = 'https://api.groq.com/openai/v1/chat/completions';
 
-// التطبيقات المعتمدة في مصر للدفع
-const RECOGNIZED_PAYMENT_APPS = [
-  'فودافون', 'vodafone',
-  'إنستاباي', 'instapay',
-  'أورانج', 'orange',
-  'إثبات', 'etby',
-  'بنك مصر', 'banque misr',
-  'بنك الأهلي', 'بنك الاهلي', 'national bank', 'nbe',
-  'cib',
-  'بنك القاهرة', 'bank of cairo',
-  'راحي', 'rahi',
-  'نقد', 'naqd',
-  'أبي', 'aby',
-  'البنك العربي', 'arab bank',
-  'qnb',
-  'bm',
-  'سعودي', 'stc',
-];
+// التطبيقات المعتمدة + ألوانها المعروفة
+const APP_PROFILES = {
+  'فودافون': { keywords: ['فودافون', 'vodafone', 'vod'], colors: ['أحمر', 'أحمر', 'red'], bg: 'أبيض' },
+  'إنستاباي': { keywords: ['إنستاباي', 'instapay'], colors: ['أزرق', 'بنفسجي', 'blue', 'purple'], bg: 'أبيض' },
+  'أورانج': { keywords: ['أورانج', 'orange'], colors: ['برتقالي', 'orange'], bg: 'أبيض' },
+  'إثبات': { keywords: ['إثبات', 'etby'], colors: ['أخضر', 'green'], bg: 'أبيض' },
+  'بنك مصر': { keywords: ['بنك مصر', 'banque misr', 'bm'], colors: ['أزرق', 'blue', 'أحمر', 'red'], bg: 'أبيض' },
+  'بنك الأهلي': { keywords: ['بنك الأهلي', 'بنك الاهلي', 'nbe', 'national bank'], colors: ['أزرق', 'blue', 'أخضر', 'green'], bg: 'أبيض' },
+  'بنك القاهرة': { keywords: ['بنك القاهرة', 'cairo bank'], colors: ['أزرق', 'blue'], bg: 'أبيض' },
+  'cib': { keywords: ['cib'], colors: ['أزرق', 'blue'], bg: 'أبيض' },
+  'راحي': { keywords: ['راحي', 'rahi'], colors: ['أزرق', 'blue'], bg: 'أبيض' },
+  'نقد': { keywords: ['نقد', 'naqd'], colors: ['أخضر', 'green'], bg: 'أبيض' },
+};
 
-// ============ ملف الاشتراكات ============
+// ============ ملفات البيانات ============
 const SUBS_FILE = path.join(__dirname, 'subscriptions.json');
 const CODES_FILE = path.join(__dirname, 'subscription_codes.json');
+const USED_RECEIPTS_FILE = path.join(__dirname, 'used_receipts.json');
 
-function loadSubscriptions() {
+function loadJSON(file) {
   try {
-    if (fs.existsSync(SUBS_FILE)) {
-      return JSON.parse(fs.readFileSync(SUBS_FILE, 'utf-8'));
-    }
-  } catch (e) {
-    console.error('خطأ في تحميل الاشتراكات:', e.message);
-  }
+    if (fs.existsSync(file)) return JSON.parse(fs.readFileSync(file, 'utf-8'));
+  } catch (e) { console.error('خطأ في تحميل:', file, e.message); }
   return {};
 }
 
-function saveSubscriptions(subs) {
-  fs.writeFileSync(SUBS_FILE, JSON.stringify(subs, null, 2), 'utf-8');
+function saveJSON(file, data) {
+  fs.writeFileSync(file, JSON.stringify(data, null, 2), 'utf-8');
 }
 
-function loadCodes() {
-  try {
-    if (fs.existsSync(CODES_FILE)) {
-      return JSON.parse(fs.readFileSync(CODES_FILE, 'utf-8'));
-    }
-  } catch (e) {
-    console.error('خطأ في تحميل الأكواد:', e.message);
-  }
-  return {};
-}
-
-function saveCodes(codes) {
-  fs.writeFileSync(CODES_FILE, JSON.stringify(codes, null, 2), 'utf-8');
-}
+function loadSubscriptions() { return loadJSON(SUBS_FILE); }
+function saveSubscriptions(subs) { saveJSON(SUBS_FILE, subs); }
+function loadCodes() { return loadJSON(CODES_FILE); }
+function saveCodes(codes) { saveJSON(CODES_FILE, codes); }
+function loadUsedReceipts() { return loadJSON(USED_RECEIPTS_FILE); }
+function saveUsedReceipts(data) { saveJSON(USED_RECEIPTS_FILE, data); }
 
 function isSubscribed(jid) {
   const subs = loadSubscriptions();
   const sub = subs[jid];
   if (!sub) return false;
-  const expiry = new Date(sub.expiry);
-  if (expiry < new Date()) {
+  if (new Date(sub.expiry) < new Date()) {
     delete subs[jid];
     saveSubscriptions(subs);
     return false;
@@ -90,10 +73,7 @@ function activateSubscription(jid) {
   const subs = loadSubscriptions();
   const expiry = new Date();
   expiry.setDate(expiry.getDate() + SUBSCRIPTION_DURATION_DAYS);
-  subs[jid] = {
-    activated: new Date().toISOString(),
-    expiry: expiry.toISOString()
-  };
+  subs[jid] = { activated: new Date().toISOString(), expiry: expiry.toISOString() };
   saveSubscriptions(subs);
   return expiry;
 }
@@ -115,89 +95,163 @@ function redeemCode(jid, code) {
   codes[code].usedAt = new Date().toISOString();
   saveCodes(codes);
   const expiry = activateSubscription(jid);
-  return { success: true, message: `✅ تم تفعيل الاشتراك بنجاح!\n📅 ينتهي في: ${expiry.toLocaleDateString('ar-EG')}`, expiry };
+  return { success: true, message: `✅ تم تفعيل الاشتراك!\n📅 ينتهي في: ${expiry.toLocaleDateString('ar-EG')}` };
+}
+
+// ============ تتبع الإيصالات المستخدمة ============
+function isReceiptUsed(receiptNumber) {
+  if (!receiptNumber || receiptNumber === 'غير محدد') return false;
+  const used = loadUsedReceipts();
+  const key = receiptNumber.toString().trim().toLowerCase();
+  return !!used[key];
+}
+
+function markReceiptUsed(receiptNumber, jid) {
+  if (!receiptNumber || receiptNumber === 'غير محدد') return;
+  const used = loadUsedReceipts();
+  const key = receiptNumber.toString().trim().toLowerCase();
+  used[key] = { usedBy: jid, usedAt: new Date().toISOString() };
+  saveUsedReceipts(used);
 }
 
 // ============ فحص التطبيق المعتمد ============
-function isRecognizedApp(appName) {
-  if (!appName || appName === 'غير محدد' || appName === 'لا' || appName === 'مش واضح') return false;
+function findAppProfile(appName) {
+  if (!appName || appName === 'غير محدد' || appName === 'لا' || appName === 'مش واضح') return null;
   const lower = appName.toLowerCase();
-  return RECOGNIZED_PAYMENT_APPS.some(app => lower.includes(app.toLowerCase()));
+  for (const [name, profile] of Object.entries(APP_PROFILES)) {
+    if (profile.keywords.some(k => lower.includes(k.toLowerCase()))) {
+      return { name, ...profile };
+    }
+  }
+  return null;
 }
 
 // ============ التاريخ والوقت ============
 function getEgyptDateString() {
-  return new Date().toLocaleDateString('en-CA', { timeZone: 'Africa/Cairo' }); // YYYY-MM-DD
+  return new Date().toLocaleDateString('en-CA', { timeZone: 'Africa/Cairo' });
 }
-
-function getYesterdayDateString() {
-  const d = new Date();
-  d.setDate(d.getDate() - 1);
-  return d.toLocaleDateString('en-CA', { timeZone: 'Africa/Cairo' });
-}
-
 function getEgyptTimeString() {
   return new Date().toLocaleTimeString('en-GB', { timeZone: 'Africa/Cairo', hour: '2-digit', minute: '2-digit' });
 }
 
-// ============ تحليل الإيصال بالذكاء الاصطناعي ============
-async function analyzeReceipt(imageBuffer, mimeType) {
+// ============ الطلب الأول: استخراج البيانات + وصف بصري ============
+async function extractReceiptData(imageBuffer, mimeType) {
   const base64Image = imageBuffer.toString('base64');
   const dataUrl = `data:${mimeType};base64,${base64Image}`;
-
   const today = getEgyptDateString();
-  const yesterday = getYesterdayDateString();
   const currentTime = getEgyptTimeString();
 
-  const EXTRACT_AND_CHECK_PROMPT = `أنت خبير في تحليل إيصالات الدفع الإلكتروني المصرية. حلل الصورة المرفقة بدقة واستخرج البيانات التالية:
+  const prompt = `أنت خبير في تحليل إيصالات الدفع الإلكتروني المصرية. حلل الصورة بدقة واستخرج:
 
-1. TYPE: نوع المستند (إيصال/تحويل/إشعار دفع/إشعار استلام/سند/عرض سعر/إعلان/غير ذلك)
-2. KEYWORD: هل يحتوي على أي من الكلمات: إيصال، تحويل، دفع، استلام، إشعار، سند، receipt، transfer؟ (نعم/لا)
-3. APP_NAME: اسم التطبيق أو المحفظة أو البنك الذي أصدر الإيصال. يجب أن تكون محدد جداً - مثلاً: "فودافون كاش" أو "إنستاباي" أو "أورانج كاش" أو "إثبات" إلخ. لو مش واضح قول "غير محدد".
-4. SENDER_NAME: اسم المرسل (لو موجود)
-5. SENDER_NUMBER: رقم هاتف المرسل (لو موجود)
-6. RECEIVER_NAME: اسم المستلم (لو موجود)
-7. RECEIVER_NUMBER: رقم هاتف المستلم أو رقم الحساب المستلم (لو موجود)
-8. AMOUNT: المبلغ بالأرقام فقط (بدون نص أو عملة)
-9. CURRENCY: العملة (جنيه/EGP/غير ذلك)
-10. DATE: تاريخ العملية بصيغة YYYY-MM-DD (لو مش واضح اكتب "غير محدد")
-11. TIME: وقت العملية بصيغة HH:MM بصيغة 24 ساعة (لو مش واضح اكتب "غير محدد")
-12. RECEIPT_NUMBER: رقم الإيصال أو المرجع (لو موجود)
-13. METHOD: طريقة الدفع (محفظة إلكترونية/تحويل بنكي/فوري/غير ذلك)
+1. TYPE: نوع المستند (إيصال/تحويل/إشعار دفع/إشعار استلام/سند/عرض سعر/إعلان/صورة عادية/غير ذلك)
+2. KEYWORD: هل فيه أي من: إيصال، تحويل، دفع، استلام، إشعار، سند، receipt، transfer؟ (نعم/لا)
+3. APP_NAME: اسم التطبيق أو المحفظة اللي أصدرت الإيصال. محدد جداً: "فودافون كاش" أو "إنستاباي" أو "أورانج كاش" إلخ. لو مش واضح خالص قول "غير محدد".
+4. SENDER_NUMBER: رقم المرسل (لو موجود)
+5. RECEIVER_NUMBER: رقم المستلم (لو موجود)
+6. AMOUNT: المبلغ بالأرقام فقط
+7. DATE: التاريخ بصيغة YYYY-MM-DD (لو مش واضح اكتب "غير محدد")
+8. TIME: الوقت بصيغة HH:MM (لو مش واضح اكتب "غير محدد")
+9. RECEIPT_NUMBER: رقم الإيصال أو المرجع (لو موجود)
+10. DOMINANT_COLORS: الألوان الرئيسية في الصورة (مثلاً: أحمر وأبيض، أزرق وأبيض)
+11. HAS_STATUS_BAR: هل يوجد شريط حالة الهاتف في أعلى الصورة؟ (نعم/لا) - ده بيدل على إن الصورة سكرين شوت من موبايل
+12. HAS_NAVIGATION_BAR: هل يوجد شريط تنقل في أسفل الصورة؟ (نعم/لا)
+13. LOOKS_LIKE_SCREENSHOT: هل الصورة تبدو كسكرين شوت من تطبيق موبايل حقيقي؟ (نعم/لا)
 
-ثم تحقق مما يلي:
-
-14. FAKE_INDICATORS: هل توجد أي علامات واضحة تدل على أن الإيصال وهمي أو مزور؟ افحص الآتي بدقة:
-    - هل واجهة التطبيق في الصورة لا تتطابق مع واجهة التطبيق الحقيقي المعروف في مصر؟ (مثلاً: لو مكتوب فودافون كاش بس التصميم مش زي تطبيق فودافون كاش الحقيقي)
-    - هل توجد علامة مائية أو اسم تطبيق إنشاء إيصالات وهمية؟ (مثل: Receipt Maker، Fake Receipt، إيصال وهمي، إلخ)
-    - هل يوجد تعديل واضح على الصورة؟ (نص مضاف بشكل واضح، خط مختلف، ألوان غير متسقة)
-    - هل الإيصال يبدو كأنه من تطبيق عام/جامد مش من تطبيق دفع حقيقي معروف؟
-    
-    مهم: لا تقول إن الإيصال وهمي لمجرد الشك. قول "لا توجد" فقط لو متأكد إن فيه علامات واضحة للتزوير. السبب وراء رفضك إذا رفضت: اذكر السبب بالتحديد.
-
-15. APP_CONFIDENCE: مدى ثقتك إن الإيصال فعلاً من تطبيق دفع حقيقي معروف في مصر (HIGH/MEDIUM/LOW)
-
-أجب بصيغة JSON فقط بدون أي نص إضافي قبل أو بعد JSON. مثال:
+أجب بصيغة JSON فقط:
 {
   "TYPE": "إيصال",
   "KEYWORD": "نعم",
   "APP_NAME": "فودافون كاش",
-  "SENDER_NAME": "أحمد محمد",
   "SENDER_NUMBER": "01012345678",
-  "RECEIVER_NAME": "محمد علي",
   "RECEIVER_NUMBER": "01028900122",
   "AMOUNT": 50,
-  "CURRENCY": "جنيه",
   "DATE": "${today}",
   "TIME": "14:30",
   "RECEIPT_NUMBER": "TXN123456",
-  "METHOD": "محفظة إلكترونية",
-  "FAKE_INDICATORS": "لا توجد",
-  "APP_CONFIDENCE": "HIGH"
+  "DOMINANT_COLORS": "أحمر وأبيض",
+  "HAS_STATUS_BAR": "نعم",
+  "HAS_NAVIGATION_BAR": "نعم",
+  "LOOKS_LIKE_SCREENSHOT": "نعم"
 }
 
-التاريخ الحالي في مصر: ${today}
-الوقت الحالي في مصر: ${currentTime}`;
+التاريخ: ${today}
+الوقت: ${currentTime}`;
+
+  try {
+    const response = await fetch(GROQ_API_URL, {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${GROQ_API_KEY}`,
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({
+        model: GROQ_MODEL,
+        messages: [{ role: 'user', content: [
+          { type: 'text', text: prompt },
+          { type: 'image_url', image_url: { url: dataUrl } }
+        ]}],
+        temperature: 0.1,
+        max_tokens: 800
+      })
+    });
+
+    const result = await response.json();
+    if (!result.choices || !result.choices[0]) {
+      console.error('Groq extract error:', JSON.stringify(result));
+      return null;
+    }
+
+    let content = result.choices[0].message.content.trim();
+    const jsonMatch = content.match(/\{[\s\S]*\}/);
+    if (!jsonMatch) { console.error('No JSON:', content); return null; }
+
+    const data = JSON.parse(jsonMatch[0]);
+    console.log('📋 Extract:', JSON.stringify(data, null, 2));
+    return data;
+  } catch (error) {
+    console.error('Extract error:', error.message);
+    return null;
+  }
+}
+
+// ============ الطلب الثاني: فحص التزوير المركز ============
+async function fraudCheck(imageBuffer, mimeType, extractedData) {
+  const base64Image = imageBuffer.toString('base64');
+  const dataUrl = `data:${mimeType};base64,${base64Image}`;
+
+  const appName = extractedData.APP_NAME || 'غير محدد';
+
+  const prompt = `أنت خبير كشف تزوير في الإيصالات الإلكترونية المصرية. 
+
+شخص ادعى إن الإيصال ده من تطبيق "${appName}". 
+
+افحص الصورة بدقة وأجب على الأسئلة دي بالإجابة والسبب:
+
+1. REAL_APP: هل ده فعلاً سكرين شوت من تطبيق "${appName}" الحقيقي؟ (نعم/لا/مش متأكد)
+   - لو لا: ايه اللي مخليك تقول كده؟ (تصميم مختلف، ألوان غلط، مفيش شعار، إلخ)
+   - لو مش متأكد: ايه اللي مش واضح؟
+
+2. FAKE_SIGNS: هل فيه أي من العلامات دي؟
+   أ) علامة مائية أو اسم أداة إنشاء إيصالات (Receipt Maker, Fake Receipt, إلخ)
+   ب) تصميم عام مش مرتبط بتطبيق حقيقي معروف
+   ج) نص مضاف أو معدل بشكل واضح (خط مختلف، حجم مختلف، لون مختلف)
+   د) الإيصال مكتوب بالإنجليزي بس بدون أي عربي (التطبيقات المصرية بتكتب بالعربي)
+   هـ) مفيش أي عناصر واجهة مستخدم (UI) للتطبيق (أزرار، قوائم، شريط تنقل)
+   (اكتب أرقام العلامات اللي موجودة، أو "لا توجد")
+
+3. GENUINE_SCORE: من 1 لـ 10، قد إيه متأكد إن الإيصال حقيقي من تطبيق حقيقي؟
+   (10 = حقيقي 100%، 1 = وهمي 100%)
+
+4. REASON: السبب الرئيسي لتقييمك
+
+أجب بصيغة JSON فقط:
+{
+  "REAL_APP": "نعم",
+  "REAL_APP_REASON": "التصميم والألوان متطابقة مع تطبيق فودافون كاش",
+  "FAKE_SIGNS": "لا توجد",
+  "GENUINE_SCORE": 9,
+  "REASON": "الإيصال يبدو حقيقي من تطبيق فودافون كاش - الألوان والأزرار والتصميم متطابقة"
+}`;
 
   try {
     const response = await fetch(GROQ_API_URL, {
@@ -209,137 +263,196 @@ async function analyzeReceipt(imageBuffer, mimeType) {
       body: JSON.stringify({
         model: GROQ_MODEL,
         messages: [
-          {
-            role: 'user',
-            content: [
-              { type: 'text', text: EXTRACT_AND_CHECK_PROMPT },
-              { type: 'image_url', image_url: { url: dataUrl } }
-            ]
-          }
+          { role: 'system', content: 'أنت خبير كشف تزوير محترف. كتير من الناس بيحاولوا يبعتوا إيصالات وهمية من تطبيقات إنشاء إيصالات. لازم تكون حذر جداً وبتكشف أي إيصال وهمي. في نفس الوقت، الإيصالات الحقيقية لازم تقبلها.' },
+          { role: 'user', content: [
+            { type: 'text', text: prompt },
+            { type: 'image_url', image_url: { url: dataUrl } }
+          ]}
         ],
         temperature: 0.1,
-        max_tokens: 1000
+        max_tokens: 600
       })
     });
 
     const result = await response.json();
-    
     if (!result.choices || !result.choices[0]) {
-      console.error('Groq API error:', JSON.stringify(result));
+      console.error('Fraud check error:', JSON.stringify(result));
       return null;
     }
 
     let content = result.choices[0].message.content.trim();
-    
-    // استخراج JSON من الرد
     const jsonMatch = content.match(/\{[\s\S]*\}/);
-    if (!jsonMatch) {
-      console.error('No JSON found in AI response:', content);
-      return null;
-    }
+    if (!jsonMatch) { console.error('No JSON fraud:', content); return null; }
 
     const data = JSON.parse(jsonMatch[0]);
-    console.log('📝 AI Analysis Result:', JSON.stringify(data, null, 2));
+    console.log('🔍 Fraud Check:', JSON.stringify(data, null, 2));
     return data;
-
   } catch (error) {
-    console.error('Error analyzing receipt:', error.message);
+    console.error('Fraud check error:', error.message);
     return null;
   }
 }
 
-// ============ التحقق البرمجي من الإيصال ============
-function verifyReceipt(data) {
+// ============ التحقق البرمجي الشامل ============
+function verifyReceipt(extracted, fraudResult) {
   const today = getEgyptDateString();
-  const yesterday = getYesterdayDateString();
   const results = [];
   let passed = true;
+  let warnings = 0;
+
+  // === الطبقة 1: البيانات الأساسية ===
 
   // 1. نوع المستند
   const validTypes = ['إيصال', 'تحويل', 'إشعار دفع', 'إشعار استلام', 'إشعار', 'سند'];
-  const typeOk = validTypes.some(t => (data.TYPE || '').includes(t));
+  const typeOk = validTypes.some(t => (extracted.TYPE || '').includes(t));
   if (!typeOk) {
     results.push('❌ المستند مش إيصال دفع');
     passed = false;
   } else {
-    results.push('✅ نوع المستند: إيصال دفع');
+    results.push('✅ نوع المستند صحيح');
   }
 
   // 2. كلمة مفتاحية
-  const keywordOk = data.KEYWORD === 'نعم' || data.KEYWORD === 'yes';
+  const keywordOk = extracted.KEYWORD === 'نعم';
   if (!keywordOk) {
-    results.push('❌ مفيش كلمة دفع أو تحويل في الإيصال');
+    results.push('❌ مفيش كلمة دفع أو تحويل');
     passed = false;
   } else {
     results.push('✅ فيه كلمة مفتاحية');
   }
 
   // 3. التطبيق معتمد
-  const appOk = isRecognizedApp(data.APP_NAME);
-  if (!appOk) {
-    results.push(`❌ التطبيق "${data.APP_NAME}" مش من التطبيقات المعتمدة في مصر`);
+  const appProfile = findAppProfile(extracted.APP_NAME);
+  if (!appProfile) {
+    results.push(`❌ التطبيق "${extracted.APP_NAME}" مش معروف`);
     passed = false;
   } else {
-    results.push(`✅ التطبيق: ${data.APP_NAME}`);
+    results.push(`✅ التطبيق: ${appProfile.name}`);
   }
 
-  // 4. ثقة التطبيق
-  const confidenceOk = data.APP_CONFIDENCE !== 'LOW';
-  if (!confidenceOk) {
-    results.push('❌ مش متأكد إن الإيصال من تطبيق حقيقي');
-    passed = false;
-  } else {
-    results.push(`✅ مستوى الثقة: ${data.APP_CONFIDENCE}`);
-  }
-
-  // 5. رقم المستلم
-  const receiverNum = String(data.RECEIVER_NUMBER || '').replace(/\s/g, '');
-  const expectedNum = PAYMENT_NUMBER;
-  const numberOk = receiverNum.includes(expectedNum) || receiverNum.includes('2' + expectedNum);
+  // 4. رقم المستلم
+  const receiverNum = String(extracted.RECEIVER_NUMBER || '').replace(/\s/g, '');
+  const numberOk = receiverNum.includes(PAYMENT_NUMBER) || receiverNum.includes('2' + PAYMENT_NUMBER);
   if (!numberOk) {
-    results.push(`❌ رقم المستلم (${receiverNum}) مش الرقم المطلوب (${expectedNum})`);
+    results.push(`❌ رقم المستلم (${receiverNum}) غلط`);
     passed = false;
   } else {
     results.push('✅ رقم المستلم صح');
   }
 
-  // 6. المبلغ
-  const amount = parseFloat(data.AMOUNT);
+  // 5. المبلغ
+  const amount = parseFloat(extracted.AMOUNT);
   const amountOk = amount === SUBSCRIPTION_PRICE;
   if (!amountOk) {
-    results.push(`❌ المبلغ (${amount} جنيه) مش ${SUBSCRIPTION_PRICE} جنيه`);
+    results.push(`❌ المبلغ (${amount}) مش ${SUBSCRIPTION_PRICE}`);
     passed = false;
   } else {
     results.push(`✅ المبلغ: ${SUBSCRIPTION_PRICE} جنيه`);
   }
 
-  // 7. التاريخ
-  const dateOk = data.DATE === today || data.DATE === yesterday;
+  // 6. التاريخ
+  const dateOk = extracted.DATE === today;
   if (!dateOk) {
-    results.push(`❌ التاريخ (${data.DATE}) مش اليوم ولا أمس`);
+    results.push(`❌ التاريخ (${extracted.DATE}) مش اليوم`);
     passed = false;
   } else {
-    results.push('✅ التاريخ صحيح');
+    results.push('✅ التاريخ صح');
   }
 
-  // 8. مؤشرات التزوير
-  const fakeIndicators = String(data.FAKE_INDICATORS || '').trim();
-  const hasFakeIndicators = fakeIndicators !== '' && 
-    fakeIndicators !== 'لا' && 
-    fakeIndicators !== 'لا توجد' && 
-    fakeIndicators !== 'لا يوجد' && 
-    fakeIndicators !== 'none' && 
-    fakeIndicators !== 'no' &&
-    fakeIndicators !== 'غير موجود';
-  
-  if (hasFakeIndicators) {
-    results.push(`❌ مؤشرات تزوير: ${fakeIndicators}`);
-    passed = false;
+  // === الطبقة 2: عناصر بصرية ===
+
+  // 7. شريط حالة الهاتف (سكرين شوت حقيقي)
+  const hasStatusBar = extracted.HAS_STATUS_BAR === 'نعم';
+  if (!hasStatusBar) {
+    results.push('⚠️ مفيش شريط حالة - ممكن مش سكرين شوت حقيقي');
+    warnings++;
   } else {
-    results.push('✅ مفيش مؤشرات تزوير');
+    results.push('✅ فيه شريط حالة (سكرين شوت)');
   }
 
-  return { passed, results, data };
+  // 8. تبدو كسكرين شوت
+  const looksLikeScreenshot = extracted.LOOKS_LIKE_SCREENSHOT === 'نعم';
+  if (!looksLikeScreenshot) {
+    results.push('⚠️ مش شكل سكرين شوت من تطبيق');
+    warnings++;
+  } else {
+    results.push('✅ تبدو كسكرين شوت');
+  }
+
+  // 9. الألوان تطابق التطبيق
+  if (appProfile) {
+    const colors = (extracted.DOMINANT_COLORS || '').toLowerCase();
+    const colorMatch = appProfile.colors.some(c => colors.includes(c.toLowerCase()));
+    if (!colorMatch) {
+      results.push(`⚠️ الألوان (${extracted.DOMINANT_COLORS}) مش زي ${appProfile.name}`);
+      warnings++;
+    } else {
+      results.push(`✅ الألوان تطابق ${appProfile.name}`);
+    }
+  }
+
+  // === الطبقة 3: فحص التزوير ===
+
+  if (fraudResult) {
+    // 10. التطبيق حقيقي
+    const realApp = fraudResult.REAL_APP === 'نعم';
+    if (!realApp) {
+      results.push(`❌ الإيصال مش من التطبيق الحقيقي: ${fraudResult.REAL_APP_REASON || ''}`);
+      passed = false;
+    } else {
+      results.push('✅ الإيصال من التطبيق الحقيقي');
+    }
+
+    // 11. علامات تزوير
+    const fakeSigns = String(fraudResult.FAKE_SIGNS || '').trim();
+    const hasFake = fakeSigns !== '' && fakeSigns !== 'لا توجد' && fakeSigns !== 'لا' && fakeSigns !== 'none' && fakeSigns !== 'غير موجودة';
+    if (hasFake) {
+      results.push(`❌ علامات تزوير: ${fakeSigns}`);
+      passed = false;
+    } else {
+      results.push('✅ مفيش علامات تزوير');
+    }
+
+    // 12. درجة الأصالة
+    const score = parseInt(fraudResult.GENUINE_SCORE) || 5;
+    if (score < 5) {
+      results.push(`❌ درجة الأصالة ضعيفة (${score}/10): ${fraudResult.REASON || ''}`);
+      passed = false;
+    } else if (score < 7) {
+      results.push(`⚠️ درجة الأصالة متوسطة (${score}/10)`);
+      warnings++;
+    } else {
+      results.push(`✅ درجة الأصالة عالية (${score}/10)`);
+    }
+  } else {
+    // لو فحص التزوير فشل - نحذر
+    results.push('⚠️ فشل فحص التزوير');
+    warnings++;
+  }
+
+  // === فحص رقم الإيصال ===
+
+  // 13. إعادة استخدام
+  if (extracted.RECEIPT_NUMBER && extracted.RECEIPT_NUMBER !== 'غير محدد') {
+    if (isReceiptUsed(extracted.RECEIPT_NUMBER)) {
+      results.push('❌ الإيصال ده تم استخدامه قبل كده!');
+      passed = false;
+    } else {
+      results.push('✅ رقم الإيصال جديد');
+    }
+  }
+
+  // === قرار نهائي: التحذيرات ===
+  if (warnings >= 3 && passed) {
+    results.push(`❌ عدد التحذيرات كتير (${warnings}) - مرفوض`);
+    passed = false;
+  } else if (warnings >= 2 && passed) {
+    results.push(`⚠️ فيه ${warnings} تحذيرات - محتاج مراجعة`);
+    // هنخلي المالك يراجع
+    passed = false;
+  }
+
+  return { passed, results, warnings, extracted, fraudResult };
 }
 
 // ============ رسائل البوت ============
@@ -348,11 +461,12 @@ const WELCOME_MSG = `مرحباً بك في OptiSize! 👋
 للاشتراك في الخدمة المميزة (50 جنيه/شهر):
 
 1️⃣ حول 50 جنيه على الرقم: ${PAYMENT_NUMBER}
-2️⃣ ابعت صورة الإيصال هنا
-3️⃣ هنتحقق من الإيصال تلقائياً وتفعيل اشتراكك
+2️⃣ افتح تطبيق الدفع وسكرين شوت الإيصال
+3️⃣ ابعت الصورة هنا
 
-أو استخدم كود الاشتراك لو عندك واحد (ابعت: كود XXXXX)
+⚠️ لازم الإيصال يكون سكرين شوت من التطبيق مباشرة
 
+أو استخدم كود اشتراك (ابعت: كود XXXXX)
 للمساعدة ابعت: مساعدة`;
 
 const HELP_MSG = `📋 أوامر OptiSize:
@@ -384,7 +498,6 @@ async function startBot() {
     const { connection, lastDisconnect, qr } = update;
 
     if (qr) {
-      // عرض رابط QR Code
       const qrUrl = `https://api.qrserver.com/v1/create-qr-code/?size=300x300&data=${encodeURIComponent(qr)}`;
       console.log('\n📱 امسح QR Code من الرابط ده:');
       console.log(qrUrl);
@@ -394,7 +507,7 @@ async function startBot() {
     if (connection === 'close') {
       const statusCode = lastDisconnect?.error?.output?.statusCode;
       const shouldReconnect = statusCode !== 401;
-      console.log('اتصال مقفول، كود:', statusCode, 'إعادة الاتصال:', shouldReconnect);
+      console.log('اتصال مقفول:', statusCode, 'إعادة الاتصال:', shouldReconnect);
 
       if (statusCode === 401) {
         console.log('⚠️ الجلسة انتهت! امسح مجلد auth_info واعمل ربط جديد');
@@ -422,17 +535,15 @@ async function startBot() {
       const sender = jid.replace('@s.whatsapp.net', '');
       const isGroup = jid.includes('@g.us');
 
-      // تجاهل الجروبات
       if (isGroup) continue;
 
-      // التعامل مع الصور
       const imageMsg = msg.message?.imageMessage;
       const textMsg = msg.message?.conversation || 
                       msg.message?.extendedTextMessage?.text || '';
 
       // أوامر نصية
       if (textMsg && !imageMsg) {
-        const cmd = textMsg.trim().toLowerCase();
+        const cmd = textMsg.trim();
 
         if (cmd === 'مساعدة' || cmd === 'المساعدة' || cmd === 'help') {
           await sock.sendMessage(jid, { text: HELP_MSG });
@@ -442,9 +553,8 @@ async function startBot() {
         if (cmd === 'حالتي' || cmd === 'حالة') {
           if (isSubscribed(jid)) {
             const subs = loadSubscriptions();
-            const sub = subs[jid];
-            const expiry = new Date(sub.expiry).toLocaleDateString('ar-EG');
-            await sock.sendMessage(jid, { text: `✅ انت مشترك!\n📅 ينتهي الاشتراك في: ${expiry}` });
+            const expiry = new Date(subs[jid].expiry).toLocaleDateString('ar-EG');
+            await sock.sendMessage(jid, { text: `✅ انت مشترك!\n📅 ينتهي في: ${expiry}` });
           } else {
             await sock.sendMessage(jid, { text: '❌ انت مش مشترك\n💰 ابعت 50 جنيه على ' + PAYMENT_NUMBER + ' وابعت الإيصال' });
           }
@@ -458,25 +568,22 @@ async function startBot() {
           continue;
         }
 
-        // تحية
         if (cmd.includes('مرحبا') || cmd.includes('هاي') || cmd.includes('اهلا') || cmd.includes('السلام')) {
           await sock.sendMessage(jid, { text: WELCOME_MSG });
           continue;
         }
 
-        // أي رسالة تانية
         if (!imageMsg) {
           await sock.sendMessage(jid, { text: WELCOME_MSG });
           continue;
         }
       }
 
-      // التعامل مع صورة الإيصال
+      // صورة الإيصال
       if (imageMsg) {
         try {
-          await sock.sendMessage(jid, { text: '🔍 جاري التحقق من الإيصال...' });
+          await sock.sendMessage(jid, { text: '🔍 جاري التحقق من الإيصال (فحص مزدوج)...' });
 
-          // تحميل الصورة
           const stream = await sock.downloadMediaMessage(msg, 'buffer');
           
           if (!stream || stream.length === 0) {
@@ -486,24 +593,43 @@ async function startBot() {
 
           const mimeType = imageMsg.mimetype || 'image/jpeg';
 
-          // تحليل الإيصال بالذكاء الاصطناعي
-          const analysis = await analyzeReceipt(stream, mimeType);
+          // === الطبقة 1: استخراج البيانات ===
+          const extracted = await extractReceiptData(stream, mimeType);
 
-          if (!analysis) {
+          if (!extracted) {
             await sock.sendMessage(jid, { text: '❌ حصل خطأ في تحليل الإيصال. حاول تاني.' });
             continue;
           }
 
-          // التحقق البرمجي
-          const verification = verifyReceipt(analysis);
+          // فحص سريع - لو البيانات الأساسية غلط مفيش داعي نكلف فحص التزوير
+          const quickCheck = findAppProfile(extracted.APP_NAME) !== null;
+          const receiverNum = String(extracted.RECEIVER_NUMBER || '').replace(/\s/g, '');
+          const numberOk = receiverNum.includes(PAYMENT_NUMBER) || receiverNum.includes('2' + PAYMENT_NUMBER);
+          const amountOk = parseFloat(extracted.AMOUNT) === SUBSCRIPTION_PRICE;
 
-          console.log(`\n📋 Verification for ${sender}:`);
+          let fraudResult = null;
+
+          // === الطبقة 2: فحص التزوير (فقط لو البيانات الأساسية صح) ===
+          if (quickCheck && numberOk && amountOk) {
+            await sock.sendMessage(jid, { text: '🔎 فحص إضافي للتأكد من صحة الإيصال...' });
+            fraudResult = await fraudCheck(stream, mimeType, extracted);
+          }
+
+          // === الطبقة 3: التحقق الشامل ===
+          const verification = verifyReceipt(extracted, fraudResult);
+
+          console.log(`\n📋 === Verification for ${sender} ===`);
           verification.results.forEach(r => console.log('  ', r));
+          console.log(`  التحذيرات: ${verification.warnings}`);
           console.log('  النتيجة:', verification.passed ? '✅ مقبول' : '❌ مرفوض');
           console.log('');
 
           if (verification.passed) {
-            // تفعيل الاشتراك
+            // تسجيل رقم الإيصال
+            if (extracted.RECEIPT_NUMBER && extracted.RECEIPT_NUMBER !== 'غير محدد') {
+              markReceiptUsed(extracted.RECEIPT_NUMBER, jid);
+            }
+
             const expiry = activateSubscription(jid);
             const expiryStr = expiry.toLocaleDateString('ar-EG');
             
@@ -512,25 +638,34 @@ async function startBot() {
             });
 
             // إبلاغ المالك
-            const ownerJid = OWNER_NUMBER + '@s.whatsapp.net';
             try {
-              await sock.sendMessage(ownerJid, { 
-                text: `📥 اشتراك جديد!\n👤 الرقم: ${sender}\n💰 المبلغ: ${SUBSCRIPTION_PRICE} جنيه\n📱 التطبيق: ${analysis.APP_NAME}\n📅 ينتهي: ${expiryStr}` 
+              await sock.sendMessage(OWNER_NUMBER + '@s.whatsapp.net', { 
+                text: `📥 اشتراك جديد!\n👤 ${sender}\n💰 ${SUBSCRIPTION_PRICE} جنيه\n📱 ${extracted.APP_NAME}\n📄 ${extracted.RECEIPT_NUMBER || '-'}\n📅 ${expiryStr}` 
               });
             } catch (e) {}
 
           } else {
-            // رفض الإيصال
             const reasons = verification.results.filter(r => r.startsWith('❌')).join('\n');
+            const warns = verification.results.filter(r => r.startsWith('⚠️')).join('\n');
             
-            await sock.sendMessage(jid, { 
-              text: `❌ الإيصال مرفوض!\n\n${reasons}\n\nتأكد إنك:\n- بعت إيصال حقيقي من تطبيق دفع معروف\n- المبلغ 50 جنيه\n- التحويل على الرقم ${PAYMENT_NUMBER}\n- الإيصال من اليوم أو أمس\n\nلو مش راضي يقبل، تواصل مع الدعم.` 
-            });
+            let rejectMsg = `❌ الإيصال مرفوض!\n\n`;
+            if (reasons) rejectMsg += `${reasons}\n\n`;
+            if (warns) rejectMsg += `⚠️ تحذيرات:\n${warns}\n\n`;
+            rejectMsg += `تأكد إنك:\n- بعت سكرين شوت من التطبيق مباشرة\n- المبلغ 50 جنيه\n- التحويل على ${PAYMENT_NUMBER}\n- الإيصال من اليوم\n\nلو المشكلة مستمرة، تواصل مع الدعم.`;
+            
+            await sock.sendMessage(jid, { text: rejectMsg });
+
+            // إبلاغ المالك عن المحاولة المرفوضة
+            try {
+              await sock.sendMessage(OWNER_NUMBER + '@s.whatsapp.net', { 
+                text: `🚫 محاولة مرفوضة!\n👤 ${sender}\n📋 ${reasons}\n📱 التطبيق: ${extracted.APP_NAME || 'غير محدد'}` 
+              });
+            } catch (e) {}
           }
 
         } catch (error) {
           console.error('Error processing receipt:', error);
-          await sock.sendMessage(jid, { text: '❌ حصل خطأ. حول تاني.' });
+          await sock.sendMessage(jid, { text: '❌ حصل خطأ. حاول تاني.' });
         }
       }
     }
@@ -540,10 +675,11 @@ async function startBot() {
 }
 
 // ============ تشغيل البوت ============
-console.log('🤖 OptiSize WhatsApp Bot - Starting...');
+console.log('🤖 OptiSize WhatsApp Bot v2 - Starting...');
 console.log(`💰 Subscription: ${SUBSCRIPTION_PRICE} EGP/month`);
 console.log(`📱 Payment Number: ${PAYMENT_NUMBER}`);
 console.log(`👑 Owner: ${OWNER_NUMBER}`);
+console.log(`🛡️ Anti-fraud: 3-layer verification`);
 console.log('-----------------------------------');
 
 startBot().catch(err => {
