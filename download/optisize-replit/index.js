@@ -18,7 +18,6 @@ import path from 'path';
 import http from 'http';
 import https from 'https';
 import qrcode from 'qrcode';
-import qrcodeTerminal from 'qrcode-terminal';
 
 // ====== Groq AI Setup ======
 const GROQ_API_KEY = process.env.GROQ_API_KEY || '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';
@@ -520,16 +519,18 @@ async function startWA() {
         
         try {
           currentQRCode = await qrcode.toDataURL(qr, { width: 400, margin: 2 });
-          log('QR code generated');
         } catch (e) { log('QR error: ' + e.message); }
         
-        // Print QR in terminal
-        qrcodeTerminal.generate(qr, { small: true });
+        // Generate QR image URL using free API
+        const qrImageUrl = 'https://api.qrserver.com/v1/create-qr-code/?size=400x400&data=' + encodeURIComponent(qr);
         
-        console.log('\n========================================');
-        console.log('Scan QR Code with WhatsApp');
-        console.log('Or open the bot URL in browser');
-        console.log('========================================\n');
+        console.log('\n' + '='.repeat(50));
+        console.log('📱 افتح الرابط ده في المتصفح عشان تشوف QR Code:');
+        console.log(qrImageUrl);
+        console.log('='.repeat(50));
+        console.log('أو افتح الرابط ده عشان تشوف صفحة البوت:');
+        console.log('http://localhost:' + (process.env.PORT || 8787));
+        console.log('='.repeat(50) + '\n');
       }
       
       if (connection === 'close') {
