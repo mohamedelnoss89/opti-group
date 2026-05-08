@@ -9,9 +9,10 @@ declare global {
   var __waBotPID: number | undefined;
 }
 
-function getBotDir() { return path.join(process.cwd(), 'whatsapp-bot'); }
+function getBotDir() { return path.join(process.cwd(), 'mini-services', 'whatsapp-bot'); }
 function getLogPath() { return path.join(getBotDir(), 'bot.log'); }
 function getPidFile() { return path.join(getBotDir(), 'bot.pid'); }
+const BOT_PORT = 3003;
 
 // POST - Start the WhatsApp bot as a detached process
 export async function POST() {
@@ -22,7 +23,7 @@ export async function POST() {
     
     // Check if already running via HTTP API
     try {
-      const res = await fetch('http://localhost:8787/status', { signal: AbortSignal.timeout(2000) });
+      const res = await fetch(`http://localhost:${BOT_PORT}/status`, { signal: AbortSignal.timeout(2000) });
       const data = await res.json();
       if (data.connected) {
         return NextResponse.json({ success: true, connected: true, message: 'البوت شغال ومتصل!' });
@@ -78,7 +79,7 @@ export async function POST() {
     while (Date.now() - startTime < 20000) {
       await new Promise(r => setTimeout(r, 2000));
       try {
-        const res = await fetch('http://localhost:8787/status', { signal: AbortSignal.timeout(2000) });
+        const res = await fetch(`http://localhost:${BOT_PORT}/status`, { signal: AbortSignal.timeout(2000) });
         const data = await res.json();
         if (data.connected) {
           return NextResponse.json({ success: true, connected: true, pid: child.pid });
@@ -103,7 +104,7 @@ export async function GET() {
   try {
     let botStatus = { connected: false };
     try {
-      const res = await fetch('http://localhost:8787/status', { signal: AbortSignal.timeout(2000) });
+      const res = await fetch(`http://localhost:${BOT_PORT}/status`, { signal: AbortSignal.timeout(2000) });
       botStatus = await res.json();
     } catch {}
 

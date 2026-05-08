@@ -1,20 +1,22 @@
-# OptiSize Bot Work Log
+# OptiSize Worklog
 
 ---
 Task ID: 1
-Agent: Main Agent
-Task: Fix AI receipt verification on Replit by switching from z-ai-web-dev-sdk to Google Gemini API
+Agent: Main
+Task: رفع بوت واتساب OptiSize كـ mini service على السيرفر
 
 Work Log:
-- Read current bot code (whatsapp-bot/index.js) and Next.js API route (src/app/api/verify-receipt/route.ts)
-- Identified root cause: z-ai-web-dev-sdk uses local AI API at http://172.25.136.193:8080 which is not accessible from Replit
-- Rewrote whatsapp-bot/index.js to use Google Gemini API (@google/generative-ai) directly
-- Moved all receipt verification logic from the Next.js API route directly into the bot code
-- Updated package.json to replace z-ai-web-dev-sdk with @google/generative-ai
-- Created deployment zip at /home/z/my-project/download/optisize-bot-gemini.zip
+- استكشفت ملفات بوت واتساب في /home/z/my-project/whatsapp-bot/
+- أنشأت mini service جديد في /home/z/my-project/mini-services/whatsapp-bot/
+- عدّلت البوت عشان يشتغل على بورت 3003 ويتصل بـ API الموقع
+- البوت بيبعت أكواد الاشتراك لـ /api/subscriptions/create مباشرة
+- عدّلت API routes في الموقع عشان تتكلم مع البوت على بورت 3003
+- شغّلت البوت بنجاح مع Gemini AI (AIzaSyBe0dMWe6Ovw0E9Cu8Aa0IwKzKIyyg2ZbA)
+- البوت بيولّد QR كود وكود ربط (Pairing Code)
 
 Stage Summary:
-- Bot now uses Google Gemini API (free, works from anywhere) instead of z-ai-web-dev-sdk (local only)
-- All verification logic (date check, amount check, number check, etc.) is built into the bot
-- Detailed rejection messages with specific reasons are preserved
-- User needs to: (1) get Gemini API key, (2) upload new zip to Replit, (3) set GEMINI_API_KEY env var, (4) run npm install && npm start
+- البوت شغال على http://localhost:3003
+- QR كود متاح على http://localhost:3003/qr
+- كود الربط: YBE33S6H (محتاج إدخاله في واتساب)
+- البوت موصول بـ API الموقع لإنشاء أكواد الاشتراك
+- Gemini AI شغال لفحص الإيصالات
