@@ -1,9 +1,9 @@
-// ====== OptiSize WhatsApp Bot - Replit 24/7 Version ======
-// Uses Google Gemini API for receipt verification
-// Includes keep-alive ping to prevent Replit from sleeping
+// ====== OptiSize WhatsApp Bot - Dual AI Verification ======
+// Uses Groq API with two-step verification to detect fake receipts
+// Step 1: Detailed visual analysis (forces AI to list specific UI elements)
+// Step 2: Authenticity verification (checks if visual elements match real apps)
 
-const {
-  default: makeWASocket,
+import makeWASocket, {
   useMultiFileAuthState,
   DisconnectReason,
   fetchLatestBaileysVersion,
@@ -11,54 +11,34 @@ const {
   getContentType,
   isLidUser,
   isJidGroup,
-} = require('@whiskeysockets/baileys');
+} from '@whiskeysockets/baileys';
 
-const fs = require('fs');
-const path = require('path');
-const http = require('http');
-const https = require('https');
-const crypto = require('crypto');
+import fs from 'fs';
+import path from 'path';
+import http from 'http';
+import https from 'https';
+import qrcode from 'qrcode';
+import qrcodeTerminal from 'qrcode-terminal';
 
-// ====== Gemini AI Setup ======
-const { GoogleGenerativeAI } = require('@google/generative-ai');
-
-const GEMINI_API_KEY = process.env.GEMINI_API_KEY || '';
-let genAI = null;
-let geminiModel = null;
-
-function initGemini() {
-  if (!GEMINI_API_KEY) {
-    log('WARNING: GEMINI_API_KEY not set! Receipt verification will not work.');
-    log('Get a free key from: https://aistudio.google.com/apikey');
-    return false;
-  }
-  try {
-    genAI = new GoogleGenerativeAI(GEMINI_API_KEY);
-    geminiModel = genAI.getGenerativeModel({ model: 'gemini-1.5-flash' });
-    log('AI: Gemini API initialized successfully');
-    return true;
-  } catch (e) {
-    log('AI: Gemini init failed: ' + e.message);
-    return false;
-  }
-}
+// ====== Groq AI Setup ======
+const GROQ_API_KEY = process.env.GROQ_API_KEY || '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';
+const GROQ_MODEL = 'meta-llama/llama-4-scout-17b-16e-instruct';
+const GROQ_API_URL = 'https://api.groq.com/openai/v1/chat/completions';
 
 // ====== Paths ======
-const AUTH_PATH = path.join(__dirname, 'auth_info');
-const CODES_FILE = path.join(__dirname, 'subscription_codes.json');
-const LOG_FILE = path.join(__dirname, 'bot.log');
+const AUTH_PATH = path.join(process.cwd(), 'auth_info');
+const CODES_FILE = path.join(process.cwd(), 'subscription_codes.json');
+const LOG_FILE = path.join(process.cwd(), 'bot.log');
 
 // ====== State ======
 let userStates = {};
-let ownerChatActive = {};
 let botConnected = false;
 let sock = null;
 let presenceInterval = null;
-let keepAliveInterval = null;
 let reconnectAttempts = 0;
-const MAX_RECONNECT = 15;
+const MAX_RECONNECT = 10;
 
-// ====== LID to Phone Mapping ======
+// ====== LID Mapping ======
 const lidMap = {};
 function loadLidMappings() {
   try {
@@ -87,55 +67,39 @@ function resolveLidToPhone(lid) {
   return null;
 }
 
-// ====== Message Deduplication ======
+// ====== Deduplication ======
 const processedMsgIds = new Set();
-const MAX_DEDUP_SIZE = 500;
-
 function isDuplicate(msgId) {
   if (processedMsgIds.has(msgId)) return true;
   processedMsgIds.add(msgId);
-  if (processedMsgIds.size > MAX_DEDUP_SIZE) {
+  if (processedMsgIds.size > 500) {
     const arr = [...processedMsgIds];
     arr.splice(0, 200).forEach(id => processedMsgIds.delete(id));
   }
   return false;
 }
 
-// ====== Anti-Ban: Rate Limiting ======
+// ====== Rate Limiting ======
 const messageTimestamps = {};
-const MAX_PER_USER_HOUR = 15;
-const MAX_TOTAL_HOUR = 40;
 let totalMessagesSent = [];
-const MIN_BETWEEN_MS = 2000;
-const TYPING_DELAY_MS = 1500;
-const MIN_RESPONSE_MS = 3000;
 const lastResponseTime = {};
 
 function isRateLimited(phone) {
   const now = Date.now();
   const ago = now - 3600000;
   totalMessagesSent = totalMessagesSent.filter(t => t > ago);
-  if (totalMessagesSent.length >= MAX_TOTAL_HOUR) return true;
+  if (totalMessagesSent.length >= 40) return true;
   if (!messageTimestamps[phone]) messageTimestamps[phone] = [];
   messageTimestamps[phone] = messageTimestamps[phone].filter(t => t > ago);
-  if (messageTimestamps[phone].length >= MAX_PER_USER_HOUR) return true;
+  if (messageTimestamps[phone].length >= 15) return true;
   return false;
-}
-
-function recordMsgSent(phone) {
-  const now = Date.now();
-  totalMessagesSent.push(now);
-  if (!messageTimestamps[phone]) messageTimestamps[phone] = [];
-  messageTimestamps[phone].push(now);
 }
 
 function canRespond(phone) {
   const now = Date.now();
-  if (lastResponseTime[phone] && (now - lastResponseTime[phone]) < MIN_RESPONSE_MS) return false;
+  if (lastResponseTime[phone] && (now - lastResponseTime[phone]) < 3000) return false;
   return true;
 }
-
-function recordResponse(phone) { lastResponseTime[phone] = Date.now(); }
 
 // ====== Logging ======
 function log(msg) {
@@ -166,67 +130,23 @@ function generateCode(phone) {
   return code;
 }
 
-async function saveSubscriptionToDB(code, phone) {
-  try {
-    const c = loadCodes();
-    c[code] = { phone, createdAt: new Date().toISOString(), activated: false };
-    saveCodes(c);
-    log('Subscription code saved: ' + code + ' for ' + phone);
-  } catch (e) {
-    log('Save subscription error: ' + e.message);
-  }
-}
-
 // ====== Message Templates ======
 const WELCOME = 'مرحباً بك في OptiSize! 👁️\n\nكيف يمكنني مساعدتك؟\n\n1️⃣ اشتراك - اشترك في مركز صحة العين VIP\n2️⃣ تحدث - تحدث مع فريق الدعم\n\nأرسل الرقم أو الكلمة 👇';
 
 const SUB_INFO = '💎 اشتراك مركز صحة العين VIP\n\nقيمة الاشتراك: 50 جنيه شهرياً\n\n💰 طريقة الدفع:\nحول 50 جنيه على رقم:\n📱 01028900122\n\n(فودافون كاش / إنستاباي / أي طريقة تحويل)\n\nبعد الدفع أرسل صورة تأكيد الدفع هنا ✅\n\n📸 تأكد أن الصورة توضح:\n- الرقم المحول ليه (01028900122)\n- المبلغ (50 جنيه)\n- تاريخ ووقت التحويل';
 
-// ====== Presence ======
-async function setOnline() {
-  if (!sock || !botConnected) return;
-  try { await sock.sendPresenceUpdate('available'); } catch {}
-}
-
-function startPresenceKeepAlive() {
-  if (presenceInterval) clearInterval(presenceInterval);
-  setTimeout(setOnline, 10000);
-  presenceInterval = setInterval(setOnline, 120000);
-}
-
-function stopPresenceKeepAlive() {
-  if (presenceInterval) { clearInterval(presenceInterval); presenceInterval = null; }
-}
-
-// ====== Keep-Alive for Replit (prevents sleeping) ======
-function startReplitKeepAlive() {
-  const REPLIT_URL = process.env.REPL_SLUG && process.env.REPL_OWNER
-    ? `https://${process.env.REPL_SLUG}.${process.env.REPL_OWNER}.repl.co`
-    : null;
-
-  if (!REPLIT_URL) {
-    log('Keep-alive: Not running on Replit, skipping self-ping');
-    return;
-  }
-
-  log('Keep-alive: Will ping ' + REPLIT_URL + ' every 4 minutes');
-  keepAliveInterval = setInterval(() => {
-    https.get(REPLIT_URL + '/status', (res) => {
-      log('Keep-alive ping: ' + res.statusCode);
-    }).on('error', (e) => {
-      log('Keep-alive ping error: ' + e.message);
-    });
-  }, 240000); // Every 4 minutes
-}
+const REJECT_TEMPLATE = '❌ الإيصال غير مقبول.\nالسبب: {reason}\n\nتأكد إن الإيصال بيوضح:\n- كلمة تدل على الدفع (تم التحويل/تم الدفع)\n- الرقم: 01028900122\n- المبلغ: 50 جنيه بالظبط\n- تاريخ ووقت التحويل (اليوم أو أمس)\n\nأي طريقة دفع مقبولة (فودافون كاش / إنستاباي / تحويل بنكي)\n\nأرسل صورة الإيصال الصحيحة تاني ✅';
 
 // ====== Safe Send ======
 async function safeSend(jid, content) {
-  if (!sock || !botConnected) { log('Cannot send: not connected'); return false; }
+  if (!sock || !botConnected) return false;
   const phone = jid.replace('@s.whatsapp.net', '').replace('@lid', '');
-  if (isRateLimited(phone)) { log('Rate limited: ' + phone); return false; }
+  if (isRateLimited(phone)) return false;
   try {
     await sock.sendMessage(jid, content);
-    recordMsgSent(phone);
+    totalMessagesSent.push(Date.now());
+    if (!messageTimestamps[phone]) messageTimestamps[phone] = [];
+    messageTimestamps[phone].push(Date.now());
     log('Sent to ' + phone);
     return true;
   } catch (e) {
@@ -235,29 +155,322 @@ async function safeSend(jid, content) {
   }
 }
 
+// ====== Groq AI Functions ======
+
+// Step 1: Detailed Visual Analysis - forces AI to describe EVERYTHING it sees
+const STEP1_PROMPT = `أنت خبير في تحليل صور إيصالات الدفع المصرية. حلل الصورة دي بالتفصيل الممل.
+
+المطلوب بالظبط:
+1. APP_NAME: اسم التطبيق أو البنك اللي الإيصال منه (فودافون كاش / إنستاباي / بنك مصر / النهبي / غيرها) - لو مش عارف اكتب "مش واضح"
+2. HAS_LOGO: هل فيه شعار رسمي للتطبيق أو البنك؟ (نعم/لا) - الشعار لازم يكون واضح ومحدد مش مجرد نص
+3. LOGO_DETAILS: لو فيه شعار، اكتب وصفه بالتفصيل (لونه، شكله، مكانه في الصورة)
+4. UI_ELEMENTS: اكتب كل العناصر المرئية في الإيصال (خلفية، ألوان، حدود، أيقونات، أزرار) - بالتفصيل
+5. ALL_TEXT: اكتب كل النصوص المكتوبة في الإيصال بالظبط - كل حاجة
+6. SENDER_INFO: هل فيه معلومات عن المرسل؟ (اسم أو رقم) اكتبها
+7. RECEIVER_INFO: هل فيه معلومات عن المستقبل؟ اكتبها
+8. AMOUNT_TEXT: المبلغ المكتوب بالظبط
+9. DATE_TEXT: التاريخ المكتوب بالظبط
+10. TIME_TEXT: الوقت المكتوب بالظبط
+11. KEYWORDS: كلمات تدل على التحويل (تم التحويل / تم الإرسال / تحويل ناجح / Sent / Paid / غيرها)
+12. LAYOUT_QUALITY: وصف شكل الإيصال (هل شكله احترافي زي التطبيقات الحقيقية ولا شكله بسيط ومصنوع؟)
+
+⚠️ مهم جداً: اكتب كل حاجة بتشوفها بالتفصيل - مش اختصارات`;
+
+// Step 2: Authenticity Check - uses the visual analysis to determine if real or fake
+const STEP2_PROMPT = `أنت نظام أمني متخصص في كشف الإيصالات الوهمية والمزورة. عندك تحليل بصري لإيصال دفع، وحتحدد هل هو حقيقي ولا وهمي.
+
+🚨 تحذير: فيه ناس بتعمل إيصالات وهمية باستخدام مواقع عمل إيصالات (receipt-generator, fake-receipt-maker) وبتبعتها على أنها حقيقية. لازم تكتشف ده!
+
+قواعد الكشف عن الوهمي:
+1. الإيصال الحقيقي لازم يكون من تطبيق دفع حقيقي (فودافون كاش، إنستاباي، بنك مصر، النهبي، الخ)
+2. الإيصال الحقيقي لازم فيه شعار رسمي واضح للتطبيق - مجرد اسم التطبيق مكتوب مش كفاية
+3. الإيصال الحقيقي فيه تصميم UI احترافي (ألوان التطبيق، أيقونات، تخطيط محدد)
+4. الإيصال الحقيقي فيه تفاصيل المرسل (اسم أو رقم)
+5. الإيصال الوهمي علاماته:
+   - مفيش شعار رسمي واضح أو الشعار مش مطابق للتطبيق
+   - تصميم بسيط جداً أو شكله زي قالب جاهز
+   - مفيش تفاصيل المرسل
+   - ألوان أو خطوط مش مطابقة للتطبيق الحقيقي
+   - شكله زي screenshot من موقع عمل إيصالات
+   - مفيش عناصر UI خاصة بالتطبيق (أزرار، أيقونات، navigation bar)
+
+بناءً على التحليل البصري ده، حدد:
+
+IS_REAL: [نعم/لا]
+APP_CONFIRMED: [اسم التطبيق المؤكد أو "غير مؤكد"]
+AUTHENTICITY_SCORE: [من 1 لـ 10 - 10 يعني حقيقي 100%]
+PROOF_OF_REALITY: [لو حقيقي: إيه الأدلة البصرية اللي بتأكد إنه من التطبيق الحقيقي]
+FAKE_INDICATORS: [لو وهمي: إيه العلامات اللي بتخليك تقول وهمي. لو حقيقي: "لا يوجد"]
+RECEIVER_NUMBER: [الرقم المحول ليه]
+AMOUNT: [المبلغ]
+PAYMENT_DATE: [التاريخ]
+PAYMENT_TIME: [الوقت]
+PAYMENT_KEYWORD: [كلمة الدفع]
+PAYMENT_METHOD: [طريقة الدفع]
+RESULT: [مقبول/مرفوض]
+REJECT_REASON: [سبب الرفض لو مرفوض، أو "لا يوجد" لو مقبول]
+
+⚠️ لو AUTHENTICITY_SCORE أقل من 7 → RESULT لازم يكون مرفوض
+⚠️ لو APP_CONFIRMED = "غير مؤكد" → RESULT لازم يكون مرفوض
+⚠️ لو مفيش شعار رسمي → RESULT لازم يكون مرفوض`;
+
+async function callGroqVision(prompt, base64Image) {
+  const imageData = base64Image.startsWith('data:') ? base64Image : `data:image/jpeg;base64,${base64Image}`;
+  
+  const response = await fetch(GROQ_API_URL, {
+    method: 'POST',
+    headers: {
+      'Authorization': `Bearer ${GROQ_API_KEY}`,
+      'Content-Type': 'application/json'
+    },
+    body: JSON.stringify({
+      model: GROQ_MODEL,
+      messages: [{
+        role: 'user',
+        content: [
+          { type: 'text', text: prompt },
+          { type: 'image_url', image_url: { url: imageData } }
+        ]
+      }],
+      temperature: 0.1,
+      max_tokens: 1024
+    })
+  });
+
+  if (!response.ok) {
+    const errorText = await response.text();
+    throw new Error(`Groq API error ${response.status}: ${errorText}`);
+  }
+
+  const data = await response.json();
+  return data.choices?.[0]?.message?.content || '';
+}
+
+function extractField(text, pattern) {
+  const match = text.match(pattern);
+  return match ? match[1].trim() : '';
+}
+
+function verifyReceiptData(step1Response, step2Response) {
+  // Extract fields from Step 2 (authenticity check)
+  const isReal = extractField(step2Response, /IS_REAL:\s*(نعم|لا)/);
+  const appConfirmed = extractField(step2Response, /APP_CONFIRMED:\s*(.+)/);
+  const authScore = extractField(step2Response, /AUTHENTICITY_SCORE:\s*(\d+)/);
+  const proofOfReality = extractField(step2Response, /PROOF_OF_REALITY:\s*(.+)/);
+  const fakeIndicators = extractField(step2Response, /FAKE_INDICATORS:\s*(.+)/);
+  const receiverNumber = extractField(step2Response, /RECEIVER_NUMBER:\s*(.+)/);
+  const amount = extractField(step2Response, /AMOUNT:\s*(.+)/);
+  const paymentDate = extractField(step2Response, /PAYMENT_DATE:\s*(.+)/);
+  const paymentTime = extractField(step2Response, /PAYMENT_TIME:\s*(.+)/);
+  const paymentKeyword = extractField(step2Response, /PAYMENT_KEYWORD:\s*(.+)/);
+  const paymentMethod = extractField(step2Response, /PAYMENT_METHOD:\s*(.+)/);
+  const aiResult = extractField(step2Response, /RESULT:\s*(مقبول|مرفوض)/);
+  const rejectReason = extractField(step2Response, /REJECT_REASON:\s*(.+)/);
+
+  // Also extract from Step 1 for cross-verification
+  const hasLogo = extractField(step1Response, /HAS_LOGO:\s*(نعم|لا)/);
+  const appFromStep1 = extractField(step1Response, /APP_NAME:\s*(.+)/);
+  const keywordsFromStep1 = extractField(step1Response, /KEYWORDS:\s*(.+)/);
+
+  log('Step2 fields: isReal=' + isReal + ' app=' + appConfirmed + ' score=' + authScore + ' result=' + aiResult);
+  log('Step1 fields: hasLogo=' + hasLogo + ' app=' + appFromStep1);
+
+  // ====== PROGRAMMATIC VERIFICATION ======
+  
+  // 1. AI says it's real?
+  const aiSaysReal = isReal === 'نعم';
+  
+  // 2. Authenticity score >= 7?
+  const score = parseInt(authScore) || 0;
+  const scoreOk = score >= 7;
+  
+  // 3. App is confirmed (not "مش واضح" or "غير مؤكد")?
+  const appOk = appConfirmed !== 'غير مؤكد' && appConfirmed !== 'مش واضح' && appConfirmed !== '' && appConfirmed !== 'لا يوجد';
+  
+  // 4. Has logo?
+  const logoOk = hasLogo === 'نعم';
+  
+  // 5. Has payment keyword?
+  const keywordOk = paymentKeyword !== 'لا يوجد' && paymentKeyword !== '' && paymentKeyword !== 'لايوجد' &&
+                    keywordsFromStep1 !== 'لا يوجد' && keywordsFromStep1 !== '' && keywordsFromStep1 !== 'لايوجد';
+  
+  // 6. Receiver number matches?
+  const REQUIRED_NUMBER = '01028900122';
+  const numberOk = receiverNumber.includes(REQUIRED_NUMBER) || receiverNumber.replace(/\s/g, '').includes(REQUIRED_NUMBER);
+  
+  // 7. Amount is exactly 50?
+  const amountClean = amount.replace(/\s/g, '');
+  const amountHas50 = amountClean.includes('50');
+  const amountHas500 = amountClean.includes('500');
+  const amountHas5Only = /(^|[^\d])5($|[^\d])/.test(amountClean) && !amountHas50;
+  const amountOk = amountHas50 && !amountHas500 && !amountHas5Only;
+  
+  // 8. Date is today or yesterday?
+  const now = new Date();
+  const todayDay = now.getDate();
+  const todayMonth = now.getMonth() + 1;
+  const todayYear = now.getFullYear();
+  const yesterday = new Date(now);
+  yesterday.setDate(yesterday.getDate() - 1);
+  const yestDay = yesterday.getDate();
+  const yestMonth = yesterday.getMonth() + 1;
+  const yestYear = yesterday.getFullYear();
+  
+  const dateClean = paymentDate.replace(/\s/g, '');
+  
+  const arabicMonths = {
+    'يناير': 1, 'فبراير': 2, 'مارس': 3, 'أبريل': 4, 'إبريل': 4, 'مايو': 5, 'يونيو': 6,
+    'يوليو': 7, 'أغسطس': 8, 'سبتمبر': 9, 'أكتوبر': 10, 'نوفمبر': 11, 'ديسمبر': 12
+  };
+  
+  function checkDateMatch(day, month, year) {
+    if (day === todayDay && month === todayMonth && (year === todayYear || year === undefined)) return true;
+    if (day === yestDay && month === yestMonth && (year === yestYear || year === undefined)) return true;
+    return false;
+  }
+  
+  let dateOk = false;
+  const slashMatch = dateClean.match(/(\d{1,2})[\/\-](\d{1,2})[\/\-](\d{2,4})/);
+  if (slashMatch) {
+    const d = parseInt(slashMatch[1]);
+    const m = parseInt(slashMatch[2]);
+    let y = parseInt(slashMatch[3]);
+    if (y < 100) y += 2000;
+    dateOk = checkDateMatch(d, m, y);
+  }
+  if (!dateOk) {
+    const isoMatch = dateClean.match(/(\d{4})[\/\-](\d{1,2})[\/\-](\d{1,2})/);
+    if (isoMatch) {
+      dateOk = checkDateMatch(parseInt(isoMatch[3]), parseInt(isoMatch[2]), parseInt(isoMatch[1]));
+    }
+  }
+  if (!dateOk) {
+    for (const [monthName, monthNum] of Object.entries(arabicMonths)) {
+      if (paymentDate.includes(monthName)) {
+        const dayMatch = paymentDate.match(/(\d{1,2})/);
+        const yearMatch = paymentDate.match(/(\d{4})/);
+        if (dayMatch) {
+          dateOk = checkDateMatch(parseInt(dayMatch[1]), monthNum, yearMatch ? parseInt(yearMatch[1]) : undefined);
+        }
+        if (dateOk) break;
+      }
+    }
+  }
+  
+  // 9. Time is present and valid?
+  const timeClean = paymentTime.replace(/\s/g, '');
+  const timeOk = timeClean !== '' &&
+    paymentTime !== 'لا يوجد' && paymentTime !== 'لايوجد' &&
+    /\d{1,2}[:.]\d{2}/.test(timeClean) &&
+    parseInt(timeClean.match(/\d{1,2}/)?.[0] || '99') < 24;
+  
+  // 10. No fake indicators?
+  const noFakeIndicators = fakeIndicators === 'لا يوجد' || fakeIndicators === '' || fakeIndicators === 'لايوجد';
+  
+  // ====== FINAL DECISION ======
+  // ALL of these must be true for acceptance:
+  const allOk = aiSaysReal && scoreOk && appOk && logoOk && keywordOk && 
+                numberOk && amountOk && dateOk && timeOk && noFakeIndicators && 
+                aiResult === 'مقبول';
+  
+  // Build specific rejection reason
+  let reason = '';
+  if (!aiSaysReal) reason = '🚨 الإيصال وهمي أو مش حقيقي! ' + (fakeIndicators !== 'لا يوجد' ? fakeIndicators : 'تم اكتشاف علامات تزوير');
+  else if (!scoreOk) reason = '🚨 درجة موثوقية الإيصال ضعيفة (' + authScore + '/10) - ممكن يكون وهمي';
+  else if (!appOk) reason = '🚨 مفيش تطبيق دفع مؤكد - الإيصال مش من تطبيق حقيقي معروف';
+  else if (!logoOk) reason = '🚨 مفيش شعار رسمي للتطبيق - الإيصال ممكن يكون وهمي';
+  else if (!noFakeIndicators) reason = '🚨 فيه علامات تزوير: ' + fakeIndicators;
+  else if (!keywordOk) reason = 'مفيش كلمة تدل على إن فيه دفع أو تحويل حصل';
+  else if (!numberOk && !amountOk) reason = 'الرقم والمبلغ مختلفين عن المطلوب (01028900122 - 50 جنيه)';
+  else if (!numberOk) reason = 'الرقم المحول ليه مختلف عن 01028900122 (الرقم في الإيصال: ' + receiverNumber + ')';
+  else if (!amountOk) reason = 'المبلغ مختلف عن 50 جنيه (المبلغ في الإيصال: ' + amount + ')';
+  else if (!dateOk) reason = 'التاريخ مش تاريخ اليوم أو أمس (التاريخ في الإيصال: ' + paymentDate + ')';
+  else if (!timeOk) reason = 'مفيش وقت واضح للتحويل في الإيصال';
+  else if (aiResult !== 'مقبول') reason = rejectReason || 'الإيصال غير مقبول';
+  
+  return {
+    verified: allOk,
+    reason,
+    details: {
+      isReal, appConfirmed, authScore, proofOfReality, fakeIndicators,
+      receiverNumber, amount, paymentDate, paymentTime, paymentKeyword,
+      paymentMethod, aiResult, hasLogo, appFromStep1,
+      checks: { aiSaysReal, scoreOk, appOk, logoOk, keywordOk, numberOk, amountOk, dateOk, timeOk, noFakeIndicators }
+    }
+  };
+}
+
+async function handleReceipt(from, phone, msg) {
+  await safeSend(from, { text: '⏳ جاري مراجعة إيصال الدفع...' });
+  
+  try {
+    // Download the image
+    const buf = await downloadMediaMessage(msg, 'buffer', {}, { logger: undefined, reuploadRequest: undefined });
+    log('Receipt image downloaded, size: ' + (buf.length / 1024).toFixed(1) + 'KB');
+    
+    const base64Image = buf.toString('base64');
+    
+    // ====== STEP 1: Detailed Visual Analysis ======
+    log('Step 1: Sending receipt for visual analysis...');
+    const step1Response = await callGroqVision(STEP1_PROMPT, base64Image);
+    log('Step 1 response: ' + step1Response.substring(0, 300));
+    
+    // ====== STEP 2: Authenticity Verification ======
+    log('Step 2: Verifying authenticity...');
+    const step2Prompt = STEP2_PROMPT + '\n\n--- التحليل البصري ---\n' + step1Response;
+    const step2Response = await callGroqVision(step2Prompt, base64Image);
+    log('Step 2 response: ' + step2Response.substring(0, 300));
+    
+    // ====== PROGRAMMATIC VERIFICATION ======
+    const result = verifyReceiptData(step1Response, step2Response);
+    log('Verification: verified=' + result.verified + ' reason=' + result.reason);
+    
+    if (result.verified) {
+      const code = generateCode(phone);
+      const codes = loadCodes();
+      codes[code] = { phone, createdAt: new Date().toISOString(), activated: false };
+      saveCodes(codes);
+      userStates[phone] = 'idle';
+      await safeSend(from, { text: '✅ تم تأكيد الدفع!\n\n🔑 كود الاشتراك: ' + code + '\n\nادخل الكود في OptiSize في مركز صحة العين\n⏰ صالح لمدة شهر\nشكراً لاشتراكك! 🙏' });
+      log('Receipt ACCEPTED for ' + phone + ', code: ' + code);
+    } else {
+      userStates[phone] = 'awaiting_receipt';
+      await safeSend(from, { text: REJECT_TEMPLATE.replace('{reason}', result.reason) });
+      log('Receipt REJECTED for ' + phone + ': ' + result.reason);
+    }
+    
+  } catch (aiErr) {
+    log('AI verify failed: ' + aiErr.message);
+    userStates[phone] = 'awaiting_receipt';
+    
+    let reason = 'خدمة التحقق مش متاحة حالياً، حاول تاني بعد شوية';
+    if (aiErr.message.includes('timeout')) reason = 'السيرفر بطيء حالياً، حاول تبعت الصورة تاني';
+    else if (aiErr.message.includes('decommissioned')) reason = 'الموديل متوقف حالياً، جرب تاني بعد شوية';
+    else if (aiErr.message.includes('429')) reason = 'خدمة التحقق وصلت للحد المسموح، حاول تاني بعد دقيقة';
+    
+    await safeSend(from, { text: REJECT_TEMPLATE.replace('{reason}', reason) });
+  }
+}
+
 // ====== QR Code Storage ======
 let currentQRCode = null;
-let currentPairingCode = null;
 
-// ====== HTTP API ======
-const PORT = process.env.PORT || 3000;
-
+// ====== HTTP Server ======
 http.createServer(async (req, res) => {
-  // QR code page
   if (req.url === '/' || req.url === '/qr') {
     res.writeHead(200, { 'Content-Type': 'text/html; charset=utf-8' });
     if (botConnected) {
-      res.end('<html><body style="display:flex;justify-content:center;align-items:center;height:100vh;font-family:Arial;background:#1a1a2e;color:#eee"><div style="text-align:center"><h1>\u2705 Bot Connected!</h1><p>The bot is running and connected to WhatsApp.</p></div></body></html>');
+      res.end('<html><body style="display:flex;justify-content:center;align-items:center;height:100vh;font-family:Arial;background:#1a1a2e;color:#eee"><div style="text-align:center"><h1>✅ Bot Connected!</h1><p>The bot is running and connected to WhatsApp.</p></div></body></html>');
     } else if (currentQRCode) {
-      res.end('<html><body style="display:flex;justify-content:center;align-items:center;height:100vh;font-family:Arial;background:#1a1a2e;color:#eee"><div style="text-align:center"><h2>\u{1F4F1} Scan QR Code with WhatsApp</h2><p>WhatsApp > Settings > Linked Devices > Link a device</p><img src="' + currentQRCode + '" style="border:10px solid white;border-radius:10px;margin:20px"/><p style="color:#aaa">QR refreshes automatically every 20 seconds</p>' + (currentPairingCode ? '<p style="margin-top:20px">Or use pairing code: <b style="font-size:24px;color:#0f0">' + currentPairingCode + '</b></p><p style="color:#aaa">WhatsApp > Settings > Linked Devices > Link with phone number</p>' : '') + '</div></body></html>');
+      res.end('<html><body style="display:flex;justify-content:center;align-items:center;height:100vh;font-family:Arial;background:#1a1a2e;color:#eee"><div style="text-align:center"><h2>📱 Scan QR Code with WhatsApp</h2><p>WhatsApp > Settings > Linked Devices > Link a device</p><img src="' + currentQRCode + '" style="border:10px solid white;border-radius:10px;margin:20px"/><p style="color:#aaa">QR refreshes automatically every 20 seconds</p></div></body></html>');
     } else {
-      res.end('<html><body style="display:flex;justify-content:center;align-items:center;height:100vh;font-family:Arial;background:#1a1a2e;color:#eee"><div style="text-align:center"><h2>\u23F3 Waiting for QR Code...</h2><p>The bot is starting up. Refresh in a few seconds.</p></div></body></html>');
+      res.end('<html><body style="display:flex;justify-content:center;align-items:center;height:100vh;font-family:Arial;background:#1a1a2e;color:#eee"><div style="text-align:center"><h2>⏳ Waiting for QR Code...</h2><p>The bot is starting up. Refresh in a few seconds.</p></div></body></html>');
     }
     return;
   }
   if (req.url === '/status') {
     res.writeHead(200, { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*' });
-    res.end(JSON.stringify({ connected: botConnected, uptime: process.uptime(), pid: process.pid, sent: totalMessagesSent.length, geminiReady: !!geminiModel, pairingCode: currentPairingCode }));
+    res.end(JSON.stringify({ connected: botConnected, uptime: process.uptime(), pid: process.pid }));
     return;
   }
   if (req.url === '/log') {
@@ -268,11 +481,9 @@ http.createServer(async (req, res) => {
     return;
   }
   res.writeHead(200, { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*' });
-  res.end(JSON.stringify({ status: 'ok', connected: botConnected, pid: process.pid, geminiReady: !!geminiModel }));
-}).listen(PORT, '0.0.0.0', () => {
-  log('API on :' + PORT);
-  initGemini();
-  startReplitKeepAlive();
+  res.end(JSON.stringify({ status: 'ok', connected: botConnected }));
+}).listen(process.env.PORT || 8787, '0.0.0.0', () => {
+  log('API on :' + (process.env.PORT || 8787));
   startWA();
 });
 
@@ -282,9 +493,9 @@ async function startWA() {
   try {
     const { version } = await fetchLatestBaileysVersion();
     log('Baileys version: ' + version.join('.'));
-
+    
     const { state, saveCreds } = await useMultiFileAuthState(AUTH_PATH);
-
+    
     sock = makeWASocket({
       version,
       auth: state,
@@ -296,93 +507,78 @@ async function startWA() {
       generateHighQualityLinkPreview: false,
       emitOwnEvents: false,
     });
-
+    
     sock.ev.on('creds.update', saveCreds);
-
+    
     // ====== CONNECTION UPDATES ======
     sock.ev.on('connection.update', async (update) => {
       const { connection, lastDisconnect, qr } = update;
-
+      
       if (qr) {
         botConnected = false;
         currentQRCode = null;
-        currentPairingCode = null;
-
+        
         try {
-          const QRCode = require('qrcode');
-          currentQRCode = await QRCode.toDataURL(qr, { width: 400, margin: 2 });
-          log('QR code generated for web display');
-        } catch (e) { log('QR toDataURL error: ' + e.message); }
-
-        try {
-          const OWNER_PHONE = process.env.OWNER_PHONE || '201028900122';
-          const pairingCode = await sock.requestPairingCode(OWNER_PHONE);
-          currentPairingCode = pairingCode;
-          console.log('\n========================================');
-          console.log('PAIRING CODE: ' + pairingCode);
-          console.log('========================================');
-          console.log('Open the bot URL in browser to see QR code');
-          console.log('Or use pairing code in WhatsApp');
-          console.log('========================================\n');
-          log('Pairing code: ' + pairingCode);
-        } catch (e) {
-          log('Pairing code error: ' + e.message);
-        }
+          currentQRCode = await qrcode.toDataURL(qr, { width: 400, margin: 2 });
+          log('QR code generated');
+        } catch (e) { log('QR error: ' + e.message); }
+        
+        // Print QR in terminal
+        qrcodeTerminal.generate(qr, { small: true });
+        
+        console.log('\n========================================');
+        console.log('Scan QR Code with WhatsApp');
+        console.log('Or open the bot URL in browser');
+        console.log('========================================\n');
       }
-
+      
       if (connection === 'close') {
         botConnected = false;
-        stopPresenceKeepAlive();
+        if (presenceInterval) { clearInterval(presenceInterval); presenceInterval = null; }
         const statusCode = lastDisconnect?.error?.output?.statusCode;
         log('Connection closed. Status: ' + statusCode);
-
+        
         if (statusCode !== DisconnectReason.loggedOut && reconnectAttempts < MAX_RECONNECT) {
           reconnectAttempts++;
           const delay = Math.min(5000 * reconnectAttempts, 60000);
-          log('Reconnecting in ' + (delay/1000) + 's (attempt ' + reconnectAttempts + '/' + MAX_RECONNECT + ')...');
+          log('Reconnecting in ' + (delay/1000) + 's...');
           setTimeout(startWA, delay);
         } else if (statusCode === DisconnectReason.loggedOut) {
           log('Logged out. Need to re-pair.');
           reconnectAttempts = 0;
         }
       }
-
+      
       if (connection === 'open') {
         botConnected = true;
         currentQRCode = null;
-        currentPairingCode = null;
         reconnectAttempts = 0;
         log('WHATSAPP CONNECTED!');
-        startPresenceKeepAlive();
+        // Set online
+        try { await sock.sendPresenceUpdate('available'); } catch {}
+        if (presenceInterval) clearInterval(presenceInterval);
+        presenceInterval = setInterval(async () => {
+          try { await sock.sendPresenceUpdate('available'); } catch {}
+        }, 120000);
       }
     });
-
+    
     // ====== MESSAGE HANDLER ======
     sock.ev.on('messages.upsert', async ({ messages, type }) => {
       try {
         const m = messages[0];
-        if (!m) return;
-        if (!m.message) return;
-        if (m.key.fromMe) return;
-
+        if (!m || !m.message || m.key.fromMe) return;
+        
         const from = m.key.remoteJid;
         const msgId = m.key.id;
-
-        if (isDuplicate(msgId)) {
-          log('Duplicate: ' + msgId);
-          return;
-        }
-
-        const msgTypes = Object.keys(m.message).join(',');
-        log('[' + type + '] from=' + from + ' types=' + msgTypes);
-
+        
+        if (isDuplicate(msgId)) return;
         if (type !== 'notify' && type !== 'append') return;
         if (from.endsWith('@g.us') || from.endsWith('@newsletter')) return;
-
-        // ====== Resolve JID to phone number ======
+        
         let phone = '';
         let respondTo = from;
-
+        
         if (from.endsWith('@s.whatsapp.net')) {
           phone = from.replace('@s.whatsapp.net', '');
         } else if (from.endsWith('@lid')) {
@@ -390,47 +586,29 @@ async function startWA() {
           if (resolvedPhone) {
             phone = resolvedPhone;
             respondTo = resolvedPhone + '@s.whatsapp.net';
-            log('LID ' + from + ' -> ' + resolvedPhone);
           } else {
             phone = from.replace('@lid', '');
             respondTo = from;
-            log('Unresolved LID: ' + from + ', will try responding to LID');
           }
-        } else {
-          log('Unknown JID type: ' + from);
-          return;
-        }
-
-        if (!canRespond(phone)) {
-          log('Cooldown: ' + phone);
-          return;
-        }
-
-        const text = m.message?.conversation
-          || m.message?.extendedTextMessage?.text
-          || m.message?.imageMessage?.caption
+        } else return;
+        
+        if (!canRespond(phone)) return;
+        
+        const text = m.message?.conversation 
+          || m.message?.extendedTextMessage?.text 
+          || m.message?.imageMessage?.caption 
           || '';
-
+        
         log('DM from ' + phone + ': ' + (text || '[IMAGE]'));
-
+        
         await new Promise(r => setTimeout(r, 800));
         try { await sock.readMessages([m.key]); } catch {}
-
+        
         try { await sock.sendPresenceUpdate('composing', respondTo); } catch {}
-        await new Promise(r => setTimeout(r, Math.min(Math.max(TYPING_DELAY_MS, text.length * 30), 2500)));
-
-        recordResponse(phone);
-
-        // ====== Owner chat mode ======
-        if (ownerChatActive[phone]) {
-          if (text.trim() === '\u0627\u0646\u062A\u0647\u0649' || text.trim() === '\u0627\u0646\u0647\u0649') {
-            ownerChatActive[phone] = false;
-            await safeSend(respondTo, { text: '\u0634\u0643\u0631\u0627\u064B! \uD83D\uDE4F' });
-          }
-          try { await sock.sendPresenceUpdate('available'); } catch {}
-          return;
-        }
-
+        await new Promise(r => setTimeout(r, 1500));
+        
+        lastResponseTime[phone] = Date.now();
+        
         // ====== Image (payment receipt) ======
         if (m.message?.imageMessage) {
           if (userStates[phone] === 'awaiting_receipt') {
@@ -441,26 +619,25 @@ async function startWA() {
           try { await sock.sendPresenceUpdate('available'); } catch {}
           return;
         }
-
+        
         // ====== Text commands ======
         const cmd = text.trim();
-        if (cmd === '1' || cmd === '\u0627\u0634\u062A\u0631\u0627\u0643' || cmd === '\u0627\u0634\u062A\u0631\u0643') {
+        if (cmd === '1' || cmd === 'اشتراك' || cmd === 'اشترك') {
           userStates[phone] = 'awaiting_receipt';
           await safeSend(respondTo, { text: SUB_INFO });
-        } else if (cmd === '2' || cmd === '\u062A\u062D\u062F\u062B') {
-          ownerChatActive[phone] = true;
-          await safeSend(respondTo, { text: '\uD83D\uDC64 \u062A\u0645 \u062A\u062D\u0648\u064A\u0644\u0643 \u0644\u0641\u0631\u064A\u0642 \u0627\u0644\u062F\u0639\u0645.\n\u0644\u0625\u0646\u0647\u0627\u0621 \u0627\u0644\u0645\u062D\u0627\u062F\u062B\u0629 \u0623\u0631\u0633\u0644: \u0627\u0646\u062A\u0647\u0649' });
+        } else if (cmd === '2' || cmd === 'تحدث') {
+          await safeSend(respondTo, { text: '👤 تم تحويلك لفريق الدعم.\nلإنهاء المحادثة أرسل: انتهى' });
         } else {
           await safeSend(respondTo, { text: WELCOME });
         }
-
+        
         try { await sock.sendPresenceUpdate('available'); } catch {}
-
+        
       } catch (err) {
-        log('Handler error: ' + err.message + '\n' + (err.stack || ''));
+        log('Handler error: ' + err.message);
       }
     });
-
+    
   } catch (err) {
     log('startWA error: ' + err.message);
     botConnected = false;
@@ -471,297 +648,12 @@ async function startWA() {
   }
 }
 
-// ====== Receipt Handler (uses Gemini AI directly) ======
-
-const RECEIPT_VERIFY_PROMPT = `أنت نظام تحقق صارم من إيصالات الدفع والتحويل.
-
-الخطوة 1: أولاً تأكد إن الصورة دي فعلاً إيصال دفع أو تحويل
-- لازم تشوف كلمات تدل على الدفع أو التحويل زي: "تم التحويل" أو "مرسل" أو "تم الإرسال" أو "تحويل ناجح" أو "تم الدفع" أو "دفع ناجح" أو "Sent" أو "Transferred" أو "Payment" أو "Paid"
-- لو مفيش كلمات تدل على إن فيه دفع أو تحويل حصل -> مش إيصال دفع -> مرفوض
-
-الخطوة 2: استخرج البيانات من الإيصال
-1. الرقم المحول ليه أو رقم المستقبل
-2. المبلغ المحول بالظبط
-3. تاريخ التحويل (يوم/شهر/سنة)
-4. وقت التحويل (ساعة:دقيقة)
-5. طريقة الدفع (فودافون كاش / إنستاباي / تحويل بنكي / غيرها)
-
-الخطوة 3: تحقق من البيانات
-- الرقم لازم يكون 01028900122 بالظبط
-- المبلغ لازم يكون 50 جنيه بالظبط - لو أي مبلغ تاني -> مرفوض
-- التاريخ لازم يكون تاريخ اليوم أو أمس فقط - لو التاريخ أقدم من كده -> مرفوض
-- الوقت لازم يكون موجود وواضح
-- طريقة الدفع ممكن تكون أي طريقة (فودافون كاش، إنستاباي، تحويل بنكي، إلخ)
-
-تحذيرات مهمة:
-- لو المبلغ مش 50 جنيه بالظبط -> مرفوض
-- لو التاريخ أقدم من أمس -> مرفوض
-- لو مفيش كلمة تدل على الدفع أو التحويل -> مرفوض
-- لو الصورة مش إيصال دفع -> مرفوض
-- طريقة الدفع مش شرط تكون فودافون كاش - أي طريقة مقبولة
-
-أجب بالتنسيق ده بالظبط (مهم جداً تلتزم بالتنسيق):
-TYPE: [إيصال دفع / مش إيصال / أخرى]
-KEYWORD: [الكلمة اللي تدل على الدفع أو "لا يوجد"]
-NUMBER: [الرقم المحول ليه]
-AMOUNT: [المبلغ بالظبط]
-DATE: [التاريخ]
-TIME: [الوقت]
-METHOD: [طريقة الدفع]
-RESULT: مقبول
-أو
-RESULT: مرفوض
-REASON: [سبب الرفض]`;
-
-async function analyzeReceiptWithGemini(imageBuffer) {
-  if (!geminiModel) {
-    throw new Error('Gemini API not initialized. Set GEMINI_API_KEY env variable.');
-  }
-
-  const base64Image = imageBuffer.toString('base64');
-
-  const result = await geminiModel.generateContent([
-    {
-      inlineData: {
-        mimeType: 'image/jpeg',
-        data: base64Image
-      }
-    },
-    RECEIPT_VERIFY_PROMPT
-  ]);
-
-  const response = await result.response;
-  const text = response.text();
-  log('Gemini raw response: ' + text.substring(0, 500));
-  return text;
-}
-
-function extractField(text, pattern) {
-  const match = text.match(pattern);
-  return match ? match[1].trim() : '';
-}
-
-function verifyReceiptData(aiResponse) {
-  const aiType = extractField(aiResponse, /TYPE:\s*(.+)/);
-  const aiKeyword = extractField(aiResponse, /KEYWORD:\s*(.+)/);
-  const aiNumber = extractField(aiResponse, /NUMBER:\s*(.+)/);
-  const aiAmount = extractField(aiResponse, /AMOUNT:\s*(.+)/);
-  const aiDate = extractField(aiResponse, /DATE:\s*(.+)/);
-  const aiTime = extractField(aiResponse, /TIME:\s*(.+)/);
-  const aiMethod = extractField(aiResponse, /METHOD:\s*(.+)/);
-  const aiResult = extractField(aiResponse, /RESULT:\s*(مقبول|مرفوض)/);
-  const aiReason = extractField(aiResponse, /REASON:\s*(.+)/);
-
-  log('AI fields: type=' + aiType + ' keyword=' + aiKeyword + ' number=' + aiNumber + ' amount=' + aiAmount + ' date=' + aiDate + ' time=' + aiTime + ' method=' + aiMethod + ' result=' + aiResult);
-
-  const REQUIRED_NUMBER = '01028900122';
-  const REQUIRED_AMOUNT = '50';
-
-  const isPaymentReceipt = aiType.includes('إيصال') || aiType.includes('دفع') || aiType.includes('Receipt');
-  const hasPaymentKeyword = aiKeyword !== 'لا يوجد' && aiKeyword !== '' && aiKeyword !== 'لايوجد';
-  const numberOk = aiNumber.includes(REQUIRED_NUMBER) || aiNumber.replace(/\s/g, '').includes(REQUIRED_NUMBER);
-
-  const amountClean = aiAmount.replace(/\s/g, '');
-  const amountHas50 = amountClean.includes(REQUIRED_AMOUNT);
-  const amountHas500 = amountClean.includes('500');
-  const amountHas5Only = /(^|[^\d])5($|[^\d])/.test(amountClean) && !amountHas50;
-  const amountOk = amountHas50 && !amountHas500 && !amountHas5Only;
-
-  const now = new Date();
-  const todayDay = now.getDate();
-  const todayMonth = now.getMonth() + 1;
-  const todayYear = now.getFullYear();
-  const yesterday = new Date(now);
-  yesterday.setDate(yesterday.getDate() - 1);
-  const yestDay = yesterday.getDate();
-  const yestMonth = yesterday.getMonth() + 1;
-  const yestYear = yesterday.getFullYear();
-
-  const dateClean = aiDate.replace(/\s/g, '');
-
-  const arabicMonths = {
-    'يناير': 1, 'فبراير': 2, 'مارس': 3, 'أبريل': 4, 'إبريل': 4, 'مايو': 5, 'يونيو': 6,
-    'يوليو': 7, 'أغسطس': 8, 'سبتمبر': 9, 'أكتوبر': 10, 'نوفمبر': 11, 'ديسمبر': 12
-  };
-
-  function checkDateMatch(day, month, year) {
-    if (day === todayDay && month === todayMonth && (year === todayYear || year === undefined)) return true;
-    if (day === yestDay && month === yestMonth && (year === yestYear || year === undefined)) return true;
-    return false;
-  }
-
-  let dateOk = false;
-
-  const slashMatch = dateClean.match(/(\d{1,2})[\/\-](\d{1,2})[\/\-](\d{2,4})/);
-  if (slashMatch) {
-    const d = parseInt(slashMatch[1]);
-    const m = parseInt(slashMatch[2]);
-    let y = parseInt(slashMatch[3]);
-    if (y < 100) y += 2000;
-    dateOk = checkDateMatch(d, m, y);
-  }
-
-  if (!dateOk) {
-    const isoMatch = dateClean.match(/(\d{4})[\/\-](\d{1,2})[\/\-](\d{1,2})/);
-    if (isoMatch) {
-      dateOk = checkDateMatch(parseInt(isoMatch[3]), parseInt(isoMatch[2]), parseInt(isoMatch[1]));
-    }
-  }
-
-  if (!dateOk) {
-    for (const [monthName, monthNum] of Object.entries(arabicMonths)) {
-      if (aiDate.includes(monthName)) {
-        const dayMatch = aiDate.match(/(\d{1,2})/);
-        const yearMatch = aiDate.match(/(\d{4})/);
-        if (dayMatch) {
-          dateOk = checkDateMatch(parseInt(dayMatch[1]), monthNum, yearMatch ? parseInt(yearMatch[1]) : undefined);
-        }
-        if (dateOk) break;
-      }
-    }
-  }
-
-  const timeClean = aiTime.replace(/\s/g, '');
-  const timeOk = timeClean !== '' &&
-    aiTime !== 'لا يوجد' &&
-    aiTime !== 'لايوجد' &&
-    /\d{1,2}[:.]\d{2}/.test(timeClean) &&
-    parseInt(timeClean.match(/\d{1,2}/)?.[0] || '99') < 24;
-
-  const allOk = isPaymentReceipt && hasPaymentKeyword && numberOk && amountOk && dateOk && timeOk && aiResult === 'مقبول';
-
-  let reason = '';
-  if (!isPaymentReceipt) reason = 'الصورة مش إيصال دفع';
-  else if (!hasPaymentKeyword) reason = 'مفيش كلمة تدل على إن فيه دفع أو تحويل حصل (زي "تم التحويل" أو "تم الدفع")';
-  else if (!numberOk && !amountOk) reason = 'الرقم والمبلغ مختلفين عن المطلوب (01028900122 - 50 جنيه)';
-  else if (!numberOk) reason = 'الرقم المحول ليه مختلف عن 01028900122';
-  else if (!amountOk) reason = 'المبلغ مختلف عن 50 جنيه (المبلغ في الإيصال: ' + aiAmount + ')';
-  else if (!dateOk) reason = 'التاريخ مش تاريخ اليوم أو أمس (التاريخ في الإيصال: ' + aiDate + ')';
-  else if (!timeOk) reason = 'مفيش وقت واضح للتحويل في الإيصال';
-  else if (aiResult !== 'مقبول') reason = aiReason || 'الإيصال غير مقبول';
-
-  return {
-    verified: allOk,
-    reason,
-    details: {
-      type: aiType,
-      keyword: aiKeyword,
-      number: aiNumber,
-      amount: aiAmount,
-      date: aiDate,
-      time: aiTime,
-      method: aiMethod,
-      aiResult
-    }
-  };
-}
-
-async function handleReceipt(from, phone, msg) {
-  await safeSend(from, { text: '⏳ جاري مراجعة إيصال الدفع...' });
-  await new Promise(r => setTimeout(r, 1500));
-
-  try {
-    const buf = await downloadMediaMessage(
-      msg,
-      'buffer',
-      {},
-      { logger: undefined, reuploadRequest: undefined }
-    );
-
-    log('Receipt image downloaded, size: ' + (buf.length / 1024).toFixed(1) + 'KB');
-
-    try {
-      if (!geminiModel) {
-        log('Gemini not initialized, cannot verify receipt');
-        userStates[phone] = 'awaiting_receipt';
-        await safeSend(from, {
-          text: '❌ الإيصال غير مقبول.\nالسبب: خدمة التحقق مش متاحة حالياً، حاول تاني بعد شوية\n\nتأكد إن الإيصال بيوضح:\n- كلمة تدل على الدفع (تم التحويل/تم الدفع)\n- الرقم: 01028900122\n- المبلغ: 50 جنيه بالظبط\n- تاريخ ووقت التحويل (اليوم أو أمس)\n\nأي طريقة دفع مقبولة (فودافون كاش / إنستاباي / تحويل بنكي)\n\nأرسل صورة الإيصال الصحيحة تاني ✅'
-        });
-        return;
-      }
-
-      log('Sending receipt to Gemini AI for analysis...');
-      const aiResponse = await analyzeReceiptWithGemini(buf);
-
-      const result = verifyReceiptData(aiResponse);
-
-      log('Verification result: verified=' + result.verified + ' reason=' + result.reason);
-
-      if (result.verified) {
-        const code = generateCode(phone);
-        await saveSubscriptionToDB(code, phone);
-        userStates[phone] = 'idle';
-        await safeSend(from, { text: '✅ تم تأكيد الدفع!\n\n🔑 كود الاشتراك: ' + code + '\n\nادخل الكود في OptiSize في مركز صحة العين\n⏰ صالح لمدة شهر\nشكراً لاشتراكك! 🙏' });
-        log('Receipt ACCEPTED for ' + phone + ', code: ' + code);
-        return;
-      }
-
-      userStates[phone] = 'awaiting_receipt';
-      await safeSend(from, {
-        text: '❌ الإيصال غير مقبول.\nالسبب: ' + result.reason + '\n\nتأكد إن الإيصال بيوضح:\n- كلمة تدل على الدفع (تم التحويل/تم الدفع)\n- الرقم: 01028900122\n- المبلغ: 50 جنيه بالظبط\n- تاريخ ووقت التحويل (اليوم أو أمس)\n\nأي طريقة دفع مقبولة (فودافون كاش / إنستاباي / تحويل بنكي)\n\nأرسل صورة الإيصال الصحيحة تاني ✅'
-      });
-      log('Receipt REJECTED for ' + phone + ': ' + result.reason);
-
-    } catch (aiErr) {
-      log('AI verify failed: ' + aiErr.message);
-      userStates[phone] = 'awaiting_receipt';
-
-      let reason = 'خدمة التحقق مش متاحة حالياً، حاول تاني بعد شوية';
-      if (aiErr.message.includes('timeout')) reason = 'السيرفر بطيء حالياً، حاول تبعت الصورة تاني';
-      else if (aiErr.message.includes('API key')) reason = 'مفيش اتصال بخدمة التحقق، حاول تاني بعد شوية';
-      else if (aiErr.message.includes('quota')) reason = 'خدمة التحقق وصلت للحد المسموح، حاول تاني بعد ساعة';
-
-      await safeSend(from, {
-        text: '❌ الإيصال غير مقبول.\nالسبب: ' + reason + '\n\nتأكد إن الإيصال بيوضح:\n- كلمة تدل على الدفع (تم التحويل/تم الدفع)\n- الرقم: 01028900122\n- المبلغ: 50 جنيه بالظبط\n- تاريخ ووقت التحويل (اليوم أو أمس)\n\nأي طريقة دفع مقبولة (فودافون كاش / إنستاباي / تحويل بنكي)\n\nأرسل صورة الإيصال الصحيحة تاني ✅'
-      });
-      log('Receipt REJECTED (AI error) for ' + phone + ': ' + aiErr.message);
-    }
-  } catch (e) {
-    log('Receipt download error: ' + e.message);
-    userStates[phone] = 'awaiting_receipt';
-    await safeSend(from, { text: '⚠️ حصل خطأ في تحميل الصورة. حاول تبعتها تاني.' });
-  }
-}
-
 // ====== Process Handlers ======
-process.on('uncaughtException', (err) => {
-  log('Uncaught: ' + err.message);
-});
-
-process.on('unhandledRejection', (reason) => {
-  log('Rejection: ' + (reason instanceof Error ? reason.message : String(reason)));
-});
-
-process.on('SIGINT', () => {
-  log('SIGINT');
-  stopPresenceKeepAlive();
-  if (keepAliveInterval) clearInterval(keepAliveInterval);
-  process.exit(0);
-});
-
-process.on('SIGTERM', () => {
-  log('SIGTERM');
-  stopPresenceKeepAlive();
-  if (keepAliveInterval) clearInterval(keepAliveInterval);
-  process.exit(0);
-});
+process.on('uncaughtException', (err) => log('Uncaught: ' + err.message));
+process.on('unhandledRejection', (reason) => log('Rejection: ' + (reason instanceof Error ? reason.message : String(reason))));
 
 // ====== STARTUP ======
-log('OptiSize Bot starting (Replit 24/7 Version)...');
+log('OptiSize Bot starting (Dual AI Verification)...');
 log('Node: ' + process.version + ' PID: ' + process.pid);
-log('GEMINI_API_KEY: ' + (GEMINI_API_KEY ? 'SET (' + GEMINI_API_KEY.substring(0, 8) + '...)' : 'NOT SET'));
-log('PORT: ' + PORT);
-
-// Clear old log (keep last 50KB)
-try {
-  if (fs.existsSync(LOG_FILE)) {
-    const stat = fs.statSync(LOG_FILE);
-    if (stat.size > 50000) {
-      const content = fs.readFileSync(LOG_FILE, 'utf-8');
-      fs.writeFileSync(LOG_FILE, content.slice(-20000));
-    }
-  }
-} catch {}
-
-// Load LID mappings
+log('Groq API Key: ' + (GROQ_API_KEY ? 'SET' : 'NOT SET'));
 loadLidMappings();
