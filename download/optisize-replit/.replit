@@ -1,0 +1,12 @@
+run = "node index.js"
+
+[nix]
+channel = "stable-24_05"
+
+[deployment]
+run = ["sh", "-c", "node index.js"]
+deploymentTarget = "cloud"
+
+[[ports]]
+localPort = 3000
+externalPort = 80

@@ -1,0 +1,5 @@
+node_modules/
+auth_info/
+bot.log
+subscription_codes.json
+bot.pid
