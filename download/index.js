@@ -399,9 +399,11 @@ async function startBot() {
   const sock = makeWASocket({
     auth: state,
     logger: P({ level: 'silent' }),
-    browser: ['OptiSize-Bot', 'Chrome', '1.0'],
+    browser: ['Chrome', 'MacOS', '120.0.6099.129'],
     markOnlineOnConnect: true,
     connectTimeoutMs: 60000,
+    retryRequestDelayMs: 250,
+    maxMsgRetryCount: 2,
   });
 
   sock.ev.on('creds.update', saveCreds);
@@ -414,6 +416,17 @@ async function startBot() {
       console.log('\n📱 امسح QR Code من الرابط ده:');
       console.log(qrUrl);
       console.log('');
+
+      // Pairing Code كمان
+      try {
+        const phoneNumber = OWNER_NUMBER.replace('+', '');
+        const code = await sock.requestPairingCode(phoneNumber);
+        console.log('🔑 أو استخدم كود الربط ده:');
+        console.log(code);
+        console.log('');
+      } catch (e) {
+        console.log('ممكن تكتب رقمك في واتساب > الأجهزة > ربط جهاز > ربط بالرقم');
+      }
     }
 
     if (connection === 'close') {
