@@ -485,7 +485,7 @@ async function startBot() {
 
   const sock = makeWASocket({
     auth: state,
-    printQRInTerminal: true,
+    // printQRInTerminal deprecated - we use QR URL instead
     logger: P({ level: 'silent' }),
     browser: ['OptiSize-Bot', 'Chrome', '1.0'],
     markOnlineOnConnect: true,
