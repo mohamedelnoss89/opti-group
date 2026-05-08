@@ -5,6 +5,7 @@ import fs from 'fs';
 import path from 'path';
 import { fileURLToPath } from 'url';
 import crypto from 'crypto';
+import { SocksProxyAgent } from 'socks-proxy-agent';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -18,6 +19,26 @@ const SUBSCRIPTION_DURATION_DAYS = 30;
 const GROQ_API_KEY = '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';
 const GROQ_MODEL = 'meta-llama/llama-4-scout-17b-16e-instruct';
 const GROQ_API_URL = 'https://api.groq.com/openai/v1/chat/completions';
+
+// ============ بروكسي ============
+// جرّب بروكسي مختلف لو الأول مش اشتغل
+const PROXY_LIST = [
+  'socks5://68.71.243.54:4145',
+  'socks5://72.195.34.59:4145',
+  'socks5://184.178.172.28:4145',
+  'socks5://72.195.34.34:4145',
+  'socks5://98.162.25.4:4145',
+  'socks5://184.178.172.5:4145',
+  'socks5://72.210.252.136:4145',
+  'socks5://98.174.90.36:4145',
+];
+
+let currentProxyIndex = 0;
+function getProxyAgent() {
+  const proxy = PROXY_LIST[currentProxyIndex];
+  console.log(`🔄 استخدام بروكسي: ${proxy}`);
+  return new SocksProxyAgent(proxy);
+}
 
 // التطبيقات المعتمدة + ألوانها المعروفة
 const APP_PROFILES = {
@@ -396,6 +417,8 @@ const HELP_MSG = `📋 أوامر OptiSize:
 async function startBot() {
   const { state, saveCreds } = await useMultiFileAuthState('./auth_info');
 
+  const agent = getProxyAgent();
+
   const sock = makeWASocket({
     auth: state,
     logger: P({ level: 'silent' }),
@@ -404,6 +427,7 @@ async function startBot() {
     connectTimeoutMs: 60000,
     retryRequestDelayMs: 250,
     maxMsgRetryCount: 2,
+    agent: agent,
   });
 
   sock.ev.on('creds.update', saveCreds);
@@ -442,6 +466,11 @@ async function startBot() {
       }
 
       if (shouldReconnect) {
+        if (statusCode === 405) {
+          // جرّب بروكسي تاني
+          currentProxyIndex = (currentProxyIndex + 1) % PROXY_LIST.length;
+          console.log('🔄 جرّب بروكسي تاني...');
+        }
         setTimeout(() => startBot(), 5000);
       }
     }
