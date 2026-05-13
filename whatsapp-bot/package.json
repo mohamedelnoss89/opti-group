@@ -1,0 +1,18 @@
+{
+  "name": "optisize-whatsapp-bot",
+  "version": "4.7.0",
+  "description": "OptiSize WhatsApp Bot v4.7 - Eye Health Center with Gemini AI Receipt Verification",
+  "main": "index.js",
+  "scripts": {
+    "start": "node index.js"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs",
+  "dependencies": {
+    "@whiskeysockets/baileys": "^7.0.0-rc.9",
+    "@google/generative-ai": "^0.21.0",
+    "qrcode": "^1.5.4"
+  }
+}

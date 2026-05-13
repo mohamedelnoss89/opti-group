@@ -1,0 +1,14 @@
+{
+  "name": "optisize-whatsapp-bot",
+  "version": "4.9.0",
+  "main": "index.js",
+  "scripts": {
+    "start": "node index.js"
+  },
+  "type": "commonjs",
+  "dependencies": {
+    "@whiskeysockets/baileys": "^7.0.0-rc.9",
+    "@google/generative-ai": "^0.21.0",
+    "qrcode": "^1.5.4"
+  }
+}
