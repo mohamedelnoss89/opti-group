@@ -1,9 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { db } from "@/lib/db";
 
-// Bot URL for remote code verification
-const BOT_URL = process.env.BOT_URL || "";
-
 // ====== Built-in Subscription Codes ======
 const BUILTIN_CODES: Record<string, { days: number; type: string; maxUsers: number }> = {
   'SIZE2026': { days: 3650, type: 'master', maxUsers: 3 },
@@ -268,63 +265,6 @@ export async function POST(request: NextRequest) {
           expiresAt: expiresAt.toISOString(),
         },
       });
-    }
-
-    // Step 4: Check bot API for new codes (with 5s timeout)
-    if (BOT_URL) {
-      try {
-        const controller = new AbortController();
-        const tid = setTimeout(() => controller.abort(), 5000);
-        const botRes = await fetch(BOT_URL.replace(/\/$/, '') + '/api/verify-code', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ code: upperCode }),
-          signal: controller.signal,
-        });
-        clearTimeout(tid);
-        const botData = await botRes.json();
-
-        if (botData.valid) {
-          const now = new Date();
-          const expiresAt = new Date(now);
-          expiresAt.setDate(expiresAt.getDate() + (botData.days || 30));
-
-          // Save to database
-          const subscription = await db.subscription.create({
-            data: {
-              code: upperCode,
-              phone: botData.phone || 'bot',
-              userId: userId,
-              isActive: true,
-              activatedAt: now,
-              expiresAt: expiresAt,
-            },
-          });
-
-          await db.subscriptionActivation.create({
-            data: {
-              subscriptionId: subscription.id,
-              userId: userId,
-              activatedAt: now,
-              expiresAt: expiresAt,
-            },
-          });
-
-          return NextResponse.json({
-            success: true,
-            message: "تم التفعيل بنجاح",
-            subscription: {
-              id: subscription.id,
-              code: upperCode,
-              isActive: true,
-              activatedAt: now.toISOString(),
-              expiresAt: expiresAt.toISOString(),
-            },
-          });
-        }
-      } catch (e) {
-        // Bot unreachable - not critical
-      }
     }
 
     return NextResponse.json(
