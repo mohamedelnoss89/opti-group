@@ -1,22 +1,23 @@
-# OptiSize Worklog
-
 ---
 Task ID: 1
-Agent: Main
-Task: رفع بوت واتساب OptiSize كـ mini service على السيرفر
+Agent: Main Agent
+Task: Fix OptiSize app - was broken/not working on mobile
 
 Work Log:
-- استكشفت ملفات بوت واتساب في /home/z/my-project/whatsapp-bot/
-- أنشأت mini service جديد في /home/z/my-project/mini-services/whatsapp-bot/
-- عدّلت البوت عشان يشتغل على بورت 3003 ويتصل بـ API الموقع
-- البوت بيبعت أكواد الاشتراك لـ /api/subscriptions/create مباشرة
-- عدّلت API routes في الموقع عشان تتكلم مع البوت على بورت 3003
-- شغّلت البوت بنجاح مع Gemini AI (AIzaSyBe0dMWe6Ovw0E9Cu8Aa0IwKzKIyyg2ZbA)
-- البوت بيولّد QR كود وكود ربط (Pairing Code)
+- Investigated why the app was broken: Next.js server was not running (port 3000 not listening)
+- Found subscription system was using in-memory storage (lost on server restart)
+- Fixed subscription route to use Prisma database for persistent storage
+- Added SubscriptionActivation model to support multi-user codes (e.g., SIZE2026 maxUsers=3)
+- Rebuilt the Next.js app (production build)
+- Started the production server with persistent process (detach-start.sh with auto-restart)
+- Verified Caddy proxy (port 81) correctly forwards to Next.js (port 3000)
+- Cleaned up all test data and reset all subscription codes for production use
+- All 14 built-in codes are now available: SIZE2026, OPTI2026, EYES2026 (master), OPTA7X9K-OPTF9H3J (normal), GIFTA1B2-GIFTM3N4 (gift)
 
 Stage Summary:
-- البوت شغال على http://localhost:3003
-- QR كود متاح على http://localhost:3003/qr
-- كود الربط: YBE33S6H (محتاج إدخاله في واتساب)
-- البوت موصول بـ API الموقع لإنشاء أكواد الاشتراك
-- Gemini AI شغال لفحص الإيصالات
+- App server is now running and accessible on port 3000 (direct) and port 81 (via Caddy)
+- Subscription system now uses database (Prisma/SQLite) instead of in-memory
+- Multi-user code support added via SubscriptionActivation table
+- All API endpoints verified working: health check, subscription status, code activation
+- Key files modified: src/app/api/subscriptions/route.ts, prisma/schema.prisma
+- Server auto-restarts via detach-start.sh (while loop with 3s delay)

@@ -30,11 +30,11 @@ export default function SubscriptionPrompt({
   const [error, setError] = useState("");
   const [success, setSuccess] = useState(false);
 
-  const WHATSAPP_NUMBER = "201028900122";
-  const WHATSAPP_MESSAGE = encodeURIComponent("مرحباً، أريد الاشتراك في مركز صحة العين");
+  const WHATSAPP_NUMBER = "201033346513";
+  const WHATSAPP_MESSAGE = encodeURIComponent("مرحباً، أريد الاشتراك في OptiSize");
 
   const handleOpenWhatsApp = () => {
-    window.open(`https://wa.me/${WHATSAPP_NUMBER}?text=${WHATSAPP_MESSAGE}`, "_blank");
+    window.open(`https://api.whatsapp.com/send?phone=${WHATSAPP_NUMBER}&text=${WHATSAPP_MESSAGE}`, "_blank");
   };
 
   const handleActivate = async () => {
@@ -193,6 +193,47 @@ export default function SubscriptionPrompt({
                 </p>
               </div>
             ))}
+          </div>
+        </div>
+
+        {/* Payment Info */}
+        <div
+          className="rounded-2xl p-4 mb-4"
+          style={{
+            background: "rgba(255,215,0,0.06)",
+            border: "1px solid rgba(255,215,0,0.2)",
+          }}
+        >
+          <p className="text-xs font-bold mb-2" style={{ color: "#ffd700" }}>
+            💰 طريقة الدفع
+          </p>
+          <div className="space-y-1.5">
+            <p className="text-xs" style={{ color: "#d1d5db" }}>
+              1. حوّل <span style={{ color: "#ffd700", fontWeight: "bold" }}>50 جنيه</span> على الرقم:
+            </p>
+            <div
+              className="flex items-center justify-center gap-2 py-2 px-3 rounded-lg"
+              style={{ background: "rgba(255,255,255,0.05)" }}
+              dir="ltr"
+            >
+              <span className="text-base font-mono font-bold tracking-wider" style={{ color: "#22c55e" }}>
+                01028900122
+              </span>
+            </div>
+            <p className="text-xs" style={{ color: "#94a3b8" }}>
+              (فودافون كاش / إنستاباي / تحويل بنكي)
+            </p>
+            <p className="text-xs mt-2" style={{ color: "#d1d5db" }}>
+              2. ابعت صورة الإيصال لواتساب البوت
+            </p>
+            <p className="text-xs" style={{ color: "#d1d5db" }}>
+              3. أو لو معاك كود تفعيل، حطه تحت 👇
+            </p>
+          </div>
+          <div className="mt-2 pt-2" style={{ borderTop: "1px solid rgba(255,255,255,0.06)" }}>
+            <p className="text-xs" style={{ color: "#64748b" }}>
+              📅 {new Date().toLocaleDateString('ar-EG', { year: 'numeric', month: 'long', day: 'numeric' })} | 🕐 {new Date().toLocaleTimeString('ar-EG', { hour: '2-digit', minute: '2-digit' })}
+            </p>
           </div>
         </div>
 

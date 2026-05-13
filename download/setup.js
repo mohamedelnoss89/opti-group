@@ -1,0 +1,34 @@
+import { writeFileSync } from 'fs';
+
+const code = [
+'import { makeWASocket, useMultiFileAuthState, DisconnectReason, fetchLatestBaileysVersion } from "@whiskeysockets/baileys";',
+'import pino from "pino";',
+'import fs from "fs";',
+'',
+'const ON="201028900122",PN="01028900122",SP=50,AK="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",AM="meta-llama/llama-4-scout-17b-16e-instruct",UF="./used_receipts.json";',
+'',
+'function LR(){try{if(fs.existsSync(UF))return JSON.parse(fs.readFileSync(UF,"utf-8"))}catch(e){}return[]}',
+'function SR(r){try{fs.writeFileSync(UF,JSON.stringify(r,null,2))}catch(e){}}',
+'function IU(n){return LR().includes(n)}',
+'function MU(n){const r=LR();r.push(n);SR(r)}',
+'',
+'const AP={VC:{kw:["vodafone cash"]},IP:{kw:["instapay"]},NBE:{kw:["nbe"]},CIB:{kw:["cib"]},FW:{kw:["fawry"]},EC:{kw:["etisalat cash"]},OC:{kw:["orange cash"]},WP:{kw:["we pay"]},BM:{kw:["bm wallet"]},AB:{kw:["alex bank"]}};',
+'',
+'async function CG(msg){const r=await fetch("https://api.groq.com/openai/v1/chat/completions",{method:"POST",headers:{"Authorization":"Bearer "+AK,"Content-Type":"application/json"},body:JSON.stringify({model:AM,messages:msg,max_tokens:1000,temperature:0.1})});const d=await r.json();const c=d.choices?.[0]?.message?.content||"";try{const m=c.match(/\\{[\\s\\S]*\\}/);if(m)return JSON.parse(m[0])}catch(e){}return null}',
+'',
+'async function ED(buf,mime){const b=buf.toString("base64");return CG([{role:"user",content:[{type:"text",text:"Extract from receipt JSON only: {TYPE,KEYWORD,APP_NAME,SENDER_NUMBER,RECEIVER_NUMBER,AMOUNT,DATE,TIME,RECEIPT_NUMBER,HAS_WATERMARK,EDITING_SIGNS} Be very accurate."},{type:"image_url",image_url:{url:"data:"+mime+";base64,"+b}}]}])}',
+'',
+'async function FC(data,buf,mime){const b=buf.toString("base64");return CG([{role:"user",content:[{type:"text",text:"Fraud expert. Data:"+JSON.stringify(data)+". Required:"+SP+" EGP to "+PN+". Answer JSON only: {REAL_APP,COLORS_MATCH_APP,FAKE_SIGNS:[],EDITING_DETECTED,HAS_PHOTO_EDIT_WATERMARK,GENUINE_SCORE:0-100,VERDICT:real/fake/suspicious,REASON} Strict:edit=fake,watermark=fake."},{type:"image_url",image_url:{url:"data:"+mime+";base64,"+b}}]}])}',
+'',
+'function PV(ex,fr){let s=0,mx=0,rs=[],hf=false;mx+=20;if(ex?.AMOUNT){const a=parseFloat(String(ex.AMOUNT).replace(/[^\\d.]/g,""));if(a===SP)s+=20;else rs.push("Amount "+a+"!="+SP)}else rs.push("No amount");mx+=20;const rn=(ex?.RECEIVER_NUMBER||"").replace(/\\D/g,""),pn=PN.replace(/\\D/g,""),on=ON.replace(/\\D/g,"");if(rn&&(rn.includes(pn)||rn.includes(on)||pn.includes(rn)||on.includes(rn)))s+=20;else rs.push("Receiver!="+PN);mx+=10;if(ex?.KEYWORD?.match(/send|transfer/)||ex?.TYPE?.match(/transfer|send/))s+=10;else rs.push("Not send");mx+=10;const ap=ex?.APP_NAME||"";let kn=false;for(const p of Object.values(AP)){for(const k of p.kw){if(ap.toLowerCase().includes(k.toLowerCase())){kn=true;break}}if(kn)break}if(kn)s+=10;else rs.push("Unknown:"+ap);mx+=10;if(ex?.RECEIPT_NUMBER&&ex.RECEIPT_NUMBER!=="unknown"){if(IU(ex.RECEIPT_NUMBER)){rs.push("Receipt reused");hf=true}else s+=10}else rs.push("No receipt#");mx+=10;if(fr?.COLORS_MATCH_APP===true)s+=10;else if(fr?.COLORS_MATCH_APP===false)rs.push("Colors mismatch");mx+=10;if(fr?.EDITING_DETECTED===true||fr?.HAS_PHOTO_EDIT_WATERMARK===true){rs.push("Photo edit detected");hf=true}else if(fr?.EDITING_DETECTED===false)s+=10;mx+=5;if(fr?.FAKE_SIGNS?.length>0){rs.push("Fake:"+fr.FAKE_SIGNS.join(","));hf=true}else s+=5;mx+=5;const gs=parseInt(fr?.GENUINE_SCORE)||0;if(gs>=80)s+=5;else if(gs>=60){s+=2;rs.push("Auth:"+gs+"%")}else if(gs>0){rs.push("Low:"+gs+"%");hf=true}if(fr?.VERDICT==="fake"){hf=true;rs.push("AI:fake")}else if(fr?.VERDICT==="suspicious")rs.push("AI:suspicious");const pct=mx>0?(s/mx)*100:0;return{score:s,max:mx,percentage:pct,reasons:rs,accepted:!hf&&pct>=70&&rs.length===0,hardFail:hf}}',
+'',
+'async function VR(buf,mime){try{const ex=await ED(buf,mime);if(!ex)return{accepted:false,reason:"Cannot read"};const fr=await FC(ex,buf,mime);if(!fr)return{accepted:false,reason:"Fraud check failed"};const pr=PV(ex,fr);if(pr.accepted){if(ex.RECEIPT_NUMBER&&ex.RECEIPT_NUMBER!=="unknown")MU(ex.RECEIPT_NUMBER);return{accepted:true,amount:ex.AMOUNT,app:ex.APP_NAME,receiptNumber:ex.RECEIPT_NUMBER,score:pr.percentage}}else return{accepted:false,reason:pr.reasons.length>0?pr.reasons.join("\\n"):"Fake",score:pr.percentage}}catch(e){return{accepted:false,reason:"Error"}}}',
+'',
+'let pr=false;',
+'async function startBot(){const{state,saveCreds}=await useMultiFileAuthState("auth_info_baileys");const{version}=await fetchLatestBaileysVersion();const sock=makeWASocket({version,auth:state,logger:pino({level:"silent"})});sock.ev.on("creds.update",saveCreds);sock.ev.on("connection.update",async u=>{const{connection,lastDisconnect,qr}=u;if(qr&&!pr&&!state.creds.registered){pr=true;try{const c=await sock.requestPairingCode(ON);console.log("\\n====================");console.log("Pairing code: "+c);console.log("WhatsApp>Linked devices>Link device");console.log("====================\\n")}catch(e){console.log("Pairing error:",e.message)}}if(connection==="close"){const c=lastDisconnect?.error?.output?.statusCode;console.log("Closed:",c);if(c===405)console.log("Banned. Wait 24-48h.");else if(c!==DisconnectReason.loggedOut)startBot()}else if(connection==="open")console.log("Bot connected!")});sock.ev.on("messages.upsert",async({messages})=>{const msg=messages[0];if(!msg.message||msg.key.fromMe)return;const jid=msg.key.remoteJid,num=jid.split("@")[0];if(msg.message.imageMessage){const mime=msg.message.imageMessage.mimetype||"image/jpeg";try{const buf=await sock.downloadMediaMessage(msg);const res=await VR(buf,mime);if(res.accepted){await sock.sendMessage(jid,{text:"Receipt accepted!\\nAmount: "+res.amount+" EGP\\nApp: "+res.app+"\\nConfidence: "+res.score.toFixed(0)+"%\\n\\nWelcome to OptiSize VIP!"});await sock.sendMessage(ON+"@s.whatsapp.net",{text:"Accepted\\nFrom: "+num+"\\nAmount: "+res.amount+"\\nApp: "+res.app})}else{await sock.sendMessage(jid,{text:"Receipt rejected\\n\\nReason:\\n"+res.reason+"\\n\\nSend real receipt "+SP+" EGP to "+PN});await sock.sendMessage(ON+"@s.whatsapp.net",{text:"Rejected\\nFrom: "+num+"\\nReason:\\n"+res.reason})}}catch(e){console.log("Error:",e);await sock.sendMessage(jid,{text:"Error. Try again."})}}else if(msg.message.conversation||msg.message.extendedTextMessage){const txt=(msg.message.conversation||msg.message.extendedTextMessage?.text||"").trim();if(txt==="subscribe"||txt==="join")await sock.sendMessage(jid,{text:"To subscribe:\\n1. Send "+SP+" EGP to "+PN+"\\n2. Send receipt image here\\n3. We verify and activate!"})}});return sock}',
+'',
+'console.log("Starting OptiSize Bot...");startBot();',
+].join('\n');
+
+writeFileSync('index.js', code);
+console.log('Done! File size: ' + code.length);

@@ -82,11 +82,22 @@ model EyeProtectionSession {
 model Subscription {
   id           String   @id @default(cuid())
   code         String   @unique
-  phone        String   // Customer's WhatsApp phone number
-  userId       String?  // Linked user ID after activation
+  phone        String   // Customer's WhatsApp phone number or code type
+  userId       String?  // Linked user ID after activation (for single-use codes)
   isActive     Boolean  @default(false)
   activatedAt  DateTime?
   expiresAt    DateTime?
   createdAt    DateTime @default(now())
   updatedAt    DateTime @updatedAt
+  activations  SubscriptionActivation[]
+}
+
+model SubscriptionActivation {
+  id             String   @id @default(cuid())
+  subscriptionId String
+  subscription   Subscription @relation(fields: [subscriptionId], references: [id], onDelete: Cascade)
+  userId         String
+  activatedAt    DateTime @default(now())
+  expiresAt      DateTime
+  createdAt      DateTime @default(now())
 }

@@ -284,8 +284,8 @@ export default function HealthCenter({
           {/* Subscribe via WhatsApp Button */}
           <Button
             onClick={() => {
-              const msg = encodeURIComponent("مرحباً، أريد الاشتراك في مركز صحة العين");
-              window.open(`https://wa.me/201028900122?text=${msg}`, "_blank");
+              const msg = encodeURIComponent("مرحباً، أريد الاشتراك في OptiSize");
+              window.open(`https://api.whatsapp.com/send?phone=201033346513&text=${msg}`, "_blank");
             }}
             className="w-full h-12 rounded-xl font-bold text-base mb-4 transition-all hover:opacity-90"
             style={{
