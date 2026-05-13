@@ -1,8 +1,0 @@
-node_modules/
-auth_info/
-bot.log
-bot.pid
-*.pid
-subscription_codes.json
-generated_codes.json
-receipt_hashes.json
