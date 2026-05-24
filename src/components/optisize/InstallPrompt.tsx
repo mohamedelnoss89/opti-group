@@ -6,9 +6,9 @@ import {
   Download,
   WifiOff,
   Zap,
-  Shield,
   Share,
   Plus,
+  Smartphone,
 } from "lucide-react";
 
 interface BeforeInstallPromptEvent extends Event {
@@ -24,9 +24,11 @@ export default function InstallPrompt() {
   const [isStandalone, setIsStandalone] = useState(false);
   const [installing, setInstalling] = useState(false);
   const [showIOSSteps, setShowIOSSteps] = useState(false);
-  const [skipCount, setSkipCount] = useState(0);
+  const [mounted, setMounted] = useState(false);
 
   useEffect(() => {
+    setMounted(true);
+
     // Check if already installed (standalone mode)
     const standalone =
       window.matchMedia("(display-mode: standalone)").matches ||
@@ -42,41 +44,19 @@ export default function InstallPrompt() {
       !(window as unknown as { MSStream?: boolean }).MSStream;
     setIsIOS(ios);
 
-    // Load skip count from localStorage
-    const storedSkipCount = parseInt(
-      localStorage.getItem("optisize-install-skip-count") || "0",
-      10
-    );
-    setSkipCount(storedSkipCount);
-
     // Listen for beforeinstallprompt (Android/Chrome)
     const handler = (e: Event) => {
       e.preventDefault();
       setDeferredPrompt(e as BeforeInstallPromptEvent);
-      // Show the full-screen install prompt quickly
-      setTimeout(() => setShowPrompt(true), 1500);
+      // Show immediately when prompt is ready
+      setShowPrompt(true);
     };
 
     window.addEventListener("beforeinstallprompt", handler);
 
-    // For iOS or browsers without beforeinstallprompt, show after short delay
-    if (ios) {
-      // Show every time on iOS
-      setTimeout(() => setShowPrompt(true), 2000);
-    } else {
-      // For other browsers, also check after a delay if no beforeinstallprompt fired
-      setTimeout(() => {
-        setDeferredPrompt((currentPrompt) => {
-          if (!currentPrompt) {
-            // Show after max 3 skips
-            if (storedSkipCount < 3) {
-              setShowPrompt(true);
-            }
-          }
-          return currentPrompt;
-        });
-      }, 4000);
-    }
+    // Show the install screen IMMEDIATELY for all non-standalone users
+    // No delay - user must see it the moment they open the link
+    setShowPrompt(true);
 
     return () => window.removeEventListener("beforeinstallprompt", handler);
   }, []);
@@ -97,19 +77,8 @@ export default function InstallPrompt() {
     }
   }, [deferredPrompt]);
 
-  const handleSkip = useCallback(() => {
-    setShowPrompt(false);
-    // Track skip count but don't permanently dismiss
-    const newCount = skipCount + 1;
-    setSkipCount(newCount);
-    localStorage.setItem(
-      "optisize-install-skip-count",
-      newCount.toString()
-    );
-  }, [skipCount]);
-
   // Don't show if already installed
-  if (isStandalone) return null;
+  if (!mounted || isStandalone) return null;
 
   return (
     <AnimatePresence>
@@ -121,159 +90,161 @@ export default function InstallPrompt() {
           transition={{ duration: 0.3 }}
           className="fixed inset-0 z-[100] flex items-center justify-center p-4"
           style={{
-            background: "rgba(0, 0, 0, 0.85)",
-            backdropFilter: "blur(12px)",
-            WebkitBackdropFilter: "blur(12px)",
+            background: "rgba(0, 0, 0, 0.92)",
+            backdropFilter: "blur(16px)",
+            WebkitBackdropFilter: "blur(16px)",
           }}
         >
           <motion.div
-            initial={{ scale: 0.9, opacity: 0, y: 20 }}
+            initial={{ scale: 0.85, opacity: 0, y: 30 }}
             animate={{ scale: 1, opacity: 1, y: 0 }}
-            exit={{ scale: 0.9, opacity: 0, y: 20 }}
-            transition={{ type: "spring", stiffness: 200, damping: 25 }}
+            exit={{ scale: 0.85, opacity: 0, y: 30 }}
+            transition={{ type: "spring", stiffness: 180, damping: 22 }}
             className="w-full max-w-sm relative overflow-hidden rounded-3xl"
             style={{
               background:
-                "linear-gradient(180deg, #0d1525 0%, #0a0e1a 100%)",
-              border: "1px solid rgba(0,240,255,0.15)",
+                "linear-gradient(180deg, #0f1a2e 0%, #0a0e1a 100%)",
+              border: "1px solid rgba(0,240,255,0.2)",
               boxShadow:
-                "0 0 60px rgba(0,240,255,0.1), 0 25px 50px rgba(0,0,0,0.5)",
+                "0 0 80px rgba(0,240,255,0.15), 0 30px 60px rgba(0,0,0,0.6)",
             }}
           >
             {/* Top glow effect */}
             <div
-              className="absolute top-0 left-0 right-0 h-32 pointer-events-none"
+              className="absolute top-0 left-0 right-0 h-40 pointer-events-none"
               style={{
                 background:
-                  "radial-gradient(ellipse at 50% -20%, rgba(0,240,255,0.12) 0%, transparent 70%)",
+                  "radial-gradient(ellipse at 50% -30%, rgba(0,240,255,0.18) 0%, transparent 70%)",
               }}
             />
 
-            <div className="relative p-6 pt-8">
+            {/* Animated pulse ring behind icon */}
+            <div className="absolute top-8 left-1/2 -translate-x-1/2 pointer-events-none">
+              <div
+                className="w-28 h-28 rounded-full"
+                style={{
+                  border: "2px solid rgba(0,240,255,0.08)",
+                  animation: "install-pulse 2.5s ease-in-out infinite",
+                }}
+              />
+            </div>
+
+            <div className="relative p-6 pt-10">
               {/* App Icon */}
               <div className="flex justify-center mb-5">
                 <div
-                  className="w-20 h-20 rounded-2xl flex items-center justify-center"
+                  className="w-24 h-24 rounded-2xl flex items-center justify-center"
                   style={{
                     background:
-                      "linear-gradient(135deg, rgba(0,240,255,0.15), rgba(0,128,255,0.1))",
-                    border: "1px solid rgba(0,240,255,0.25)",
-                    boxShadow: "0 0 30px rgba(0,240,255,0.15)",
+                      "linear-gradient(135deg, rgba(0,240,255,0.2), rgba(0,128,255,0.12))",
+                    border: "1.5px solid rgba(0,240,255,0.3)",
+                    boxShadow:
+                      "0 0 40px rgba(0,240,255,0.2), inset 0 0 20px rgba(0,240,255,0.05)",
                   }}
                 >
                   <img
                     src="/icons/icon-192x192.png"
                     alt="OptiSize"
-                    className="w-14 h-14 rounded-xl"
+                    className="w-16 h-16 rounded-xl"
                   />
                 </div>
               </div>
 
               {/* Title */}
               <h2
-                className="text-xl font-bold text-center mb-2"
-                style={{ color: "#e2e8f0" }}
+                className="text-2xl font-bold text-center mb-2"
+                style={{ color: "#f1f5f9" }}
               >
-                ثبّت OptiSize على جهازك
+                ثبّت OptiSize
               </h2>
               <p
-                className="text-sm text-center mb-6 leading-relaxed"
+                className="text-sm text-center mb-5 leading-relaxed"
                 style={{ color: "#94a3b8" }}
               >
-                استمتع بتجربة أفضل مع التطبيق المثبّت على جهازك
+                حمّل التطبيق على جهازك الآن
+                <br />
+                مجاناً وبكل سهولة
               </p>
 
               {/* Benefits */}
-              <div className="space-y-3 mb-6">
+              <div className="space-y-2.5 mb-6">
                 <div className="flex items-center gap-3">
                   <div
-                    className="w-9 h-9 rounded-lg flex items-center justify-center flex-shrink-0"
+                    className="w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0"
                     style={{
                       background: "rgba(0,240,255,0.1)",
                       border: "1px solid rgba(0,240,255,0.15)",
                     }}
                   >
                     <WifiOff
-                      className="w-4 h-4"
+                      className="w-3.5 h-3.5"
                       style={{ color: "#00f0ff" }}
                     />
                   </div>
-                  <div>
-                    <p
-                      className="text-xs font-semibold"
-                      style={{ color: "#e2e8f0" }}
-                    >
-                      يعمل بدون إنترنت
-                    </p>
-                    <p className="text-[10px]" style={{ color: "#64748b" }}>
-                      استخدم التطبيق في أي وقت بدون اتصال
-                    </p>
-                  </div>
+                  <p
+                    className="text-xs font-medium"
+                    style={{ color: "#cbd5e1" }}
+                  >
+                    يعمل بدون إنترنت
+                  </p>
                 </div>
 
                 <div className="flex items-center gap-3">
                   <div
-                    className="w-9 h-9 rounded-lg flex items-center justify-center flex-shrink-0"
+                    className="w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0"
                     style={{
                       background: "rgba(0,240,255,0.1)",
                       border: "1px solid rgba(0,240,255,0.15)",
                     }}
                   >
-                    <Zap className="w-4 h-4" style={{ color: "#00f0ff" }} />
+                    <Zap
+                      className="w-3.5 h-3.5"
+                      style={{ color: "#00f0ff" }}
+                    />
                   </div>
-                  <div>
-                    <p
-                      className="text-xs font-semibold"
-                      style={{ color: "#e2e8f0" }}
-                    >
-                      أسرع وأخف
-                    </p>
-                    <p className="text-[10px]" style={{ color: "#64748b" }}>
-                      تشغيل فوري بدون متصفح
-                    </p>
-                  </div>
+                  <p
+                    className="text-xs font-medium"
+                    style={{ color: "#cbd5e1" }}
+                  >
+                    أسرع وأخف من المتصفح
+                  </p>
                 </div>
 
                 <div className="flex items-center gap-3">
                   <div
-                    className="w-9 h-9 rounded-lg flex items-center justify-center flex-shrink-0"
+                    className="w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0"
                     style={{
                       background: "rgba(0,240,255,0.1)",
                       border: "1px solid rgba(0,240,255,0.15)",
                     }}
                   >
-                    <Shield
-                      className="w-4 h-4"
+                    <Smartphone
+                      className="w-3.5 h-3.5"
                       style={{ color: "#00f0ff" }}
                     />
                   </div>
-                  <div>
-                    <p
-                      className="text-xs font-semibold"
-                      style={{ color: "#e2e8f0" }}
-                    >
-                      أيقونة على الشاشة الرئيسية
-                    </p>
-                    <p className="text-[10px]" style={{ color: "#64748b" }}>
-                      وصول سريع بنقرة واحدة
-                    </p>
-                  </div>
+                  <p
+                    className="text-xs font-medium"
+                    style={{ color: "#cbd5e1" }}
+                  >
+                    أيقونة على الشاشة الرئيسية
+                  </p>
                 </div>
               </div>
 
-              {/* Install Button - Android */}
+              {/* ========== Android Install Button ========== */}
               {!isIOS && deferredPrompt && (
                 <motion.button
                   whileTap={{ scale: 0.97 }}
                   onClick={handleInstall}
                   disabled={installing}
-                  className="w-full flex items-center justify-center gap-2 py-3.5 rounded-2xl text-sm font-bold mb-3"
+                  className="w-full flex items-center justify-center gap-2 py-4 rounded-2xl text-sm font-bold mb-0"
                   style={{
                     background:
                       "linear-gradient(135deg, #00f0ff, #0080ff)",
                     color: "#0a0e1a",
                     boxShadow:
-                      "0 0 30px rgba(0,240,255,0.3), 0 8px 20px rgba(0,128,255,0.25)",
+                      "0 0 40px rgba(0,240,255,0.35), 0 8px 24px rgba(0,128,255,0.3)",
                   }}
                 >
                   {installing ? (
@@ -296,20 +267,49 @@ export default function InstallPrompt() {
                 </motion.button>
               )}
 
-              {/* iOS Instructions */}
+              {/* ========== Android - waiting for prompt ========== */}
+              {!isIOS && !deferredPrompt && (
+                <div className="space-y-3">
+                  <div
+                    className="w-full flex items-center justify-center gap-2 py-4 rounded-2xl text-sm font-bold"
+                    style={{
+                      background:
+                        "linear-gradient(135deg, #00f0ff, #0080ff)",
+                      color: "#0a0e1a",
+                      boxShadow:
+                        "0 0 40px rgba(0,240,255,0.35), 0 8px 24px rgba(0,128,255,0.3)",
+                      animation: "install-glow 2s ease-in-out infinite",
+                    }}
+                  >
+                    <Download className="w-5 h-5" />
+                    جاري تجهيز التثبيت...
+                  </div>
+                  <p
+                    className="text-[10px] text-center leading-relaxed"
+                    style={{ color: "#64748b" }}
+                  >
+                    إذا لم يظهر خيار التثبيت، افتح الصفحة في{" "}
+                    <span style={{ color: "#00f0ff" }}>
+                      Chrome أو Edge أو Samsung Internet
+                    </span>
+                  </p>
+                </div>
+              )}
+
+              {/* ========== iOS Instructions ========== */}
               {isIOS && (
-                <div className="mb-3">
+                <div>
                   {!showIOSSteps ? (
                     <motion.button
                       whileTap={{ scale: 0.97 }}
                       onClick={() => setShowIOSSteps(true)}
-                      className="w-full flex items-center justify-center gap-2 py-3.5 rounded-2xl text-sm font-bold"
+                      className="w-full flex items-center justify-center gap-2 py-4 rounded-2xl text-sm font-bold"
                       style={{
                         background:
                           "linear-gradient(135deg, #00f0ff, #0080ff)",
                         color: "#0a0e1a",
                         boxShadow:
-                          "0 0 30px rgba(0,240,255,0.3), 0 8px 20px rgba(0,128,255,0.25)",
+                          "0 0 40px rgba(0,240,255,0.35), 0 8px 24px rgba(0,128,255,0.3)",
                       }}
                     >
                       <Download className="w-5 h-5" />
@@ -317,24 +317,25 @@ export default function InstallPrompt() {
                     </motion.button>
                   ) : (
                     <motion.div
-                      initial={{ opacity: 0, height: 0 }}
-                      animate={{ opacity: 1, height: "auto" }}
+                      initial={{ opacity: 0, y: 10 }}
+                      animate={{ opacity: 1, y: 0 }}
                       className="rounded-2xl p-4"
                       style={{
-                        background: "rgba(0,240,255,0.05)",
-                        border: "1px solid rgba(0,240,255,0.12)",
+                        background: "rgba(0,240,255,0.06)",
+                        border: "1px solid rgba(0,240,255,0.15)",
                       }}
                     >
                       <p
-                        className="text-xs font-bold mb-3"
+                        className="text-xs font-bold mb-3 text-center"
                         style={{ color: "#00f0ff" }}
                       >
-                        خطوات التثبيت:
+                        اتبع الخطوات التالية:
                       </p>
                       <div className="space-y-3">
-                        <div className="flex items-start gap-2">
+                        {/* Step 1 */}
+                        <div className="flex items-start gap-3">
                           <div
-                            className="w-6 h-6 rounded-full flex items-center justify-center flex-shrink-0 text-[10px] font-bold"
+                            className="w-7 h-7 rounded-full flex items-center justify-center flex-shrink-0 text-xs font-bold"
                             style={{
                               background: "rgba(0,240,255,0.15)",
                               color: "#00f0ff",
@@ -343,23 +344,24 @@ export default function InstallPrompt() {
                             1
                           </div>
                           <p
-                            className="text-xs leading-relaxed"
+                            className="text-xs leading-relaxed pt-1"
                             style={{ color: "#e2e8f0" }}
                           >
                             اضغط على{" "}
                             <span
-                              className="inline-flex items-center gap-1"
+                              className="inline-flex items-center gap-1 font-semibold"
                               style={{ color: "#00f0ff" }}
                             >
-                              <Share className="w-3 h-3" />
+                              <Share className="w-3.5 h-3.5" />
                               زرار المشاركة
                             </span>{" "}
                             في أسفل شاشة Safari
                           </p>
                         </div>
-                        <div className="flex items-start gap-2">
+                        {/* Step 2 */}
+                        <div className="flex items-start gap-3">
                           <div
-                            className="w-6 h-6 rounded-full flex items-center justify-center flex-shrink-0 text-[10px] font-bold"
+                            className="w-7 h-7 rounded-full flex items-center justify-center flex-shrink-0 text-xs font-bold"
                             style={{
                               background: "rgba(0,240,255,0.15)",
                               color: "#00f0ff",
@@ -368,22 +370,23 @@ export default function InstallPrompt() {
                             2
                           </div>
                           <p
-                            className="text-xs leading-relaxed"
+                            className="text-xs leading-relaxed pt-1"
                             style={{ color: "#e2e8f0" }}
                           >
                             اضغط على{" "}
                             <span
-                              className="inline-flex items-center gap-1"
+                              className="inline-flex items-center gap-1 font-semibold"
                               style={{ color: "#00f0ff" }}
                             >
-                              <Plus className="w-3 h-3" />
+                              <Plus className="w-3.5 h-3.5" />
                               إضافة إلى الشاشة الرئيسية
                             </span>
                           </p>
                         </div>
-                        <div className="flex items-start gap-2">
+                        {/* Step 3 */}
+                        <div className="flex items-start gap-3">
                           <div
-                            className="w-6 h-6 rounded-full flex items-center justify-center flex-shrink-0 text-[10px] font-bold"
+                            className="w-7 h-7 rounded-full flex items-center justify-center flex-shrink-0 text-xs font-bold"
                             style={{
                               background: "rgba(0,240,255,0.15)",
                               color: "#00f0ff",
@@ -392,73 +395,49 @@ export default function InstallPrompt() {
                             3
                           </div>
                           <p
-                            className="text-xs leading-relaxed"
+                            className="text-xs leading-relaxed pt-1"
                             style={{ color: "#e2e8f0" }}
                           >
                             اضغط{" "}
-                            <span style={{ color: "#00f0ff" }}>
+                            <span
+                              className="font-semibold"
+                              style={{ color: "#00f0ff" }}
+                            >
                               إضافة
                             </span>{" "}
                             وسيظهر التطبيق على شاشتك الرئيسية
                           </p>
                         </div>
                       </div>
+
+                      {/* After adding, user can tap to continue */}
+                      <p
+                        className="text-[10px] text-center mt-3"
+                        style={{ color: "#475569" }}
+                      >
+                        بعد الإضافة، افتح التطبيق من الشاشة الرئيسية
+                      </p>
                     </motion.div>
                   )}
                 </div>
               )}
-
-              {/* Non-supported browser message (no deferredPrompt and not iOS) */}
-              {!isIOS && !deferredPrompt && (
-                <div
-                  className="mb-3 rounded-2xl p-3"
-                  style={{
-                    background: "rgba(0,240,255,0.05)",
-                    border: "1px solid rgba(0,240,255,0.1)",
-                  }}
-                >
-                  <p
-                    className="text-xs text-center leading-relaxed"
-                    style={{ color: "#94a3b8" }}
-                  >
-                    افتح هذه الصفحة في{" "}
-                    <span style={{ color: "#00f0ff" }}>
-                      Chrome أو Edge أو Samsung Internet
-                    </span>{" "}
-                    لتثبيت التطبيق
-                  </p>
-                </div>
-              )}
-
-              {/* Skip button */}
-              <button
-                onClick={handleSkip}
-                className="w-full py-2.5 rounded-xl text-xs"
-                style={{
-                  color:
-                    skipCount >= 2
-                      ? "#64748b"
-                      : "#475569",
-                  background: "transparent",
-                }}
-              >
-                {skipCount >= 2
-                  ? "متابعة بدون تثبيت"
-                  : skipCount >= 1
-                  ? "تخطي هذه المرة"
-                  : "استخدم بدون تثبيت"}
-              </button>
-
-              {/* Subtle reminder text after skips */}
-              {skipCount >= 1 && (
-                <p
-                  className="text-[10px] text-center mt-2"
-                  style={{ color: "#334155" }}
-                >
-                  التثبيت مجاني تماماً ويحسن تجربتك بشكل كبير
-                </p>
-              )}
             </div>
+
+            {/* Inline animation keyframes */}
+            <style
+              dangerouslySetInnerHTML={{
+                __html: `
+                  @keyframes install-pulse {
+                    0%, 100% { transform: scale(1); opacity: 0.5; }
+                    50% { transform: scale(1.15); opacity: 0; }
+                  }
+                  @keyframes install-glow {
+                    0%, 100% { box-shadow: 0 0 40px rgba(0,240,255,0.35), 0 8px 24px rgba(0,128,255,0.3); }
+                    50% { box-shadow: 0 0 60px rgba(0,240,255,0.5), 0 8px 32px rgba(0,128,255,0.4); }
+                  }
+                `,
+              }}
+            />
           </motion.div>
         </motion.div>
       )}
