@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useCallback, useEffect } from "react";
+import { useState, useCallback, useEffect, useRef } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import dynamic from "next/dynamic";
 import SplashScreen from "@/components/optisize/SplashScreen";
@@ -91,6 +91,17 @@ const pageVariants = {
 export default function Home() {
   const [screen, setScreen] = useState<Screen>("splash");
   const [screenHistory, setScreenHistory] = useState<Screen[]>([]);
+  const screenRef = useRef<Screen>("splash");
+  const screenHistoryRef = useRef<Screen[]>([]);
+  const isNavigatingRef = useRef(false);
+
+  // Keep refs in sync with state
+  useEffect(() => {
+    screenRef.current = screen;
+  }, [screen]);
+  useEffect(() => {
+    screenHistoryRef.current = screenHistory;
+  }, [screenHistory]);
   const [user, setUser] = useState<StoredUser | null>(null);
   const [showLoginPrompt, setShowLoginPrompt] = useState(false);
   const [hasSubscription, setHasSubscription] = useState(false);
@@ -108,6 +119,35 @@ export default function Home() {
     if (appRoot) {
       appRoot.classList.add("app-ready");
     }
+  }, []);
+
+  // Sync browser history with app navigation
+  // Replace initial state so popstate works correctly
+  useEffect(() => {
+    window.history.replaceState({ screen: "splash" }, "");
+
+    const handlePopState = (event: PopStateEvent) => {
+      const prev = screenHistoryRef.current;
+      if (prev.length > 0) {
+        const newHistory = [...prev];
+        const previousScreen = newHistory.pop() || "main";
+        isNavigatingRef.current = true;
+        setScreenHistory(newHistory);
+        screenHistoryRef.current = newHistory;
+        setScreen(previousScreen);
+        screenRef.current = previousScreen;
+        isNavigatingRef.current = false;
+      } else {
+        // No more history - go to main
+        isNavigatingRef.current = true;
+        setScreen("main");
+        screenRef.current = "main";
+        isNavigatingRef.current = false;
+      }
+    };
+
+    window.addEventListener("popstate", handlePopState);
+    return () => window.removeEventListener("popstate", handlePopState);
   }, []);
 
   const handleSplashComplete = useCallback(() => {
@@ -139,25 +179,57 @@ export default function Home() {
     setScreen("auth");
   }, []);
 
-  // Navigate forward: push current screen to history
+  // Navigate forward: push current screen to history and sync with browser history
   const navigateTo = useCallback((target: Screen) => {
-    setScreenHistory((prev) => [...prev, screen]);
-    setScreen(target);
-  }, [screen]);
-
-  const handleNavigate = useCallback((target: string) => {
-    setScreenHistory((prev) => [...prev, screen]);
-    setScreen(target as Screen);
-  }, [screen]);
-
-  // Go back one step: pop from history
-  const handleBack = useCallback(() => {
     setScreenHistory((prev) => {
-      const newHistory = [...prev];
-      const previousScreen = newHistory.pop() || "main";
-      setScreen(previousScreen);
+      const newHistory = [...prev, screenRef.current];
+      screenHistoryRef.current = newHistory;
       return newHistory;
     });
+    setScreen(target);
+    screenRef.current = target;
+    // Push to browser history so hardware back button works
+    if (!isNavigatingRef.current) {
+      window.history.pushState({ screen: target }, "");
+    }
+  }, []);
+
+  const handleNavigate = useCallback((target: string) => {
+    navigateTo(target as Screen);
+  }, [navigateTo]);
+
+  // Helper: forward navigation with browser history sync
+  const navigateForward = useCallback((target: Screen) => {
+    const currentScreen = screenRef.current;
+    setScreenHistory((prev) => {
+      const newHistory = [...prev, currentScreen];
+      screenHistoryRef.current = newHistory;
+      return newHistory;
+    });
+    setScreen(target);
+    screenRef.current = target;
+    window.history.pushState({ screen: target }, "");
+  }, []);
+
+  // Go back one step: pop from history and sync with browser history
+  const handleBack = useCallback(() => {
+    const prev = [...screenHistoryRef.current];
+    if (prev.length === 0) {
+      setScreen("main");
+      screenRef.current = "main";
+      return;
+    }
+    const newHistory = prev;
+    const previousScreen = newHistory.pop() || "main";
+    screenHistoryRef.current = newHistory;
+    setScreenHistory(newHistory);
+    setScreen(previousScreen);
+    screenRef.current = previousScreen;
+    // Mark as app-initiated so popstate handler skips
+    isNavigatingRef.current = true;
+    window.history.back();
+    // Reset flag after a tick (popstate fires synchronously in some browsers)
+    setTimeout(() => { isNavigatingRef.current = false; }, 50);
   }, []);
 
   // Guest tries to access a locked service → show login prompt
@@ -167,9 +239,8 @@ export default function Home() {
 
   const handleLoginPromptLogin = useCallback(() => {
     setShowLoginPrompt(false);
-    setScreenHistory((prev) => [...prev, screen]);
-    setScreen("auth");
-  }, [screen]);
+    navigateForward("auth");
+  }, [navigateForward]);
 
   const handleLoginPromptDismiss = useCallback(() => {
     setShowLoginPrompt(false);
@@ -211,9 +282,8 @@ export default function Home() {
   // Scanner result
   const handleScanResult = useCallback((pd: number) => {
     setScanResult(pd);
-    setScreenHistory((prev) => [...prev, screen]);
-    setScreen("results");
-  }, [screen]);
+    navigateForward("results");
+  }, [navigateForward]);
 
   // Save PD measurement
   const handleSaveResult = useCallback(() => {
@@ -239,51 +309,48 @@ export default function Home() {
 
   // Go to records from results
   const handleGoToRecords = useCallback(() => {
-    setScreenHistory((prev) => [...prev, screen]);
-    setScreen("records");
-  }, [screen]);
+    navigateForward("records");
+  }, [navigateForward]);
 
   // Vision test selection
   const handleSelectVisionTest = useCallback((testId: string) => {
-    setScreenHistory((prev) => [...prev, screen]);
     if (testId === "color-vision") {
-      setScreen("color-test");
+      navigateForward("color-test");
     } else if (testId === "visual-acuity") {
-      setScreen("visual-acuity-test");
+      navigateForward("visual-acuity-test");
     } else if (testId === "astigmatism") {
-      setScreen("astigmatism-test");
+      navigateForward("astigmatism-test");
     }
-  }, [screen]);
+  }, [navigateForward]);
 
   // Health center test selection
   const handleSelectHealthTest = useCallback((testId: string) => {
-    setScreenHistory((prev) => [...prev, screen]);
     if (testId === "color-test") {
-      setScreen("color-test");
+      navigateForward("color-test");
     } else if (testId === "strabismus-test") {
-      setScreen("strabismus-test");
+      navigateForward("strabismus-test");
     } else if (testId === "cataract-test") {
-      setScreen("cataract-test");
+      navigateForward("cataract-test");
     } else if (testId === "glaucoma-test") {
-      setScreen("glaucoma-test");
+      navigateForward("glaucoma-test");
     } else if (testId === "visual-acuity" || testId === "astigmatism") {
-      setScreen(testId === "visual-acuity" ? "visual-acuity-test" : "astigmatism-test");
+      navigateForward(testId === "visual-acuity" ? "visual-acuity-test" : "astigmatism-test");
     } else if (testId === "prescription-calculator") {
-      setScreen("prescription-calculator");
+      navigateForward("prescription-calculator");
     } else if (testId === "medical-chat") {
-      setScreen("medical-chat");
+      navigateForward("medical-chat");
     } else if (testId === "prescription-comparison") {
-      setScreen("prescription-comparison");
+      navigateForward("prescription-comparison");
     } else if (testId === "eye-protection") {
-      setScreen("eye-protection");
+      navigateForward("eye-protection");
     } else if (testId === "eye-nutrition") {
-      setScreen("eye-nutrition");
+      navigateForward("eye-nutrition");
     } else if (testId === "light-sensitivity") {
-      setScreen("light-sensitivity");
+      navigateForward("light-sensitivity");
     } else if (testId === "glasses-catalog") {
-      setScreen("glasses-catalog");
+      navigateForward("glasses-catalog");
     }
-  }, [screen]);
+  }, [navigateForward]);
 
   // Color vision test complete
   const handleColorTestComplete = useCallback((result: { score: number; total: number; status: string }) => {
@@ -347,17 +414,15 @@ export default function Home() {
   // Glasses catalog try-on
   const handleTryOn = useCallback((glasses: GlassesItem) => {
     setSelectedGlasses(glasses);
-    setScreenHistory((prev) => [...prev, screen]);
-    setScreen("calibration-guide");
-  }, [screen]);
+    navigateForward("calibration-guide");
+  }, [navigateForward]);
 
   // Calibration guide start → go to try-on
   const handleCalibrationStart = useCallback(() => {
     if (selectedGlasses) {
-      setScreenHistory((prev) => [...prev, screen]);
-      setScreen("glasses-try-on");
+      navigateForward("glasses-try-on");
     }
-  }, [selectedGlasses, screen]);
+  }, [selectedGlasses, navigateForward]);
 
   // Calibration guide back → go to catalog
   const handleCalibrationBack = useCallback(() => {
@@ -373,28 +438,29 @@ export default function Home() {
   // Try-on back → catalog (directly, not through history)
   const handleTryOnBack = useCallback(() => {
     setSelectedGlasses(null);
-    // Navigate directly to glasses-catalog instead of using history
-    // which might go to calibration-guide (requires selectedGlasses)
-    setScreenHistory((prev) => {
-      // Pop back past calibration-guide to glasses-catalog or earlier
-      const newHistory = [...prev];
-      // Find the last screen that isn't calibration-guide
-      while (newHistory.length > 0) {
-        const last = newHistory[newHistory.length - 1];
-        if (last === "calibration-guide") {
-          newHistory.pop();
-        } else {
-          break;
-        }
-      }
-      if (newHistory.length > 0) {
-        const previousScreen = newHistory.pop()!;
-        setScreen(previousScreen);
+    // Pop back past calibration-guide to glasses-catalog or earlier
+    const originalLength = screenHistoryRef.current.length;
+    const newHistory = [...screenHistoryRef.current];
+    while (newHistory.length > 0) {
+      const last = newHistory[newHistory.length - 1];
+      if (last === "calibration-guide") {
+        newHistory.pop();
       } else {
-        setScreen("glasses-catalog");
+        break;
       }
-      return newHistory;
-    });
+    }
+    const previousScreen = newHistory.length > 0 ? newHistory.pop()! : "glasses-catalog";
+    screenHistoryRef.current = newHistory;
+    setScreenHistory(newHistory);
+    setScreen(previousScreen);
+    screenRef.current = previousScreen;
+    // Go back in browser history for each popped entry
+    const poppedCount = originalLength - newHistory.length;
+    isNavigatingRef.current = true;
+    for (let i = 0; i < poppedCount; i++) {
+      window.history.back();
+    }
+    setTimeout(() => { isNavigatingRef.current = false; }, 100);
   }, []);
 
   // Prevent body scroll when on splash

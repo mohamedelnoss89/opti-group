@@ -55,6 +55,13 @@ export default function Scanner({ onResult, onBack }: ScannerProps) {
   // Start camera
   const startCamera = useCallback(async (facing: "user" | "environment") => {
     try {
+      // Check if camera is available (HTTPS or localhost required)
+      if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+        setErrorMsg("الكاميرا غير متاحة. تأكد من استخدام HTTPS أو localhost.");
+        setState("error");
+        return false;
+      }
+
       if (streamRef.current) streamRef.current.getTracks().forEach((t) => t.stop());
       const stream = await navigator.mediaDevices.getUserMedia({
         video: { facingMode: facing, width: { ideal: 640 }, height: { ideal: 480 } },
@@ -70,7 +77,11 @@ export default function Scanner({ onResult, onBack }: ScannerProps) {
       const msg =
         err instanceof DOMException && err.name === "NotAllowedError"
           ? "تم رفض إذن الكاميرا. يرجى السماح بالوصول إلى الكاميرا من إعدادات المتصفح."
-          : "حدث خطأ أثناء الوصول إلى الكاميرا.";
+          : err instanceof DOMException && err.name === "NotFoundError"
+          ? "لم يتم العثور على كاميرا في هذا الجهاز."
+          : err instanceof DOMException && err.name === "NotReadableError"
+          ? "الكاميرا قيد الاستخدام من تطبيق آخر."
+          : "حدث خطأ أثناء الوصول إلى الكاميرا. جرب رفع صورة بدلاً من ذلك.";
       setErrorMsg(msg);
       setState("error");
       return false;

@@ -74,6 +74,7 @@ export default function GlassesTryOn({
   const [isAutoMode, setIsAutoMode] = useState(false);
   const [autoCountdown, setAutoCountdown] = useState(0);
   const [cameraError, setCameraError] = useState("");
+  const [cameraReady, setCameraReady] = useState(false);
 
   const videoRef = useRef<HTMLVideoElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
@@ -237,16 +238,30 @@ export default function GlassesTryOn({
     setAutoPositioned(false);
   }, [stage, autoPositioned, faceResult]);
 
+  // Stop camera stream helper
+  const stopCamera = useCallback(() => {
+    if (streamRef.current) {
+      streamRef.current.getTracks().forEach((t) => t.stop());
+      streamRef.current = null;
+    }
+    setCameraReady(false);
+  }, []);
+
   // Start camera when entering capture stage (useEffect ensures video element is mounted first)
   useEffect(() => {
     if (stage === "capture") {
       setCameraError("");
+      setCameraReady(false);
       startCamera(facingMode).then((ok) => {
-        if (!ok) {
-          // Don't go back to selection - show error and let user try upload instead
+        if (ok) {
+          setCameraReady(true);
         }
       });
+    } else {
+      // Stop camera when leaving capture stage
+      stopCamera();
     }
+    // Only depend on stage, not facingMode - toggleCamera handles camera restart itself
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [stage]);
 
@@ -289,6 +304,8 @@ export default function GlassesTryOn({
   const capturePhoto = useCallback(() => {
     if (!videoRef.current || !canvasRef.current) return;
     const video = videoRef.current;
+    // Check that video has actual content (not a blank/black frame)
+    if (video.readyState < 2 || video.videoWidth === 0 || video.videoHeight === 0) return;
     const canvas = canvasRef.current;
     canvas.width = video.videoWidth;
     canvas.height = video.videoHeight;
@@ -379,12 +396,12 @@ export default function GlassesTryOn({
     };
   }, [isAutoMode, stage, autoCountdown]);
 
-  // Auto-capture when countdown reaches 0
+  // Auto-capture when countdown reaches 0 AND camera is ready
   useEffect(() => {
-    if (isAutoMode && stage === "capture" && autoCountdown === 0) {
+    if (isAutoMode && stage === "capture" && autoCountdown === 0 && cameraReady) {
       capturePhoto();
     }
-  }, [isAutoMode, stage, autoCountdown, capturePhoto]);
+  }, [isAutoMode, stage, autoCountdown, cameraReady, capturePhoto]);
 
   // Cancel auto mode when user manually captures
   const handleManualCapture = useCallback(() => {
@@ -585,7 +602,7 @@ export default function GlassesTryOn({
   const renderHeader = (title: string, subtitle: string) => (
     <div className="flex items-center justify-between p-4">
       <Button
-        onClick={stage === "tryon" ? onBack : stage === "capture" ? () => setStage("selection") : onBack}
+        onClick={stage === "tryon" ? onBack : stage === "capture" ? () => { stopCamera(); setStage("selection"); } : onBack}
         variant="ghost"
         size="icon"
         className="w-10 h-10 rounded-xl hover:bg-white/5"
