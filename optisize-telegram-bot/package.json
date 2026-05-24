@@ -1,0 +1,18 @@
+{
+  "name": "optisize-telegram-bot",
+  "version": "1.0.0",
+  "description": "OptiSize Telegram Bot - Eye Health Subscription & Receipt Verification",
+  "main": "index.js",
+  "scripts": {
+    "start": "node index.js",
+    "dev": "node index.js"
+  },
+  "dependencies": {
+    "node-telegram-bot-api": "^0.66.0",
+    "@google/generative-ai": "^0.21.0",
+    "express": "^4.18.2"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  }
+}
