@@ -239,7 +239,7 @@ export default function MainMenu({
               }}
             >
               <Languages className="w-3 h-3" />
-              {locale === "ar" ? "EN" : "عربي"}
+              <span className="hidden sm:inline">{locale === "ar" ? "EN" : "عربي"}</span>
             </button>
           </div>
           <div className="grid grid-cols-1 gap-3">
