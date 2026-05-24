@@ -16,11 +16,9 @@ import { Button } from "@/components/ui/button";
 import {
   initializeDetection,
   detectFace,
-  drawFaceOverlay,
+  drawStaticFaceGuide,
   calculatePD,
   getDetectionMethod,
-  shouldKeepLastPosition,
-  getLastSmoothedDetection,
   resetStabilization,
 } from "@/lib/faceDetection";
 
@@ -52,6 +50,7 @@ export default function Scanner({ onResult, onBack }: ScannerProps) {
   const scanLineRef = useRef(0);
   const latestPD = useRef<number | null>(null);
   const modelReady = useRef(false);
+  const guideDrawn = useRef(false); // Track if static guide is already drawn
 
   // Start camera
   const startCamera = useCallback(async (facing: "user" | "environment") => {
@@ -135,60 +134,43 @@ export default function Scanner({ onResult, onBack }: ScannerProps) {
       if (canvas.width !== tw || canvas.height !== th) {
         canvas.width = tw;
         canvas.height = th;
+        guideDrawn.current = false; // Redraw guide on resize
       }
 
       if (modelReady.current) {
         try {
+          // Detect face in background for PD calculation
           const det = await detectFace(video);
           if (!running) return;
+          
           if (det) {
+            // Face detected - calculate PD from landmarks (background)
             latestPD.current = calculatePD(det.landmarks);
             setCurrentPD(latestPD.current);
             setFaceDetected(true);
-            drawFaceOverlay(canvas, det, scanLineRef.current);
-          } else if (shouldKeepLastPosition()) {
-            // Face briefly lost - keep showing last stable position for smooth experience
-            const lastDet = getLastSmoothedDetection();
-            if (lastDet) {
-              drawFaceOverlay(canvas, lastDet, scanLineRef.current);
-              // Keep face detected status for a few frames
-            }
           } else {
-            // Face truly lost after multiple missed frames
-            latestPD.current = null;
-            setCurrentPD(null);
             setFaceDetected(false);
-            resetStabilization();
-            ctx.clearRect(0, 0, canvas.width, canvas.height);
           }
+
+          // ALWAYS draw the STATIC guide in the center - it never moves
+          drawStaticFaceGuide(canvas, !!det);
         } catch {
-          latestPD.current = null;
+          // Still draw the static guide even on error
+          drawStaticFaceGuide(canvas, false);
           setFaceDetected(false);
         }
       } else {
-        // No model: just draw scan line
-        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        // No model: draw static guide anyway
+        drawStaticFaceGuide(canvas, false);
         setFaceDetected(false);
       }
 
-      // Draw scan line regardless
-      if (!faceDetected) {
-        const sy = scanLineRef.current * 2;
-        const g = ctx.createLinearGradient(0, sy, 0, sy + 30);
-        g.addColorStop(0, "rgba(0, 240, 255, 0)");
-        g.addColorStop(0.5, "rgba(0, 240, 255, 0.15)");
-        g.addColorStop(1, "rgba(0, 240, 255, 0)");
-        ctx.fillStyle = g;
-        ctx.fillRect(0, sy, canvas.width, 30);
-      }
-
-      scanLineRef.current = scanLineRef.current >= 100 ? 0 : scanLineRef.current + 1;
       animFrameRef.current = requestAnimationFrame(loop);
     }
 
     animFrameRef.current = requestAnimationFrame(loop);
     return () => { running = false; if (animFrameRef.current) cancelAnimationFrame(animFrameRef.current); };
-  }, [state, faceDetected]);
+  }, [state]);
 
   // CAPTURE - always works
   const handleCapture = useCallback(() => {
@@ -232,7 +214,6 @@ export default function Scanner({ onResult, onBack }: ScannerProps) {
     const h = video.videoHeight;
     if (w === 0 || h === 0) return 63;
 
-    // Use canvas to analyze the frame for face region
     const c = document.createElement("canvas");
     c.width = w;
     c.height = h;
@@ -240,7 +221,6 @@ export default function Scanner({ onResult, onBack }: ScannerProps) {
     if (!ctx) return 63;
     ctx.drawImage(video, 0, 0);
 
-    // Simple skin color detection to find face region
     const imageData = ctx.getImageData(0, 0, w, h);
     const data = imageData.data;
 
@@ -252,7 +232,6 @@ export default function Scanner({ onResult, onBack }: ScannerProps) {
         const i = (y * w + x) * 4;
         const r = data[i], g = data[i + 1], b = data[i + 2];
 
-        // Skin color detection in RGB
         if (r > 95 && g > 40 && b > 20 && r > g && r > b && (r - g) > 15 && (r - b) > 15) {
           skinPixels++;
           if (x < minX) minX = x;
@@ -265,10 +244,8 @@ export default function Scanner({ onResult, onBack }: ScannerProps) {
 
     if (skinPixels > 100 && (maxX - minX) > 50) {
       const faceWidthPx = maxX - minX;
-      // PD ≈ 43% of face width, and average face width ≈ 140mm
       const faceWidthMM = 140;
       const pdMM = (faceWidthPx * 0.43 / faceWidthPx) * faceWidthMM;
-      // Apply correction: face in camera is wider than actual due to perspective
       const corrected = pdMM * 0.92;
       return Math.round(Math.max(50, Math.min(80, corrected)) * 10) / 10;
     }
@@ -295,6 +272,7 @@ export default function Scanner({ onResult, onBack }: ScannerProps) {
       setCurrentPD(null);
       latestPD.current = null;
       setFaceDetected(false);
+      resetStabilization();
       setState("ready");
     }
   }, [facingMode, startCamera]);
@@ -308,6 +286,7 @@ export default function Scanner({ onResult, onBack }: ScannerProps) {
     setErrorMsg("");
     setFaceDetected(false);
     latestPD.current = null;
+    resetStabilization();
     setState("loading");
     initializeDetection()
       .then(() => startCamera(facingMode).then((ok) => { if (ok) setState("ready"); }))
@@ -389,22 +368,26 @@ export default function Scanner({ onResult, onBack }: ScannerProps) {
           )}
         </AnimatePresence>
 
-        {/* Corner guides */}
-        {state === "ready" && (
-          <>
-            <div className="absolute top-3 right-3 w-8 h-8 border-t-2 border-r-2 rounded-tr-lg" style={{ borderColor: "rgba(0, 240, 255, 0.6)" }} />
-            <div className="absolute top-3 left-3 w-8 h-8 border-t-2 border-l-2 rounded-tl-lg" style={{ borderColor: "rgba(0, 240, 255, 0.6)" }} />
-            <div className="absolute bottom-3 right-3 w-8 h-8 border-b-2 border-r-2 rounded-br-lg" style={{ borderColor: "rgba(0, 240, 255, 0.6)" }} />
-            <div className="absolute bottom-3 left-3 w-8 h-8 border-b-2 border-l-2 rounded-bl-lg" style={{ borderColor: "rgba(0, 240, 255, 0.6)" }} />
-          </>
-        )}
-
         {/* Status badge */}
         {state === "ready" && (
           <motion.div initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }} className="absolute top-4 left-1/2 -translate-x-1/2 px-4 py-2 rounded-full flex items-center gap-2" style={{ background: faceDetected ? "rgba(0, 212, 170, 0.15)" : "rgba(251, 191, 36, 0.15)", border: `1px solid ${faceDetected ? "rgba(0, 212, 170, 0.3)" : "rgba(251, 191, 36, 0.3)"}` }}>
             <div className="w-2 h-2 rounded-full" style={{ background: faceDetected ? "#00d4aa" : "#fbbf24", boxShadow: `0 0 6px ${faceDetected ? "rgba(0,212,170,0.6)" : "rgba(251,191,36,0.6)"}` }} />
             <p className="text-xs font-medium" style={{ color: faceDetected ? "#00d4aa" : "#fbbf24" }}>
-              {faceDetected ? "تم الكشف عن الوجه" : "وجّه وجهك نحو الكاميرا"}
+              {faceDetected ? "تم الكشف عن الوجه" : "وجّه وجهك نحو الإطار"}
+            </p>
+          </motion.div>
+        )}
+
+        {/* Bottom instruction */}
+        {state === "ready" && !faceDetected && (
+          <motion.div 
+            initial={{ opacity: 0, y: 10 }} 
+            animate={{ opacity: 1, y: 0 }} 
+            className="absolute bottom-4 left-1/2 -translate-x-1/2 px-4 py-2 rounded-full"
+            style={{ background: "rgba(251, 191, 36, 0.1)", border: "1px solid rgba(251, 191, 36, 0.2)" }}
+          >
+            <p className="text-xs font-medium text-center" style={{ color: "#fbbf24" }}>
+              حط وشك في النص بحيث عيونك تكون جوا الدوائر
             </p>
           </motion.div>
         )}
@@ -416,16 +399,14 @@ export default function Scanner({ onResult, onBack }: ScannerProps) {
         {currentPD !== null && state === "ready" && (
           <motion.div initial={{ opacity: 0, scale: 0.9 }} animate={{ opacity: 1, scale: 1 }} className="text-center mb-3">
             <p className="text-xs mb-1" style={{ color: "#64748b" }}>مسافة البؤبؤ</p>
-            <p className="text-4xl font-bold" style={{ color: "#00f0ff" }}>{currentPD} <span className="text-base font-normal" style={{ color: "#64748b" }}>مم</span></p>
+            <p className="text-4xl font-bold" style={{ color: faceDetected ? "#00d4aa" : "#00f0ff" }}>{currentPD} <span className="text-base font-normal" style={{ color: "#64748b" }}>مم</span></p>
           </motion.div>
         )}
-
-
 
         {/* Instruction */}
         {state === "ready" && (
           <p className="text-xs text-center mb-4" style={{ color: "#94a3b8" }}>
-            {capturesDone === 0 ? "اضغط زر التصوير لبدء القياس" : "تم الالتقاط"}
+            {capturesDone === 0 ? (faceDetected ? "وجهك في المكان الصح! اضغط التصوير" : "وجّه وجهك في منتصف الإطار") : "تم الالتقاط"}
           </p>
         )}
 
@@ -436,21 +417,21 @@ export default function Scanner({ onResult, onBack }: ScannerProps) {
               <SwitchCamera className="w-5 h-5" />
             </motion.button>
 
-            {/* CAPTURE BUTTON - ALWAYS ENABLED */}
+            {/* CAPTURE BUTTON */}
             <motion.button
               whileTap={{ scale: 0.85 }}
               onClick={handleCapture}
               disabled={capturesDone >= CAPTURE_COUNT}
               className="relative w-[72px] h-[72px] rounded-full flex items-center justify-center"
               style={{
-                background: capturesDone >= CAPTURE_COUNT ? "rgba(255,255,255,0.15)" : "linear-gradient(135deg, #00f0ff, #0080ff)",
+                background: capturesDone >= CAPTURE_COUNT ? "rgba(255,255,255,0.15)" : faceDetected ? "linear-gradient(135deg, #00d4aa, #0080ff)" : "linear-gradient(135deg, #00f0ff, #0080ff)",
                 opacity: capturesDone >= CAPTURE_COUNT ? 0.4 : 1,
-                boxShadow: capturesDone >= CAPTURE_COUNT ? "none" : "0 0 30px rgba(0,240,255,0.4), 0 0 60px rgba(0,128,255,0.2)",
+                boxShadow: capturesDone >= CAPTURE_COUNT ? "none" : faceDetected ? "0 0 30px rgba(0,212,170,0.4), 0 0 60px rgba(0,128,255,0.2)" : "0 0 30px rgba(0,240,255,0.4), 0 0 60px rgba(0,128,255,0.2)",
                 transition: "all 0.3s ease",
                 cursor: capturesDone >= CAPTURE_COUNT ? "default" : "pointer",
               }}
             >
-              <div className="absolute inset-0 rounded-full" style={{ border: capturesDone >= CAPTURE_COUNT ? "3px solid rgba(255,255,255,0.2)" : "3px solid rgba(0,240,255,0.6)" }} />
+              <div className="absolute inset-0 rounded-full" style={{ border: capturesDone >= CAPTURE_COUNT ? "3px solid rgba(255,255,255,0.2)" : faceDetected ? "3px solid rgba(0,212,170,0.6)" : "3px solid rgba(0,240,255,0.6)" }} />
               <div className="w-14 h-14 rounded-full flex items-center justify-center" style={{ background: capturesDone >= CAPTURE_COUNT ? "rgba(255,255,255,0.05)" : "rgba(0,240,255,0.15)" }}>
                 <Camera className="w-7 h-7" style={{ color: capturesDone >= CAPTURE_COUNT ? "#94a3b8" : "#0a0e1a" }} />
               </div>

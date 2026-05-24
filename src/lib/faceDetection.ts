@@ -1,5 +1,6 @@
 // Face detection library using face-api.js
-// Supports both native face-api.js and fallback estimation
+// Visual overlay is STATIC and CENTERED - user positions their face into the guide
+// Face detection still runs in background for PD calculation
 
 type DetectionMethod = "none" | "native" | "cdn";
 
@@ -23,153 +24,10 @@ interface FaceDetection {
   score: number;
 }
 
-// ====== Stabilization: Ultra-smooth landmarks across frames ======
-// Very low factor = very stable markers that barely jitter
-const SMOOTH_FACTOR = 0.08; // Ultra-smooth (0.05 = frozen, 0.15 = slightly responsive)
-const DEAD_ZONE_PX = 3; // Movements less than this many pixels are ignored entirely
-let smoothedLandmarks: FaceDetection["landmarks"] | null = null;
-let smoothedBox: FaceDetection["box"] | null = null;
-let stableFrameCount = 0;
-let lostFrameCount = 0;
-const MAX_LOST_FRAMES = 5; // Keep showing last known position for a few frames
-
-function smoothPoint(
-  current: { x: number; y: number },
-  previous: { x: number; y: number } | undefined,
-  factor: number
-): { x: number; y: number } {
-  if (!previous) return current;
-
-  // Dead zone: if movement is tiny, don't update at all
-  const dx = current.x - previous.x;
-  const dy = current.y - previous.y;
-  const dist = Math.sqrt(dx * dx + dy * dy);
-  if (dist < DEAD_ZONE_PX) {
-    return { x: previous.x, y: previous.y };
-  }
-
-  // For larger movements, apply exponential smoothing
-  // This makes the markers "snap" less and glide smoothly
-  return {
-    x: previous.x + dx * factor,
-    y: previous.y + dy * factor,
-  };
-}
-
-function stabilizeDetection(detection: FaceDetection): FaceDetection {
-  lostFrameCount = 0; // Reset lost counter since we have a detection
-
-  if (!smoothedLandmarks || !smoothedBox) {
-    // First detection - use as-is but store it
-    smoothedLandmarks = {
-      leftEye: { ...detection.landmarks.leftEye },
-      rightEye: { ...detection.landmarks.rightEye },
-      nose: { ...detection.landmarks.nose },
-      mouth: { ...detection.landmarks.mouth },
-      jawLine: detection.landmarks.jawLine.map(p => ({ ...p })),
-    };
-    // Derive face box from landmarks for stability
-    smoothedBox = deriveBoxFromLandmarks(detection.landmarks);
-    stableFrameCount = 1;
-    return detection;
-  }
-
-  stableFrameCount++;
-
-  // As stability increases, make smoothing even stronger (less responsive = more stable)
-  // After many frames, the markers become almost locked in place
-  const adaptiveFactor = stableFrameCount > 15
-    ? Math.max(SMOOTH_FACTOR * 0.5, 0.03)  // Very locked after 15 frames
-    : stableFrameCount > 5
-    ? SMOOTH_FACTOR * 0.7  // Getting more stable
-    : SMOOTH_FACTOR;  // Initial smoothing
-
-  // Smooth all landmark points
-  const smoothed: FaceDetection = {
-    box: deriveBoxFromLandmarks({
-      leftEye: smoothPoint(detection.landmarks.leftEye, smoothedLandmarks.leftEye, adaptiveFactor),
-      rightEye: smoothPoint(detection.landmarks.rightEye, smoothedLandmarks.rightEye, adaptiveFactor),
-      nose: smoothPoint(detection.landmarks.nose, smoothedLandmarks.nose, adaptiveFactor),
-      mouth: smoothPoint(detection.landmarks.mouth, smoothedLandmarks.mouth, adaptiveFactor),
-      jawLine: detection.landmarks.jawLine.map((p, i) =>
-        smoothPoint(p, smoothedLandmarks!.jawLine[i], adaptiveFactor)
-      ),
-    }),
-    landmarks: {
-      leftEye: smoothPoint(detection.landmarks.leftEye, smoothedLandmarks.leftEye, adaptiveFactor),
-      rightEye: smoothPoint(detection.landmarks.rightEye, smoothedLandmarks.rightEye, adaptiveFactor),
-      nose: smoothPoint(detection.landmarks.nose, smoothedLandmarks.nose, adaptiveFactor),
-      mouth: smoothPoint(detection.landmarks.mouth, smoothedLandmarks.mouth, adaptiveFactor),
-      jawLine: detection.landmarks.jawLine.map((p, i) =>
-        smoothPoint(p, smoothedLandmarks!.jawLine[i], adaptiveFactor)
-      ),
-    },
-    score: detection.score,
-  };
-
-  // Store for next frame
-  smoothedLandmarks = {
-    leftEye: { ...smoothed.landmarks.leftEye },
-    rightEye: { ...smoothed.landmarks.rightEye },
-    nose: { ...smoothed.landmarks.nose },
-    mouth: { ...smoothed.landmarks.mouth },
-    jawLine: smoothed.landmarks.jawLine.map(p => ({ ...p })),
-  };
-  smoothedBox = { ...smoothed.box };
-
-  return smoothed;
-}
-
-// Derive a stable face bounding box from landmarks instead of using the jittery detection box
-function deriveBoxFromLandmarks(landmarks: FaceDetection["landmarks"]): FaceDetection["box"] {
-  // Collect all landmark points
-  const allPoints = [
-    landmarks.leftEye,
-    landmarks.rightEye,
-    landmarks.nose,
-    landmarks.mouth,
-    ...landmarks.jawLine,
-  ];
-
-  const minX = Math.min(...allPoints.map(p => p.x));
-  const maxX = Math.max(...allPoints.map(p => p.x));
-  const minY = Math.min(...allPoints.map(p => p.y));
-  const maxY = Math.max(...allPoints.map(p => p.y));
-
-  // Add padding around the landmarks
-  const paddingX = (maxX - minX) * 0.15;
-  const paddingY = (maxY - minY) * 0.15;
-
-  return {
-    x: minX - paddingX,
-    y: minY - paddingY,
-    width: (maxX - minX) + paddingX * 2,
-    height: (maxY - minY) + paddingY * 2,
-  };
-}
-
-// Check if we should keep showing the last known position
-export function shouldKeepLastPosition(): boolean {
-  return smoothedLandmarks !== null && lostFrameCount < MAX_LOST_FRAMES;
-}
-
-// Get the last smoothed detection (for brief face losses)
-export function getLastSmoothedDetection(): FaceDetection | null {
-  if (!smoothedLandmarks || !smoothedBox) return null;
-  lostFrameCount++;
-  return {
-    box: smoothedBox,
-    landmarks: smoothedLandmarks,
-    score: 0.5,
-  };
-}
-
-// Reset stabilization (call when face is lost)
-export function resetStabilization(): void {
-  smoothedLandmarks = null;
-  smoothedBox = null;
-  stableFrameCount = 0;
-}
+// ====== PD Stabilization: Smooth PD readings across frames ======
+let smoothedPD: number | null = null;
+const PD_SMOOTH_FACTOR = 0.15; // Smooth PD value to avoid jumps
+let pdSampleCount = 0;
 
 // Initialize face detection models
 export async function initializeDetection(): Promise<void> {
@@ -203,7 +61,7 @@ export function getDetectionMethod(): DetectionMethod {
   return detectionMethod;
 }
 
-// Detect face in video frame
+// Detect face in video frame (for PD calculation only, NOT for overlay position)
 export async function detectFace(
   video: HTMLVideoElement
 ): Promise<FaceDetection | null> {
@@ -221,8 +79,6 @@ export async function detectFace(
       .withFaceLandmarks();
 
     if (!detection) {
-      // Don't reset immediately - face detection can miss frames
-      // The Scanner component will use shouldKeepLastPosition() for brief losses
       return null;
     }
 
@@ -254,7 +110,7 @@ export async function detectFace(
       y: mouth.reduce((sum, p) => sum + p.y, 0) / mouth.length,
     };
 
-    const rawDetection: FaceDetection = {
+    return {
       box: {
         x: detection.detection.box.x,
         y: detection.detection.box.y,
@@ -270,34 +126,27 @@ export async function detectFace(
       },
       score: detection.detection.score,
     };
-
-    // Apply stabilization to reduce jitter
-    return stabilizeDetection(rawDetection);
   } catch {
     return null;
   }
 }
 
 // Calculate PD from face landmarks with improved accuracy
-// Uses biometric ratios validated against clinical PD measurements
 export function calculatePD(landmarks: FaceDetection["landmarks"]): number {
   // Step 1: Calculate pixel distance between eye centers
   const dx = landmarks.rightEye.x - landmarks.leftEye.x;
   const dy = landmarks.rightEye.y - landmarks.leftEye.y;
   const eyePixelDist = Math.sqrt(dx * dx + dy * dy);
 
-  // Step 2: Determine face width in pixels using jawline (most reliable reference)
+  // Step 2: Determine face width in pixels using jawline
   let faceWidthPx = 0;
   if (landmarks.jawLine.length >= 5) {
-    // Use middle portion of jawline (cheek to cheek) for more stable measurement
-    // Jawline points: 0-4 are right side, 5-8 are chin, 9-12 are left side
     const rightJaw = landmarks.jawLine.slice(0, 4);
     const leftJaw = landmarks.jawLine.slice(landmarks.jawLine.length - 4);
     const rightX = Math.max(...rightJaw.map(p => p.x));
     const leftX = Math.min(...leftJaw.map(p => p.x));
     faceWidthPx = rightX - leftX;
     
-    // If jawline width seems too narrow, use all points
     const fullJawWidth = Math.max(...landmarks.jawLine.map(p => p.x)) - Math.min(...landmarks.jawLine.map(p => p.x));
     if (faceWidthPx < fullJawWidth * 0.8) {
       faceWidthPx = fullJawWidth;
@@ -305,25 +154,15 @@ export function calculatePD(landmarks: FaceDetection["landmarks"]): number {
   }
 
   // Step 3: Calculate PD using biometric ratio
-  // Clinical reference: PD/FaceWidth ≈ 0.42-0.46 for adults (avg 0.43)
-  // Face width (bizygionic) ≈ 130-145mm for adults (avg 137mm)
   const avgFaceWidthMM = 137;
   const pdToFaceWidthRatio = 0.43;
   
   let pdMM: number;
   
   if (faceWidthPx > 50) {
-    // Primary method: Use jawline-based face width as reference
-    // This is more accurate than a fixed pixel-to-mm ratio because it self-calibrates
-    // based on the detected face size
     pdMM = (eyePixelDist / faceWidthPx) * avgFaceWidthMM * pdToFaceWidthRatio;
-    
-    // Perspective correction: front camera has slight barrel distortion
-    // This corrects the ~3-5% overestimation from wide-angle lenses
-    pdMM *= 0.97;
+    pdMM *= 0.97; // Perspective correction
   } else {
-    // Fallback: Use distance between nose and eyes as scale reference
-    // Average distance from nose bridge to midpoint between eyes ≈ 12mm
     const eyeMidX = (landmarks.leftEye.x + landmarks.rightEye.x) / 2;
     const eyeMidY = (landmarks.leftEye.y + landmarks.rightEye.y) / 2;
     const noseToEyesPx = Math.sqrt(
@@ -332,30 +171,62 @@ export function calculatePD(landmarks: FaceDetection["landmarks"]): number {
     );
     
     if (noseToEyesPx > 5) {
-      // nose-to-eyes distance ≈ 12mm on average
       const pixelsPerMM = noseToEyesPx / 12;
       pdMM = eyePixelDist / pixelsPerMM;
-      pdMM *= 0.98; // slight correction
+      pdMM *= 0.98;
     } else {
-      // Last resort: use typical webcam calibration
-      // At 640px width, average PD of 63mm spans ~21% of width
       pdMM = eyePixelDist * 0.21;
     }
   }
 
-  // Step 4: Apply demographic correction
-  // The calculation above assumes average adult proportions
-  // No gender/age correction applied since we don't have that data
-  
-  // Clamp to realistic human PD range (45-80mm covers children to large adults)
-  return Math.round(Math.max(45, Math.min(80, pdMM)) * 10) / 10;
+  const rawPD = Math.round(Math.max(45, Math.min(80, pdMM)) * 10) / 10;
+
+  // Smooth the PD reading to avoid jumps
+  if (smoothedPD === null) {
+    smoothedPD = rawPD;
+    pdSampleCount = 1;
+  } else {
+    pdSampleCount++;
+    // Only apply smoothing if the new value is within reasonable range
+    const diff = Math.abs(rawPD - smoothedPD);
+    if (diff < 10) {
+      // Normal variation - smooth it
+      smoothedPD = smoothedPD + (rawPD - smoothedPD) * PD_SMOOTH_FACTOR;
+      smoothedPD = Math.round(smoothedPD * 10) / 10;
+    } else {
+      // Big jump - likely a detection error, ignore
+      // But if we keep getting the same big value, slowly accept it
+      if (pdSampleCount > 20 && diff < 15) {
+        smoothedPD = smoothedPD + (rawPD - smoothedPD) * 0.05;
+        smoothedPD = Math.round(smoothedPD * 10) / 10;
+      }
+    }
+  }
+
+  return smoothedPD;
 }
 
-// Draw face overlay on canvas - stable and centered
-export function drawFaceOverlay(
+// Reset PD stabilization
+export function resetStabilization(): void {
+  smoothedPD = null;
+  pdSampleCount = 0;
+}
+
+// Keep for compatibility - but we don't need these anymore
+export function shouldKeepLastPosition(): boolean {
+  return false;
+}
+
+export function getLastSmoothedDetection(): null {
+  return null;
+}
+
+// ====== Draw STATIC centered face guide overlay ======
+// This overlay does NOT move - it stays centered on screen
+// The user positions their face to align with this fixed guide
+export function drawStaticFaceGuide(
   canvas: HTMLCanvasElement,
-  detection: FaceDetection,
-  scanLineY: number
+  faceDetected: boolean
 ): void {
   const ctx = canvas.getContext("2d");
   if (!ctx) return;
@@ -367,108 +238,134 @@ export function drawFaceOverlay(
   const scaleX = w / (canvas.clientWidth || 1);
   const scaleY = h / (canvas.clientHeight || 1);
 
-  const { landmarks, box } = detection;
+  // ====== ALL POSITIONS ARE FIXED - CENTERED ON SCREEN ======
+  const centerX = w / 2;
+  const centerY = h / 2;
 
-  // ====== Draw stable face oval (centered on landmarks) ======
-  // Use the face box to derive a smooth oval centered on the face
-  const faceCenterX = (landmarks.leftEye.x + landmarks.rightEye.x) / 2 * scaleX;
-  const faceCenterY = ((landmarks.leftEye.y + landmarks.rightEye.y) / 2 * 0.7 + landmarks.mouth.y * 0.3) * scaleY;
-  const faceW = box.width * scaleX * 1.15; // Slightly wider for oval shape
-  const faceH = box.height * scaleY * 1.1;  // Slightly taller for oval shape
+  // Face oval - static, centered
+  const faceOvalW = w * 0.38;  // Width of face oval
+  const faceOvalH = h * 0.55;  // Height of face oval
 
+  // Eye positions - fixed at typical eye level within the face oval
+  // Eyes are roughly at 40% from top of face oval
+  const eyesY = centerY - faceOvalH * 0.1; // Slightly above center
+  const eyeSpacing = faceOvalW * 0.28; // Distance from center to each eye
+  const leftEyeX = centerX - eyeSpacing;
+  const rightEyeX = centerX + eyeSpacing;
+
+  // Color based on face detection status
+  const guideColor = faceDetected ? "0, 212, 170" : "0, 240, 255"; // Green when detected, cyan when waiting
+  const guideAlpha = faceDetected ? 0.8 : 0.4;
+
+  // ====== Draw face oval ======
   ctx.beginPath();
-  ctx.ellipse(faceCenterX, faceCenterY, faceW / 2, faceH / 2, 0, 0, Math.PI * 2);
-  ctx.strokeStyle = "rgba(0, 240, 255, 0.25)";
+  ctx.ellipse(centerX, centerY, faceOvalW / 2, faceOvalH / 2, 0, 0, Math.PI * 2);
+  ctx.strokeStyle = `rgba(${guideColor}, ${guideAlpha * 0.5})`;
   ctx.lineWidth = 2 * scaleX;
+  ctx.setLineDash([8, 6]);
   ctx.stroke();
+  ctx.setLineDash([]);
 
-  // ====== Draw stable eye markers ======
-  const eyeRadius = 20 * scaleX;
-  const lx = landmarks.leftEye.x * scaleX;
-  const ly = landmarks.leftEye.y * scaleY;
-  const rx = landmarks.rightEye.x * scaleX;
-  const ry = landmarks.rightEye.y * scaleY;
+  // ====== Draw left eye circle (FIXED POSITION) ======
+  const eyeRadius = 22 * scaleX;
 
-  // Left eye - outer ring with glow
+  // Outer ring
   ctx.beginPath();
-  ctx.arc(lx, ly, eyeRadius, 0, Math.PI * 2);
-  ctx.strokeStyle = "rgba(0, 240, 255, 0.9)";
+  ctx.arc(leftEyeX, eyesY, eyeRadius, 0, Math.PI * 2);
+  ctx.strokeStyle = `rgba(${guideColor}, ${guideAlpha})`;
   ctx.lineWidth = 2.5 * scaleX;
   ctx.stroke();
 
-  // Left eye - glow effect
+  // Glow ring
   ctx.beginPath();
-  ctx.arc(lx, ly, eyeRadius + 4 * scaleX, 0, Math.PI * 2);
-  ctx.strokeStyle = "rgba(0, 240, 255, 0.15)";
+  ctx.arc(leftEyeX, eyesY, eyeRadius + 5 * scaleX, 0, Math.PI * 2);
+  ctx.strokeStyle = `rgba(${guideColor}, ${guideAlpha * 0.2})`;
   ctx.lineWidth = 6 * scaleX;
   ctx.stroke();
 
-  // Left eye - crosshair for precise centering
-  const crossSize = 6 * scaleX;
+  // Crosshair
+  const crossSize = 8 * scaleX;
   ctx.beginPath();
-  ctx.moveTo(lx - crossSize, ly);
-  ctx.lineTo(lx + crossSize, ly);
-  ctx.moveTo(lx, ly - crossSize);
-  ctx.lineTo(lx, ly + crossSize);
-  ctx.strokeStyle = "rgba(0, 240, 255, 0.8)";
+  ctx.moveTo(leftEyeX - crossSize, eyesY);
+  ctx.lineTo(leftEyeX + crossSize, eyesY);
+  ctx.moveTo(leftEyeX, eyesY - crossSize);
+  ctx.lineTo(leftEyeX, eyesY + crossSize);
+  ctx.strokeStyle = `rgba(${guideColor}, ${guideAlpha * 0.9})`;
   ctx.lineWidth = 1.5 * scaleX;
   ctx.stroke();
 
-  // Left eye - center dot
+  // Center dot
   ctx.beginPath();
-  ctx.arc(lx, ly, 3 * scaleX, 0, Math.PI * 2);
-  ctx.fillStyle = "rgba(0, 240, 255, 1)";
+  ctx.arc(leftEyeX, eyesY, 3 * scaleX, 0, Math.PI * 2);
+  ctx.fillStyle = `rgba(${guideColor}, 1)`;
   ctx.fill();
 
-  // Right eye - outer ring with glow
+  // ====== Draw right eye circle (FIXED POSITION) ======
+  // Outer ring
   ctx.beginPath();
-  ctx.arc(rx, ry, eyeRadius, 0, Math.PI * 2);
-  ctx.strokeStyle = "rgba(0, 240, 255, 0.9)";
+  ctx.arc(rightEyeX, eyesY, eyeRadius, 0, Math.PI * 2);
+  ctx.strokeStyle = `rgba(${guideColor}, ${guideAlpha})`;
   ctx.lineWidth = 2.5 * scaleX;
   ctx.stroke();
 
-  // Right eye - glow effect
+  // Glow ring
   ctx.beginPath();
-  ctx.arc(rx, ry, eyeRadius + 4 * scaleX, 0, Math.PI * 2);
-  ctx.strokeStyle = "rgba(0, 240, 255, 0.15)";
+  ctx.arc(rightEyeX, eyesY, eyeRadius + 5 * scaleX, 0, Math.PI * 2);
+  ctx.strokeStyle = `rgba(${guideColor}, ${guideAlpha * 0.2})`;
   ctx.lineWidth = 6 * scaleX;
   ctx.stroke();
 
-  // Right eye - crosshair for precise centering
+  // Crosshair
   ctx.beginPath();
-  ctx.moveTo(rx - crossSize, ry);
-  ctx.lineTo(rx + crossSize, ry);
-  ctx.moveTo(rx, ry - crossSize);
-  ctx.lineTo(rx, ry + crossSize);
-  ctx.strokeStyle = "rgba(0, 240, 255, 0.8)";
+  ctx.moveTo(rightEyeX - crossSize, eyesY);
+  ctx.lineTo(rightEyeX + crossSize, eyesY);
+  ctx.moveTo(rightEyeX, eyesY - crossSize);
+  ctx.lineTo(rightEyeX, eyesY + crossSize);
+  ctx.strokeStyle = `rgba(${guideColor}, ${guideAlpha * 0.9})`;
   ctx.lineWidth = 1.5 * scaleX;
   ctx.stroke();
 
-  // Right eye - center dot
+  // Center dot
   ctx.beginPath();
-  ctx.arc(rx, ry, 3 * scaleX, 0, Math.PI * 2);
-  ctx.fillStyle = "rgba(0, 240, 255, 1)";
+  ctx.arc(rightEyeX, eyesY, 3 * scaleX, 0, Math.PI * 2);
+  ctx.fillStyle = `rgba(${guideColor}, 1)`;
   ctx.fill();
 
-  // ====== Draw PD line between eyes ======
+  // ====== PD line between eyes ======
   ctx.beginPath();
-  ctx.moveTo(lx, ly);
-  ctx.lineTo(rx, ry);
-  ctx.strokeStyle = "rgba(0, 240, 255, 0.4)";
+  ctx.moveTo(leftEyeX, eyesY);
+  ctx.lineTo(rightEyeX, eyesY);
+  ctx.strokeStyle = `rgba(${guideColor}, ${guideAlpha * 0.4})`;
   ctx.lineWidth = 1.5 * scaleX;
   ctx.setLineDash([6, 4]);
   ctx.stroke();
   ctx.setLineDash([]);
 
-  // ====== Draw center vertical guide line (nose bridge) ======
-  const midX = (lx + rx) / 2;
-  const midY = (ly + ry) / 2;
+  // ====== Center vertical line (nose guide) ======
   ctx.beginPath();
-  ctx.moveTo(midX, faceCenterY - faceH / 2);
-  ctx.lineTo(midX, faceCenterY + faceH / 2);
-  ctx.strokeStyle = "rgba(0, 240, 255, 0.12)";
+  ctx.moveTo(centerX, centerY - faceOvalH / 2);
+  ctx.lineTo(centerX, centerY + faceOvalH / 2);
+  ctx.strokeStyle = `rgba(${guideColor}, ${guideAlpha * 0.15})`;
   ctx.lineWidth = 1 * scaleX;
   ctx.setLineDash([3, 6]);
   ctx.stroke();
   ctx.setLineDash([]);
+
+  // ====== "PD" label in the center ======
+  if (faceDetected) {
+    ctx.font = `bold ${12 * scaleX}px sans-serif`;
+    ctx.fillStyle = `rgba(${guideColor}, 0.7)`;
+    ctx.textAlign = "center";
+    ctx.fillText("PD", centerX, eyesY + eyeRadius + 18 * scaleY);
+  }
+}
+
+// Keep drawFaceOverlay for compatibility but redirect to static guide
+export function drawFaceOverlay(
+  canvas: HTMLCanvasElement,
+  detection: FaceDetection | null,
+  scanLineY: number,
+  faceDetected: boolean = false
+): void {
+  drawStaticFaceGuide(canvas, faceDetected || !!detection);
 }
