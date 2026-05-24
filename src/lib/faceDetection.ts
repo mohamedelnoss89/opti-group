@@ -153,15 +153,17 @@ export function calculatePD(landmarks: FaceDetection["landmarks"]): number {
     }
   }
 
-  // Step 3: Calculate PD using biometric ratio
+  // Step 3: Calculate PD
+  // The ratio (eyePixelDist / faceWidthPx) in the image is the same as (PD / FaceWidth) in real life
+  // So PD = (eyePixelDist / faceWidthPx) * avgFaceWidthMM
+  // No need to multiply by the ratio again - it's already embedded!
   const avgFaceWidthMM = 137;
-  const pdToFaceWidthRatio = 0.43;
   
   let pdMM: number;
   
   if (faceWidthPx > 50) {
-    pdMM = (eyePixelDist / faceWidthPx) * avgFaceWidthMM * pdToFaceWidthRatio;
-    pdMM *= 0.97; // Perspective correction
+    pdMM = (eyePixelDist / faceWidthPx) * avgFaceWidthMM;
+    pdMM *= 0.97; // Perspective correction for wide-angle lens
   } else {
     const eyeMidX = (landmarks.leftEye.x + landmarks.rightEye.x) / 2;
     const eyeMidY = (landmarks.leftEye.y + landmarks.rightEye.y) / 2;
@@ -242,14 +244,14 @@ export function drawStaticFaceGuide(
   const centerX = w / 2;
   const centerY = h / 2;
 
-  // Face oval - static, centered
-  const faceOvalW = w * 0.38;  // Width of face oval
-  const faceOvalH = h * 0.55;  // Height of face oval
+  // Face oval - static, centered - BIGGER to cover the face properly
+  const faceOvalW = w * 0.55;  // Width of face oval
+  const faceOvalH = h * 0.72;  // Height of face oval
 
   // Eye positions - fixed at typical eye level within the face oval
-  // Eyes are roughly at 40% from top of face oval
-  const eyesY = centerY - faceOvalH * 0.1; // Slightly above center
-  const eyeSpacing = faceOvalW * 0.28; // Distance from center to each eye
+  // Eyes are roughly at 35% from top of face oval (upper third)
+  const eyesY = centerY - faceOvalH * 0.12; // Slightly above center
+  const eyeSpacing = faceOvalW * 0.25; // Distance from center to each eye
   const leftEyeX = centerX - eyeSpacing;
   const rightEyeX = centerX + eyeSpacing;
 
@@ -267,7 +269,7 @@ export function drawStaticFaceGuide(
   ctx.setLineDash([]);
 
   // ====== Draw left eye circle (FIXED POSITION) ======
-  const eyeRadius = 22 * scaleX;
+  const eyeRadius = 28 * scaleX;
 
   // Outer ring
   ctx.beginPath();
