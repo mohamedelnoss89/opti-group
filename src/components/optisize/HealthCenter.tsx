@@ -53,10 +53,6 @@ export default function HealthCenter({
   const [showSubscription, setShowSubscription] = useState(false);
 
   const handleTestClick = (testId: string) => {
-    if (!hasSubscription) {
-      setShowSubscription(true);
-      return;
-    }
     onSelectTest(testId);
   };
 
@@ -380,32 +376,22 @@ export default function HealthCenter({
                     <div
                       className="w-12 h-12 rounded-xl flex items-center justify-center shrink-0 group-hover:scale-110 transition-transform duration-200"
                       style={{
-                        background: hasSubscription
-                          ? test.gradient
-                          : "rgba(255,255,255,0.06)",
+                        background: test.gradient,
                       }}
                     >
                       <test.icon
                         className="w-6 h-6"
-                        style={{ color: hasSubscription ? "#0a0e1a" : "#64748b" }}
+                        style={{ color: "#0a0e1a" }}
                       />
                     </div>
-                    {/* Lock icon for non-subscribers */}
-                    {!hasSubscription && (
-                      <div
-                        className="absolute -top-1 -right-1 w-5 h-5 rounded-full flex items-center justify-center"
-                        style={{ background: "rgba(124,58,237,0.2)", border: "1px solid rgba(124,58,237,0.4)" }}
-                      >
-                        <Lock className="w-2.5 h-2.5" style={{ color: "#a855f7" }} />
-                      </div>
-                    )}
+
                   </div>
                   <div className="flex-1 min-w-0">
-                    <p className="text-sm font-semibold" style={{ color: hasSubscription ? "#e2e8f0" : "#64748b" }}>
+                    <p className="text-sm font-semibold" style={{ color: "#e2e8f0" }}>
                       {test.title}
                     </p>
-                    <p className="text-[10px] mt-0.5" style={{ color: hasSubscription ? test.color : "#475569" }}>
-                      {hasSubscription ? test.subtitle : t("sub.locked")}
+                    <p className="text-[10px] mt-0.5" style={{ color: test.color }}>
+                      {test.subtitle}
                     </p>
                     <p className="text-xs mt-1 leading-relaxed" style={{ color: "#94a3b8" }}>
                       {test.description}
@@ -449,31 +435,22 @@ export default function HealthCenter({
                     <div
                       className="w-12 h-12 rounded-xl flex items-center justify-center shrink-0 group-hover:scale-110 transition-transform duration-200"
                       style={{
-                        background: hasSubscription
-                          ? tool.gradient
-                          : "rgba(255,255,255,0.06)",
+                        background: tool.gradient,
                       }}
                     >
                       <tool.icon
                         className="w-6 h-6"
-                        style={{ color: hasSubscription ? "#0a0e1a" : "#64748b" }}
+                        style={{ color: "#0a0e1a" }}
                       />
                     </div>
-                    {!hasSubscription && (
-                      <div
-                        className="absolute -top-1 -right-1 w-5 h-5 rounded-full flex items-center justify-center"
-                        style={{ background: "rgba(124,58,237,0.2)", border: "1px solid rgba(124,58,237,0.4)" }}
-                      >
-                        <Lock className="w-2.5 h-2.5" style={{ color: "#a855f7" }} />
-                      </div>
-                    )}
+
                   </div>
                   <div className="flex-1 min-w-0">
-                    <p className="text-sm font-semibold" style={{ color: hasSubscription ? "#e2e8f0" : "#64748b" }}>
+                    <p className="text-sm font-semibold" style={{ color: "#e2e8f0" }}>
                       {tool.title}
                     </p>
-                    <p className="text-[10px] mt-0.5" style={{ color: hasSubscription ? tool.color : "#475569" }}>
-                      {hasSubscription ? tool.subtitle : t("sub.locked")}
+                    <p className="text-[10px] mt-0.5" style={{ color: tool.color }}>
+                      {tool.subtitle}
                     </p>
                     <p className="text-xs mt-1 leading-relaxed" style={{ color: "#94a3b8" }}>
                       {tool.description}
