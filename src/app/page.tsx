@@ -370,11 +370,32 @@ export default function Home() {
     setSelectedGlasses(newGlasses);
   }, []);
 
-  // Try-on back → catalog
+  // Try-on back → catalog (directly, not through history)
   const handleTryOnBack = useCallback(() => {
     setSelectedGlasses(null);
-    handleBack();
-  }, [handleBack]);
+    // Navigate directly to glasses-catalog instead of using history
+    // which might go to calibration-guide (requires selectedGlasses)
+    setScreenHistory((prev) => {
+      // Pop back past calibration-guide to glasses-catalog or earlier
+      const newHistory = [...prev];
+      // Find the last screen that isn't calibration-guide
+      while (newHistory.length > 0) {
+        const last = newHistory[newHistory.length - 1];
+        if (last === "calibration-guide") {
+          newHistory.pop();
+        } else {
+          break;
+        }
+      }
+      if (newHistory.length > 0) {
+        const previousScreen = newHistory.pop()!;
+        setScreen(previousScreen);
+      } else {
+        setScreen("glasses-catalog");
+      }
+      return newHistory;
+    });
+  }, []);
 
   // Prevent body scroll when on splash
   useEffect(() => {

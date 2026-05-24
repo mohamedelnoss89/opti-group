@@ -73,6 +73,7 @@ export default function GlassesTryOn({
   const [saveSuccess, setSaveSuccess] = useState(false);
   const [isAutoMode, setIsAutoMode] = useState(false);
   const [autoCountdown, setAutoCountdown] = useState(0);
+  const [cameraError, setCameraError] = useState("");
 
   const videoRef = useRef<HTMLVideoElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
@@ -93,12 +94,20 @@ export default function GlassesTryOn({
   const startCamera = useCallback(
     async (facing: "user" | "environment"): Promise<boolean> => {
       try {
+        setCameraError("");
+
         if (streamRef.current) {
           streamRef.current.getTracks().forEach((t) => t.stop());
           streamRef.current = null;
         }
 
         if (!videoRef.current) return false;
+
+        // Check if camera is available
+        if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+          setCameraError("الكاميرا غير متاحة. تأكد من استخدام HTTPS أو localhost.");
+          return false;
+        }
 
         const stream = await navigator.mediaDevices.getUserMedia({
           video: { facingMode: facing, width: { ideal: 640 }, height: { ideal: 480 } },
@@ -108,10 +117,37 @@ export default function GlassesTryOn({
 
         const video = videoRef.current;
         video.srcObject = stream;
-        video.play().catch(() => {});
+        await video.play();
 
         return true;
-      } catch {
+      } catch (err: unknown) {
+        const error = err as DOMException;
+        if (error.name === "NotAllowedError") {
+          setCameraError("تم رفض إذن الكاميرا. يرجى السماح بالوصول للكاميرا في إعدادات المتصفح.");
+        } else if (error.name === "NotFoundError") {
+          setCameraError("لم يتم العثور على كاميرا في هذا الجهاز.");
+        } else if (error.name === "NotReadableError") {
+          setCameraError("الكاميرا قيد الاستخدام من تطبيق آخر.");
+        } else if (error.name === "OverconstrainedError") {
+          // Try without facing mode constraint
+          try {
+            const stream = await navigator.mediaDevices.getUserMedia({
+              video: true,
+              audio: false,
+            });
+            streamRef.current = stream;
+            const video = videoRef.current;
+            if (video) {
+              video.srcObject = stream;
+              await video.play();
+            }
+            return true;
+          } catch {
+            setCameraError("فشل تشغيل الكاميرا. جرب رفع صورة بدلاً من ذلك.");
+          }
+        } else {
+          setCameraError("فشل تشغيل الكاميرا. جرب رفع صورة بدلاً من ذلك.");
+        }
         return false;
       }
     },
@@ -204,9 +240,10 @@ export default function GlassesTryOn({
   // Start camera when entering capture stage (useEffect ensures video element is mounted first)
   useEffect(() => {
     if (stage === "capture") {
+      setCameraError("");
       startCamera(facingMode).then((ok) => {
         if (!ok) {
-          setStage("selection");
+          // Don't go back to selection - show error and let user try upload instead
         }
       });
     }
@@ -729,6 +766,51 @@ export default function GlassesTryOn({
               muted
               style={{ transform: facingMode === "user" ? "scaleX(-1)" : "none" }}
             />
+
+            {/* Camera Error Overlay */}
+            {cameraError && (
+              <div className="absolute inset-0 flex flex-col items-center justify-center p-6" style={{ background: "rgba(10,14,26,0.95)" }}>
+                <div
+                  className="w-16 h-16 rounded-2xl flex items-center justify-center mb-4"
+                  style={{ background: "rgba(255,59,48,0.1)", border: "1px solid rgba(255,59,48,0.2)" }}
+                >
+                  <Camera className="w-8 h-8" style={{ color: "#ff3b30" }} />
+                </div>
+                <p className="text-sm font-semibold mb-2 text-center" style={{ color: "#e2e8f0" }}>
+                  خطأ في الكاميرا
+                </p>
+                <p className="text-xs text-center mb-4" style={{ color: "#94a3b8" }}>
+                  {cameraError}
+                </p>
+                <div className="flex gap-3">
+                  <Button
+                    onClick={() => {
+                      setCameraError("");
+                      startCamera(facingMode);
+                    }}
+                    className="h-10 px-5 rounded-xl text-xs font-medium"
+                    style={{
+                      background: "linear-gradient(135deg, #00f0ff, #0080ff)",
+                      color: "#0a0e1a",
+                      border: "none",
+                    }}
+                  >
+                    إعادة المحاولة
+                  </Button>
+                  <Button
+                    onClick={handleUploadPhoto}
+                    className="h-10 px-5 rounded-xl text-xs font-medium"
+                    style={{
+                      background: "rgba(255,255,255,0.08)",
+                      border: "1px solid rgba(255,255,255,0.15)",
+                      color: "#e2e8f0",
+                    }}
+                  >
+                    رفع صورة
+                  </Button>
+                </div>
+              </div>
+            )}
 
             {/* Face guide overlay */}
             <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
