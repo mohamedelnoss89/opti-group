@@ -226,6 +226,7 @@ export function getLastSmoothedDetection(): null {
 // ====== Draw STATIC centered face guide overlay ======
 // This overlay does NOT move - it stays centered on screen
 // The user positions their face to align with this fixed guide
+// Eye circles size/spacing scale based on current PD reading
 export function drawStaticFaceGuide(
   canvas: HTMLCanvasElement,
   faceDetected: boolean
@@ -244,19 +245,28 @@ export function drawStaticFaceGuide(
   const centerX = w / 2;
   const centerY = h / 2;
 
-  // Face oval - static, centered - BIGGER to cover the face properly
-  const faceOvalW = w * 0.55;  // Width of face oval
-  const faceOvalH = h * 0.72;  // Height of face oval
+  // Face oval - static, centered
+  const faceOvalW = w * 0.55;
+  const faceOvalH = h * 0.72;
 
-  // Eye positions - fixed at typical eye level within the face oval
-  // Eyes are roughly at 35% from top of face oval (upper third)
-  const eyesY = centerY - faceOvalH * 0.12; // Slightly above center
-  const eyeSpacing = faceOvalW * 0.25; // Distance from center to each eye
+  // Eye positions - spacing based on PD measurement
+  // Average PD is 63mm, face width is ~137mm
+  // PD/FaceWidth ratio ≈ 0.46, so eye spacing ≈ 46% of face oval width
+  // When PD is known, adjust proportionally: spacing = (pd / 63) * default
+  const currentPD = smoothedPD ?? 63; // Default to average PD
+  const pdRatio = currentPD / 63; // Ratio relative to average PD
+  const eyeSpacing = (faceOvalW * 0.23) * pdRatio; // Scales with PD
+  const eyesY = centerY - faceOvalH * 0.12;
   const leftEyeX = centerX - eyeSpacing;
   const rightEyeX = centerX + eyeSpacing;
 
+  // Eye circle radius - proportional to PD (pupil size relative to spacing)
+  // Average pupil is about 4mm, PD is 63mm, so ratio ~0.063
+  // In canvas: small circle that fits the pupil area
+  const eyeRadius = Math.max(8 * scaleX, (eyeSpacing * 0.14) * pdRatio);
+
   // Color based on face detection status
-  const guideColor = faceDetected ? "0, 212, 170" : "0, 240, 255"; // Green when detected, cyan when waiting
+  const guideColor = faceDetected ? "0, 212, 170" : "0, 240, 255";
   const guideAlpha = faceDetected ? 0.8 : 0.4;
 
   // ====== Draw face oval ======
@@ -268,53 +278,37 @@ export function drawStaticFaceGuide(
   ctx.stroke();
   ctx.setLineDash([]);
 
-  // ====== Draw left eye circle (FIXED POSITION) ======
-  const eyeRadius = 28 * scaleX;
-
+  // ====== Draw left eye circle ======
   // Outer ring
   ctx.beginPath();
   ctx.arc(leftEyeX, eyesY, eyeRadius, 0, Math.PI * 2);
   ctx.strokeStyle = `rgba(${guideColor}, ${guideAlpha})`;
-  ctx.lineWidth = 2.5 * scaleX;
-  ctx.stroke();
-
-  // Glow ring
-  ctx.beginPath();
-  ctx.arc(leftEyeX, eyesY, eyeRadius + 5 * scaleX, 0, Math.PI * 2);
-  ctx.strokeStyle = `rgba(${guideColor}, ${guideAlpha * 0.2})`;
-  ctx.lineWidth = 6 * scaleX;
+  ctx.lineWidth = 2 * scaleX;
   ctx.stroke();
 
   // Crosshair
-  const crossSize = 8 * scaleX;
+  const crossSize = eyeRadius * 0.6;
   ctx.beginPath();
   ctx.moveTo(leftEyeX - crossSize, eyesY);
   ctx.lineTo(leftEyeX + crossSize, eyesY);
   ctx.moveTo(leftEyeX, eyesY - crossSize);
   ctx.lineTo(leftEyeX, eyesY + crossSize);
-  ctx.strokeStyle = `rgba(${guideColor}, ${guideAlpha * 0.9})`;
-  ctx.lineWidth = 1.5 * scaleX;
+  ctx.strokeStyle = `rgba(${guideColor}, ${guideAlpha * 0.8})`;
+  ctx.lineWidth = 1 * scaleX;
   ctx.stroke();
 
   // Center dot
   ctx.beginPath();
-  ctx.arc(leftEyeX, eyesY, 3 * scaleX, 0, Math.PI * 2);
+  ctx.arc(leftEyeX, eyesY, 2 * scaleX, 0, Math.PI * 2);
   ctx.fillStyle = `rgba(${guideColor}, 1)`;
   ctx.fill();
 
-  // ====== Draw right eye circle (FIXED POSITION) ======
+  // ====== Draw right eye circle ======
   // Outer ring
   ctx.beginPath();
   ctx.arc(rightEyeX, eyesY, eyeRadius, 0, Math.PI * 2);
   ctx.strokeStyle = `rgba(${guideColor}, ${guideAlpha})`;
-  ctx.lineWidth = 2.5 * scaleX;
-  ctx.stroke();
-
-  // Glow ring
-  ctx.beginPath();
-  ctx.arc(rightEyeX, eyesY, eyeRadius + 5 * scaleX, 0, Math.PI * 2);
-  ctx.strokeStyle = `rgba(${guideColor}, ${guideAlpha * 0.2})`;
-  ctx.lineWidth = 6 * scaleX;
+  ctx.lineWidth = 2 * scaleX;
   ctx.stroke();
 
   // Crosshair
@@ -323,13 +317,13 @@ export function drawStaticFaceGuide(
   ctx.lineTo(rightEyeX + crossSize, eyesY);
   ctx.moveTo(rightEyeX, eyesY - crossSize);
   ctx.lineTo(rightEyeX, eyesY + crossSize);
-  ctx.strokeStyle = `rgba(${guideColor}, ${guideAlpha * 0.9})`;
-  ctx.lineWidth = 1.5 * scaleX;
+  ctx.strokeStyle = `rgba(${guideColor}, ${guideAlpha * 0.8})`;
+  ctx.lineWidth = 1 * scaleX;
   ctx.stroke();
 
   // Center dot
   ctx.beginPath();
-  ctx.arc(rightEyeX, eyesY, 3 * scaleX, 0, Math.PI * 2);
+  ctx.arc(rightEyeX, eyesY, 2 * scaleX, 0, Math.PI * 2);
   ctx.fillStyle = `rgba(${guideColor}, 1)`;
   ctx.fill();
 
@@ -353,12 +347,12 @@ export function drawStaticFaceGuide(
   ctx.stroke();
   ctx.setLineDash([]);
 
-  // ====== "PD" label in the center ======
-  if (faceDetected) {
-    ctx.font = `bold ${12 * scaleX}px sans-serif`;
+  // ====== PD value label between eyes ======
+  if (faceDetected && smoothedPD !== null) {
+    ctx.font = `bold ${11 * scaleX}px sans-serif`;
     ctx.fillStyle = `rgba(${guideColor}, 0.7)`;
     ctx.textAlign = "center";
-    ctx.fillText("PD", centerX, eyesY + eyeRadius + 18 * scaleY);
+    ctx.fillText(`${smoothedPD}mm`, centerX, eyesY + eyeRadius + 14 * scaleY);
   }
 }
 
