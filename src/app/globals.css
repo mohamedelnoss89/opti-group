@@ -256,6 +256,15 @@ input:-webkit-autofill:focus {
   transition: background-color 5000s ease-in-out 0s;
 }
 
+/* ===== Hide Next.js Dev Indicator ===== */
+[next-route-announcer],
+.__next-dev-overlay,
+[data-nextjs-dialog-overlay],
+[data-nextjs-toast],
+button[aria-label="Next.js"] {
+  display: none !important;
+}
+
 /* ===== Overlay ===== */
 .overlay-dark {
   background: rgba(10, 14, 26, 0.85);
