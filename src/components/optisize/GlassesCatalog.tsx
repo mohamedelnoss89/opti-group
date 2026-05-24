@@ -190,7 +190,10 @@ export default function GlassesCatalog({ onTryOn, onBack }: GlassesCatalogProps)
                     src={glasses.image}
                     alt={glasses.nameAr}
                     className="max-h-32 w-auto object-contain drop-shadow-lg transition-transform duration-200 group-active:scale-95"
-                    style={{ filter: "drop-shadow(0 2px 8px rgba(0,0,0,0.3))" }}
+                    style={{ 
+                      filter: "drop-shadow(0 2px 8px rgba(0,0,0,0.3)) brightness(1.1) contrast(1.2)",
+                      mixBlendMode: "normal",
+                    }}
                   />
                   {/* Try-on overlay */}
                   <div

@@ -17,6 +17,7 @@ import {
   Lock,
   Crown,
   Check,
+  Glasses,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useI18n } from "@/lib/i18n";
@@ -110,8 +111,17 @@ export default function HealthCenter({
     },
   ];
 
-  // Eye Health Tools section
-  const healthTools = [
+  // Glasses & Tools section
+  const glassesAndTools = [
+    {
+      id: "glasses-catalog",
+      title: "معرض النظارات",
+      subtitle: "تجربة افتراضية للنظارات",
+      description: "جرّب نظارات مختلفة على وشك",
+      icon: Glasses,
+      gradient: "linear-gradient(135deg, #ffa500, #ff6b00)",
+      color: "#ffa500",
+    },
     {
       id: "prescription-calculator",
       title: t("health.calculator"),
@@ -407,14 +417,14 @@ export default function HealthCenter({
         {/* Separator */}
         <motion.div variants={itemVariants} className="flex items-center gap-3 py-2">
           <div className="flex-1 h-px" style={{ background: "rgba(255,255,255,0.06)" }} />
-          <span className="text-[10px]" style={{ color: "#64748b" }}>{t("health.toolsSection")}</span>
+          <span className="text-[10px]" style={{ color: "#64748b" }}>النظارات والأدوات</span>
           <div className="flex-1 h-px" style={{ background: "rgba(255,255,255,0.06)" }} />
         </motion.div>
 
-        {/* Health Tools Section */}
+        {/* Glasses & Tools Section */}
         <motion.div variants={itemVariants}>
           <div className="space-y-3">
-            {healthTools.map((tool) => (
+            {glassesAndTools.map((tool) => (
               <motion.button
                 key={tool.id}
                 onClick={() => handleTestClick(tool.id)}

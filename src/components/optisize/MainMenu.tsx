@@ -86,14 +86,6 @@ export default function MainMenu({
       vip: true,
     },
     {
-      id: "glasses-catalog",
-      label: t("menu.glasses"),
-      description: "معرض النظارات",
-      icon: Glasses,
-      gradient: "linear-gradient(135deg, #ffa500, #ff6b00)",
-      glowClass: "glow-orange",
-    },
-    {
       id: "records",
       label: t("menu.records"),
       description: "السجلات المحفوظة",

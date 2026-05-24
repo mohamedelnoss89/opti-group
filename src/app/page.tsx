@@ -280,6 +280,8 @@ export default function Home() {
       setScreen("eye-nutrition");
     } else if (testId === "light-sensitivity") {
       setScreen("light-sensitivity");
+    } else if (testId === "glasses-catalog") {
+      setScreen("glasses-catalog");
     }
   }, [screen]);
 
