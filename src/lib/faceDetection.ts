@@ -23,11 +23,15 @@ interface FaceDetection {
   score: number;
 }
 
-// ====== Stabilization: Smooth landmarks across frames ======
-const SMOOTH_FACTOR = 0.3; // Lower = smoother (0.1 very smooth, 0.9 very responsive)
+// ====== Stabilization: Ultra-smooth landmarks across frames ======
+// Very low factor = very stable markers that barely jitter
+const SMOOTH_FACTOR = 0.08; // Ultra-smooth (0.05 = frozen, 0.15 = slightly responsive)
+const DEAD_ZONE_PX = 3; // Movements less than this many pixels are ignored entirely
 let smoothedLandmarks: FaceDetection["landmarks"] | null = null;
 let smoothedBox: FaceDetection["box"] | null = null;
 let stableFrameCount = 0;
+let lostFrameCount = 0;
+const MAX_LOST_FRAMES = 5; // Keep showing last known position for a few frames
 
 function smoothPoint(
   current: { x: number; y: number },
@@ -35,13 +39,26 @@ function smoothPoint(
   factor: number
 ): { x: number; y: number } {
   if (!previous) return current;
+
+  // Dead zone: if movement is tiny, don't update at all
+  const dx = current.x - previous.x;
+  const dy = current.y - previous.y;
+  const dist = Math.sqrt(dx * dx + dy * dy);
+  if (dist < DEAD_ZONE_PX) {
+    return { x: previous.x, y: previous.y };
+  }
+
+  // For larger movements, apply exponential smoothing
+  // This makes the markers "snap" less and glide smoothly
   return {
-    x: previous.x + (current.x - previous.x) * factor,
-    y: previous.y + (current.y - previous.y) * factor,
+    x: previous.x + dx * factor,
+    y: previous.y + dy * factor,
   };
 }
 
 function stabilizeDetection(detection: FaceDetection): FaceDetection {
+  lostFrameCount = 0; // Reset lost counter since we have a detection
+
   if (!smoothedLandmarks || !smoothedBox) {
     // First detection - use as-is but store it
     smoothedLandmarks = {
@@ -51,24 +68,33 @@ function stabilizeDetection(detection: FaceDetection): FaceDetection {
       mouth: { ...detection.landmarks.mouth },
       jawLine: detection.landmarks.jawLine.map(p => ({ ...p })),
     };
-    smoothedBox = { ...detection.box };
+    // Derive face box from landmarks for stability
+    smoothedBox = deriveBoxFromLandmarks(detection.landmarks);
     stableFrameCount = 1;
     return detection;
   }
 
   stableFrameCount++;
 
-  // Adaptive smoothing: after many stable frames, increase responsiveness
-  const adaptiveFactor = stableFrameCount > 10 ? Math.min(SMOOTH_FACTOR + 0.2, 0.6) : SMOOTH_FACTOR;
+  // As stability increases, make smoothing even stronger (less responsive = more stable)
+  // After many frames, the markers become almost locked in place
+  const adaptiveFactor = stableFrameCount > 15
+    ? Math.max(SMOOTH_FACTOR * 0.5, 0.03)  // Very locked after 15 frames
+    : stableFrameCount > 5
+    ? SMOOTH_FACTOR * 0.7  // Getting more stable
+    : SMOOTH_FACTOR;  // Initial smoothing
 
   // Smooth all landmark points
   const smoothed: FaceDetection = {
-    box: {
-      x: smoothedBox.x + (detection.box.x - smoothedBox.x) * adaptiveFactor,
-      y: smoothedBox.y + (detection.box.y - smoothedBox.y) * adaptiveFactor,
-      width: smoothedBox.width + (detection.box.width - smoothedBox.width) * adaptiveFactor,
-      height: smoothedBox.height + (detection.box.height - smoothedBox.height) * adaptiveFactor,
-    },
+    box: deriveBoxFromLandmarks({
+      leftEye: smoothPoint(detection.landmarks.leftEye, smoothedLandmarks.leftEye, adaptiveFactor),
+      rightEye: smoothPoint(detection.landmarks.rightEye, smoothedLandmarks.rightEye, adaptiveFactor),
+      nose: smoothPoint(detection.landmarks.nose, smoothedLandmarks.nose, adaptiveFactor),
+      mouth: smoothPoint(detection.landmarks.mouth, smoothedLandmarks.mouth, adaptiveFactor),
+      jawLine: detection.landmarks.jawLine.map((p, i) =>
+        smoothPoint(p, smoothedLandmarks!.jawLine[i], adaptiveFactor)
+      ),
+    }),
     landmarks: {
       leftEye: smoothPoint(detection.landmarks.leftEye, smoothedLandmarks.leftEye, adaptiveFactor),
       rightEye: smoothPoint(detection.landmarks.rightEye, smoothedLandmarks.rightEye, adaptiveFactor),
@@ -92,6 +118,50 @@ function stabilizeDetection(detection: FaceDetection): FaceDetection {
   smoothedBox = { ...smoothed.box };
 
   return smoothed;
+}
+
+// Derive a stable face bounding box from landmarks instead of using the jittery detection box
+function deriveBoxFromLandmarks(landmarks: FaceDetection["landmarks"]): FaceDetection["box"] {
+  // Collect all landmark points
+  const allPoints = [
+    landmarks.leftEye,
+    landmarks.rightEye,
+    landmarks.nose,
+    landmarks.mouth,
+    ...landmarks.jawLine,
+  ];
+
+  const minX = Math.min(...allPoints.map(p => p.x));
+  const maxX = Math.max(...allPoints.map(p => p.x));
+  const minY = Math.min(...allPoints.map(p => p.y));
+  const maxY = Math.max(...allPoints.map(p => p.y));
+
+  // Add padding around the landmarks
+  const paddingX = (maxX - minX) * 0.15;
+  const paddingY = (maxY - minY) * 0.15;
+
+  return {
+    x: minX - paddingX,
+    y: minY - paddingY,
+    width: (maxX - minX) + paddingX * 2,
+    height: (maxY - minY) + paddingY * 2,
+  };
+}
+
+// Check if we should keep showing the last known position
+export function shouldKeepLastPosition(): boolean {
+  return smoothedLandmarks !== null && lostFrameCount < MAX_LOST_FRAMES;
+}
+
+// Get the last smoothed detection (for brief face losses)
+export function getLastSmoothedDetection(): FaceDetection | null {
+  if (!smoothedLandmarks || !smoothedBox) return null;
+  lostFrameCount++;
+  return {
+    box: smoothedBox,
+    landmarks: smoothedLandmarks,
+    score: 0.5,
+  };
 }
 
 // Reset stabilization (call when face is lost)
@@ -151,7 +221,8 @@ export async function detectFace(
       .withFaceLandmarks();
 
     if (!detection) {
-      resetStabilization();
+      // Don't reset immediately - face detection can miss frames
+      // The Scanner component will use shouldKeepLastPosition() for brief losses
       return null;
     }
 
@@ -280,7 +351,7 @@ export function calculatePD(landmarks: FaceDetection["landmarks"]): number {
   return Math.round(Math.max(45, Math.min(80, pdMM)) * 10) / 10;
 }
 
-// Draw face overlay on canvas
+// Draw face overlay on canvas - stable and centered
 export function drawFaceOverlay(
   canvas: HTMLCanvasElement,
   detection: FaceDetection,
@@ -298,55 +369,106 @@ export function drawFaceOverlay(
 
   const { landmarks, box } = detection;
 
-  // Draw eye circles (larger and more visible)
-  const eyeRadius = 18 * scaleX;
-  
-  // Left eye - outer ring
+  // ====== Draw stable face oval (centered on landmarks) ======
+  // Use the face box to derive a smooth oval centered on the face
+  const faceCenterX = (landmarks.leftEye.x + landmarks.rightEye.x) / 2 * scaleX;
+  const faceCenterY = ((landmarks.leftEye.y + landmarks.rightEye.y) / 2 * 0.7 + landmarks.mouth.y * 0.3) * scaleY;
+  const faceW = box.width * scaleX * 1.15; // Slightly wider for oval shape
+  const faceH = box.height * scaleY * 1.1;  // Slightly taller for oval shape
+
   ctx.beginPath();
-  ctx.arc(landmarks.leftEye.x * scaleX, landmarks.leftEye.y * scaleY, eyeRadius, 0, Math.PI * 2);
-  ctx.strokeStyle = "rgba(0, 240, 255, 0.8)";
+  ctx.ellipse(faceCenterX, faceCenterY, faceW / 2, faceH / 2, 0, 0, Math.PI * 2);
+  ctx.strokeStyle = "rgba(0, 240, 255, 0.25)";
+  ctx.lineWidth = 2 * scaleX;
+  ctx.stroke();
+
+  // ====== Draw stable eye markers ======
+  const eyeRadius = 20 * scaleX;
+  const lx = landmarks.leftEye.x * scaleX;
+  const ly = landmarks.leftEye.y * scaleY;
+  const rx = landmarks.rightEye.x * scaleX;
+  const ry = landmarks.rightEye.y * scaleY;
+
+  // Left eye - outer ring with glow
+  ctx.beginPath();
+  ctx.arc(lx, ly, eyeRadius, 0, Math.PI * 2);
+  ctx.strokeStyle = "rgba(0, 240, 255, 0.9)";
   ctx.lineWidth = 2.5 * scaleX;
   ctx.stroke();
 
-  // Left eye - inner dot (pupil marker)
+  // Left eye - glow effect
   ctx.beginPath();
-  ctx.arc(landmarks.leftEye.x * scaleX, landmarks.leftEye.y * scaleY, 3 * scaleX, 0, Math.PI * 2);
-  ctx.fillStyle = "rgba(0, 240, 255, 0.9)";
-  ctx.fill();
-
-  // Right eye - outer ring
-  ctx.beginPath();
-  ctx.arc(landmarks.rightEye.x * scaleX, landmarks.rightEye.y * scaleY, eyeRadius, 0, Math.PI * 2);
-  ctx.strokeStyle = "rgba(0, 240, 255, 0.8)";
-  ctx.lineWidth = 2.5 * scaleX;
+  ctx.arc(lx, ly, eyeRadius + 4 * scaleX, 0, Math.PI * 2);
+  ctx.strokeStyle = "rgba(0, 240, 255, 0.15)";
+  ctx.lineWidth = 6 * scaleX;
   ctx.stroke();
 
-  // Right eye - inner dot (pupil marker)
+  // Left eye - crosshair for precise centering
+  const crossSize = 6 * scaleX;
   ctx.beginPath();
-  ctx.arc(landmarks.rightEye.x * scaleX, landmarks.rightEye.y * scaleY, 3 * scaleX, 0, Math.PI * 2);
-  ctx.fillStyle = "rgba(0, 240, 255, 0.9)";
-  ctx.fill();
-
-  // Draw PD line with measurement
-  ctx.beginPath();
-  ctx.moveTo(landmarks.leftEye.x * scaleX, landmarks.leftEye.y * scaleY);
-  ctx.lineTo(landmarks.rightEye.x * scaleX, landmarks.rightEye.y * scaleY);
-  ctx.strokeStyle = "rgba(0, 240, 255, 0.5)";
+  ctx.moveTo(lx - crossSize, ly);
+  ctx.lineTo(lx + crossSize, ly);
+  ctx.moveTo(lx, ly - crossSize);
+  ctx.lineTo(lx, ly + crossSize);
+  ctx.strokeStyle = "rgba(0, 240, 255, 0.8)";
   ctx.lineWidth = 1.5 * scaleX;
-  ctx.setLineDash([5, 5]);
+  ctx.stroke();
+
+  // Left eye - center dot
+  ctx.beginPath();
+  ctx.arc(lx, ly, 3 * scaleX, 0, Math.PI * 2);
+  ctx.fillStyle = "rgba(0, 240, 255, 1)";
+  ctx.fill();
+
+  // Right eye - outer ring with glow
+  ctx.beginPath();
+  ctx.arc(rx, ry, eyeRadius, 0, Math.PI * 2);
+  ctx.strokeStyle = "rgba(0, 240, 255, 0.9)";
+  ctx.lineWidth = 2.5 * scaleX;
+  ctx.stroke();
+
+  // Right eye - glow effect
+  ctx.beginPath();
+  ctx.arc(rx, ry, eyeRadius + 4 * scaleX, 0, Math.PI * 2);
+  ctx.strokeStyle = "rgba(0, 240, 255, 0.15)";
+  ctx.lineWidth = 6 * scaleX;
+  ctx.stroke();
+
+  // Right eye - crosshair for precise centering
+  ctx.beginPath();
+  ctx.moveTo(rx - crossSize, ry);
+  ctx.lineTo(rx + crossSize, ry);
+  ctx.moveTo(rx, ry - crossSize);
+  ctx.lineTo(rx, ry + crossSize);
+  ctx.strokeStyle = "rgba(0, 240, 255, 0.8)";
+  ctx.lineWidth = 1.5 * scaleX;
+  ctx.stroke();
+
+  // Right eye - center dot
+  ctx.beginPath();
+  ctx.arc(rx, ry, 3 * scaleX, 0, Math.PI * 2);
+  ctx.fillStyle = "rgba(0, 240, 255, 1)";
+  ctx.fill();
+
+  // ====== Draw PD line between eyes ======
+  ctx.beginPath();
+  ctx.moveTo(lx, ly);
+  ctx.lineTo(rx, ry);
+  ctx.strokeStyle = "rgba(0, 240, 255, 0.4)";
+  ctx.lineWidth = 1.5 * scaleX;
+  ctx.setLineDash([6, 4]);
   ctx.stroke();
   ctx.setLineDash([]);
 
-  // Draw face box (subtle, rounded corners)
-  const boxX = box.x * scaleX;
-  const boxY = box.y * scaleY;
-  const boxW = box.width * scaleX;
-  const boxH = box.height * scaleY;
-  const cornerRadius = 12 * scaleX;
-  
-  ctx.strokeStyle = "rgba(0, 240, 255, 0.2)";
-  ctx.lineWidth = 1.5 * scaleX;
+  // ====== Draw center vertical guide line (nose bridge) ======
+  const midX = (lx + rx) / 2;
+  const midY = (ly + ry) / 2;
   ctx.beginPath();
-  ctx.roundRect(boxX, boxY, boxW, boxH, cornerRadius);
+  ctx.moveTo(midX, faceCenterY - faceH / 2);
+  ctx.lineTo(midX, faceCenterY + faceH / 2);
+  ctx.strokeStyle = "rgba(0, 240, 255, 0.12)";
+  ctx.lineWidth = 1 * scaleX;
+  ctx.setLineDash([3, 6]);
   ctx.stroke();
+  ctx.setLineDash([]);
 }

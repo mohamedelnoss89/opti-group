@@ -19,6 +19,9 @@ import {
   drawFaceOverlay,
   calculatePD,
   getDetectionMethod,
+  shouldKeepLastPosition,
+  getLastSmoothedDetection,
+  resetStabilization,
 } from "@/lib/faceDetection";
 
 interface ScannerProps {
@@ -143,10 +146,19 @@ export default function Scanner({ onResult, onBack }: ScannerProps) {
             setCurrentPD(latestPD.current);
             setFaceDetected(true);
             drawFaceOverlay(canvas, det, scanLineRef.current);
+          } else if (shouldKeepLastPosition()) {
+            // Face briefly lost - keep showing last stable position for smooth experience
+            const lastDet = getLastSmoothedDetection();
+            if (lastDet) {
+              drawFaceOverlay(canvas, lastDet, scanLineRef.current);
+              // Keep face detected status for a few frames
+            }
           } else {
+            // Face truly lost after multiple missed frames
             latestPD.current = null;
             setCurrentPD(null);
             setFaceDetected(false);
+            resetStabilization();
             ctx.clearRect(0, 0, canvas.width, canvas.height);
           }
         } catch {
