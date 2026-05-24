@@ -2,6 +2,7 @@ import type { Metadata, Viewport } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import { Toaster } from "@/components/ui/toaster";
+import InstallPrompt from "@/components/optisize/InstallPrompt";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -34,8 +35,28 @@ export const metadata: Metadata = {
     "نظارات",
     "glasses",
   ],
+  manifest: "/manifest.webmanifest",
   icons: {
-    icon: "/favicon.svg",
+    icon: [
+      { url: "/favicon.svg", type: "image/svg+xml" },
+      { url: "/icons/icon-192x192.png", sizes: "192x192", type: "image/png" },
+    ],
+    apple: [
+      { url: "/icons/apple-touch-icon.png", sizes: "180x180", type: "image/png" },
+    ],
+  },
+  appleWebApp: {
+    capable: true,
+    statusBarStyle: "black-translucent",
+    title: "OptiSize",
+  },
+  openGraph: {
+    title: "OptiSize - مركز صحة العين الشامل",
+    description:
+      "قياس مسافة البؤبؤ، اختبارات النظر، مركز صحة العين، ومعرض النظارات",
+    type: "website",
+    locale: "ar_EG",
+    siteName: "OptiSize",
   },
 };
 
@@ -47,6 +68,12 @@ export default function RootLayout({
   return (
     <html lang="ar" dir="rtl" suppressHydrationWarning>
       <head>
+        {/* PWA Meta Tags */}
+        <meta name="mobile-web-app-capable" content="yes" />
+        <meta name="application-name" content="OptiSize" />
+        <meta name="msapplication-TileColor" content="#0a0e1a" />
+        <meta name="msapplication-navbutton-color" content="#0a0e1a" />
+
         {/* Inline CSS loader - prevents FOUC / raw HTML on mobile */}
         <style
           dangerouslySetInnerHTML={{
@@ -100,6 +127,23 @@ export default function RootLayout({
             `,
           }}
         />
+
+        {/* Service Worker Registration */}
+        <script
+          dangerouslySetInnerHTML={{
+            __html: `
+              if ('serviceWorker' in navigator) {
+                window.addEventListener('load', function() {
+                  navigator.serviceWorker.register('/sw.js').then(function(reg) {
+                    console.log('SW registered:', reg.scope);
+                  }).catch(function(err) {
+                    console.log('SW registration failed:', err);
+                  });
+                });
+              }
+            `,
+          }}
+        />
       </head>
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
@@ -114,6 +158,7 @@ export default function RootLayout({
         {/* App root - hidden until JS hydrates */}
         <div id="app-root">{children}</div>
         <Toaster />
+        <InstallPrompt />
       </body>
     </html>
   );
