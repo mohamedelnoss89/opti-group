@@ -28,7 +28,7 @@ interface ScannerProps {
 
 type ScannerState = "loading" | "ready" | "complete" | "error";
 
-const CAPTURE_COUNT = 3;
+const CAPTURE_COUNT = 1;
 
 export default function Scanner({ onResult, onBack }: ScannerProps) {
   const [state, setState] = useState<ScannerState>("loading");
@@ -369,7 +369,7 @@ export default function Scanner({ onResult, onBack }: ScannerProps) {
                   <Check className="w-12 h-12" style={{ color: "#00d4aa" }} />
                 </div>
                 <p className="text-sm mb-1" style={{ color: "#94a3b8" }}>تم القياس بنجاح</p>
-                <p className="text-xs mb-3" style={{ color: "#64748b" }}>متوسط {CAPTURE_COUNT} قراءات</p>
+                <p className="text-xs mb-3" style={{ color: "#64748b" }}>تم القياس بنجاح</p>
                 <p className="text-5xl font-bold mb-1" style={{ color: "#00d4aa" }}>{avgPD}</p>
                 <p className="text-base" style={{ color: "#94a3b8" }}>ملم</p>
               </motion.div>
@@ -408,23 +408,12 @@ export default function Scanner({ onResult, onBack }: ScannerProps) {
           </motion.div>
         )}
 
-        {/* Progress dots */}
-        {capturesDone > 0 && (
-          <div className="flex items-center justify-center gap-2 mb-3">
-            {Array.from({ length: CAPTURE_COUNT }).map((_, i) => (
-              <motion.div key={i} initial={{ scale: 0 }} animate={{ scale: 1 }} transition={{ delay: i * 0.1 }}
-                className="w-2.5 h-2.5 rounded-full"
-                style={{ background: i < capturesDone ? "#00d4aa" : "rgba(255,255,255,0.15)", boxShadow: i < capturesDone ? "0 0 8px rgba(0,212,170,0.5)" : "none" }}
-              />
-            ))}
-            {capturesDone < CAPTURE_COUNT && <span className="text-xs mr-1" style={{ color: "#64748b" }}>{CAPTURE_COUNT - capturesDone} متبقي</span>}
-          </div>
-        )}
+
 
         {/* Instruction */}
         {state === "ready" && (
           <p className="text-xs text-center mb-4" style={{ color: "#94a3b8" }}>
-            {capturesDone === 0 ? "اضغط زر التصوير لبدء القياس" : `تم التقاط ${capturesDone} من ${CAPTURE_COUNT}`}
+            {capturesDone === 0 ? "اضغط زر التصوير لبدء القياس" : "تم الالتقاط"}
           </p>
         )}
 
