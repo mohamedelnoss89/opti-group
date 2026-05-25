@@ -10,6 +10,7 @@ import {
   AlertTriangle,
   RotateCcw,
   Loader2,
+  Stethoscope,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
@@ -24,25 +25,118 @@ interface Message {
   timestamp: Date;
 }
 
-const containerVariants = {
-  hidden: { opacity: 0 },
-  visible: {
-    opacity: 1,
-    transition: { staggerChildren: 0.06 },
-  },
-};
-
-const itemVariants = {
-  hidden: { y: 20, opacity: 0 },
-  visible: { y: 0, opacity: 1 },
-};
-
 const quickPrompts = [
   "أعاني من جفاف العين",
   "رؤية ضبابية أحياناً",
   "ألم في العين عند استخدام الشاشة",
   "صداع متكرر مع إجهاد العين",
+  "احمرار في العين",
+  "أريد نصائح عامة لصحة العين",
 ];
+
+// Format message content with better styling
+function formatMessageContent(content: string) {
+  // Split by newlines and render with proper formatting
+  const lines = content.split("\n");
+
+  return lines.map((line, i) => {
+    const trimmed = line.trim();
+
+    // Empty line
+    if (!trimmed) return <div key={i} className="h-1.5" />;
+
+    // Urgent/emergency line
+    if (trimmed.startsWith("🚨")) {
+      return (
+        <div
+          key={i}
+          className="font-bold text-sm mb-1 px-2 py-1 rounded-lg"
+          style={{ color: "#ff4444", background: "rgba(255,68,68,0.08)" }}
+        >
+          {trimmed}
+        </div>
+      );
+    }
+
+    // Section headers with emoji
+    if (trimmed.startsWith("🔍") || trimmed.startsWith("🔎")) {
+      return (
+        <p key={i} className="font-bold text-sm mb-1" style={{ color: "#00f0ff" }}>
+          {trimmed}
+        </p>
+      );
+    }
+
+    // Severity indicators
+    if (trimmed.startsWith("🟢") || trimmed.startsWith("🟡") || trimmed.startsWith("🟠") || trimmed.startsWith("🔴")) {
+      return (
+        <p key={i} className="font-semibold text-sm mb-1" style={{ color: "#e2e8f0" }}>
+          {trimmed}
+        </p>
+      );
+    }
+
+    // List sections headers
+    if (trimmed.startsWith("📋") || trimmed.startsWith("💊") || trimmed.startsWith("🏠") || trimmed.startsWith("👨‍⚕️") || trimmed.startsWith("👁️") || trimmed.startsWith("🔵") || trimmed.startsWith("🟢") || trimmed.startsWith("🔴") || trimmed.startsWith("📌")) {
+      return (
+        <p key={i} className="font-semibold text-sm mt-1" style={{ color: "#e2e8f0" }}>
+          {trimmed}
+        </p>
+      );
+    }
+
+    // Follow-up question
+    if (trimmed.startsWith("❓")) {
+      return (
+        <div
+          key={i}
+          className="text-sm mt-1 px-2.5 py-1.5 rounded-lg"
+          style={{
+            color: "#00f0ff",
+            background: "rgba(0,240,255,0.06)",
+            border: "1px solid rgba(0,240,255,0.1)",
+          }}
+        >
+          {trimmed}
+        </div>
+      );
+    }
+
+    // Warning lines
+    if (trimmed.startsWith("⚠️")) {
+      return (
+        <p key={i} className="text-xs mt-1" style={{ color: "#ffa500" }}>
+          {trimmed}
+        </p>
+      );
+    }
+
+    // Numbered items
+    if (/^\s*\d+\./.test(trimmed)) {
+      return (
+        <p key={i} className="text-xs leading-relaxed mr-2" style={{ color: "#cbd5e1" }}>
+          {trimmed}
+        </p>
+      );
+    }
+
+    // Bullet items
+    if (trimmed.startsWith("•") || trimmed.startsWith("  •")) {
+      return (
+        <p key={i} className="text-xs leading-relaxed mr-2" style={{ color: "#cbd5e1" }}>
+          {trimmed}
+        </p>
+      );
+    }
+
+    // Regular text
+    return (
+      <p key={i} className="text-xs leading-relaxed" style={{ color: "#e2e8f0" }}>
+        {trimmed}
+      </p>
+    );
+  });
+}
 
 export default function MedicalChat({ onBack }: MedicalChatProps) {
   const [messages, setMessages] = useState<Message[]>([
@@ -50,7 +144,7 @@ export default function MedicalChat({ onBack }: MedicalChatProps) {
       id: "welcome",
       role: "assistant",
       content:
-        "مرحباً! أنا مساعدك الطبي لصحة العين 👁️ يمكنك إخباري بأي أعراض تعاني منها وسأقدم لك نصائح أولية. تذكر دائماً أن هذه النصائح للإرشاد فقط ويجب زيارة طبيب العيون للتشخيص الدقيق.",
+        "مرحباً! أنا مساعدك الطبي المتخصص في صحة العيون 👁️\n\nأستطيع:\n🔹 تحليل أعراضك بالتفصيل\n🔹 طرح أسئلة متابعة لفهم حالتك\n🔹 تقديم نصائح منزلية عملية\n🔹 تقييم خطورة الحالة\n🔹 إرشادك متى تزور الطبيب\n\nأخبرني بما تشعر به وسأساعدك خطوة بخطوة!\n\n⚠️ تنبيه: هذا إرشاد عام فقط ولا يغني عن زيارة طبيب العيون.",
       timestamp: new Date(),
     },
   ]);
@@ -111,7 +205,7 @@ export default function MedicalChat({ onBack }: MedicalChatProps) {
           id: `error-${Date.now()}`,
           role: "assistant",
           content:
-            "عذراً، حدث خطأ في الاتصال. يرجى المحاولة مرة أخرى. تذكر أن زيارة طبيب العيون هي الأفضل لحالتك.",
+            "عذراً، حدث خطأ في الاتصال. يرجى المحاولة مرة أخرى.\n\n⚠️ تذكر أن زيارة طبيب العيون هي الأفضل لحالتك.",
           timestamp: new Date(),
         };
         setMessages((prev) => [...prev, errorMessage]);
@@ -137,7 +231,7 @@ export default function MedicalChat({ onBack }: MedicalChatProps) {
         id: "welcome",
         role: "assistant",
         content:
-          "مرحباً! أنا مساعدك الطبي لصحة العين 👁️ يمكنك إخباري بأي أعراض تعاني منها وسأقدم لك نصائح أولية.",
+          "مرحباً! أنا مساعدك الطبي المتخصص 👁️\n\nأخبرني بأعراضك وسأحللها بالتفصيل وأطرح عليك أسئلة لفهم حالتك أفضل.\n\n⚠️ هذا إرشاد عام فقط - زر طبيب العيون للتشخيص الدقيق.",
         timestamp: new Date(),
       },
     ]);
@@ -169,13 +263,23 @@ export default function MedicalChat({ onBack }: MedicalChatProps) {
         >
           <ArrowRight className="w-5 h-5" />
         </Button>
-        <div className="text-center">
-          <h1 className="text-base font-bold" style={{ color: "#e2e8f0" }}>
-            محادثة طبية ذكية
-          </h1>
-          <p className="text-xs" style={{ color: "#64748b" }}>
-            محادثة طبية ذكية
-          </p>
+        <div className="text-center flex items-center gap-2">
+          <div
+            className="w-7 h-7 rounded-lg flex items-center justify-center"
+            style={{
+              background: "linear-gradient(135deg, #a855f7, #6366f1)",
+            }}
+          >
+            <Stethoscope className="w-4 h-4" style={{ color: "#fff" }} />
+          </div>
+          <div>
+            <h1 className="text-sm font-bold" style={{ color: "#e2e8f0" }}>
+              مساعد طبي ذكي
+            </h1>
+            <p className="text-[10px]" style={{ color: "#64748b" }}>
+              تحليل الأعراض • نصائح متخصصة
+            </p>
+          </div>
         </div>
         <Button
           onClick={handleReset}
@@ -184,7 +288,7 @@ export default function MedicalChat({ onBack }: MedicalChatProps) {
           className="w-10 h-10 rounded-xl hover:bg-white/5"
           style={{ color: "#94a3b8" }}
         >
-          <RotateCcw className="w-5 h-5" />
+          <RotateCcw className="w-4 h-4" />
         </Button>
       </div>
 
@@ -195,18 +299,18 @@ export default function MedicalChat({ onBack }: MedicalChatProps) {
         className="mx-4 mb-2 shrink-0"
       >
         <div
-          className="rounded-lg px-3 py-2 flex items-center gap-2"
+          className="rounded-lg px-3 py-1.5 flex items-center gap-2"
           style={{
             background: "rgba(255,165,0,0.06)",
             border: "1px solid rgba(255,165,0,0.12)",
           }}
         >
           <AlertTriangle
-            className="w-3.5 h-3.5 shrink-0"
+            className="w-3 h-3 shrink-0"
             style={{ color: "#ffa500" }}
           />
-          <p className="text-[10px] leading-relaxed" style={{ color: "#94a3b8" }}>
-            هذه المحادثة للإرشاد العام فقط ولا تغني عن زيارة طبيب العيون المتخصص
+          <p className="text-[9px] leading-relaxed" style={{ color: "#94a3b8" }}>
+            للإرشاد العام فقط • لا يغني عن زيارة طبيب العيون المتخصص
           </p>
         </div>
       </motion.div>
@@ -221,13 +325,13 @@ export default function MedicalChat({ onBack }: MedicalChatProps) {
               animate={{ opacity: 1, y: 0, scale: 1 }}
               exit={{ opacity: 0, scale: 0.95 }}
               transition={{ duration: 0.25 }}
-              className={`flex gap-2.5 mb-3 ${
+              className={`flex gap-2 mb-3 ${
                 msg.role === "user" ? "flex-row-reverse" : "flex-row"
               }`}
             >
               {/* Avatar */}
               <div
-                className="w-8 h-8 rounded-lg flex items-center justify-center shrink-0"
+                className="w-7 h-7 rounded-lg flex items-center justify-center shrink-0 mt-1"
                 style={{
                   background:
                     msg.role === "assistant"
@@ -236,15 +340,15 @@ export default function MedicalChat({ onBack }: MedicalChatProps) {
                 }}
               >
                 {msg.role === "assistant" ? (
-                  <Bot className="w-4 h-4" style={{ color: "#fff" }} />
+                  <Bot className="w-3.5 h-3.5" style={{ color: "#fff" }} />
                 ) : (
-                  <User className="w-4 h-4" style={{ color: "#fff" }} />
+                  <User className="w-3.5 h-3.5" style={{ color: "#fff" }} />
                 )}
               </div>
 
               {/* Message Bubble */}
               <div
-                className="max-w-[80%] rounded-2xl px-4 py-2.5"
+                className="max-w-[85%] rounded-2xl px-3.5 py-2.5"
                 style={{
                   background:
                     msg.role === "user"
@@ -256,18 +360,19 @@ export default function MedicalChat({ onBack }: MedicalChatProps) {
                       : "1px solid rgba(255,255,255,0.08)",
                 }}
               >
+                {msg.role === "user" ? (
+                  <p className="text-sm leading-relaxed" style={{ color: "#e2e8f0" }}>
+                    {msg.content}
+                  </p>
+                ) : (
+                  <div className="space-y-0.5">
+                    {formatMessageContent(msg.content)}
+                  </div>
+                )}
                 <p
-                  className="text-sm leading-relaxed"
+                  className="text-[8px] mt-1.5"
                   style={{
-                    color: "#e2e8f0",
-                  }}
-                >
-                  {msg.content}
-                </p>
-                <p
-                  className="text-[9px] mt-1.5"
-                  style={{
-                    color: "#64748b",
+                    color: "#475569",
                     textAlign: msg.role === "user" ? "left" : "right",
                   }}
                 >
@@ -286,15 +391,15 @@ export default function MedicalChat({ onBack }: MedicalChatProps) {
           <motion.div
             initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
-            className="flex gap-2.5 mb-3"
+            className="flex gap-2 mb-3"
           >
             <div
-              className="w-8 h-8 rounded-lg flex items-center justify-center shrink-0"
+              className="w-7 h-7 rounded-lg flex items-center justify-center shrink-0"
               style={{
                 background: "linear-gradient(135deg, #a855f7, #6366f1)",
               }}
             >
-              <Bot className="w-4 h-4" style={{ color: "#fff" }} />
+              <Bot className="w-3.5 h-3.5" style={{ color: "#fff" }} />
             </div>
             <div
               className="rounded-2xl px-4 py-3 flex items-center gap-1.5"
@@ -304,22 +409,23 @@ export default function MedicalChat({ onBack }: MedicalChatProps) {
                 border: "1px solid rgba(255,255,255,0.08)",
               }}
             >
+              <span className="text-[10px] ml-1" style={{ color: "#64748b" }}>يحلل أعراضك</span>
               <motion.div
                 animate={{ scale: [1, 1.3, 1] }}
                 transition={{ duration: 0.6, repeat: Infinity, delay: 0 }}
-                className="w-2 h-2 rounded-full"
+                className="w-1.5 h-1.5 rounded-full"
                 style={{ background: "#a855f7" }}
               />
               <motion.div
                 animate={{ scale: [1, 1.3, 1] }}
                 transition={{ duration: 0.6, repeat: Infinity, delay: 0.15 }}
-                className="w-2 h-2 rounded-full"
+                className="w-1.5 h-1.5 rounded-full"
                 style={{ background: "#a855f7" }}
               />
               <motion.div
                 animate={{ scale: [1, 1.3, 1] }}
                 transition={{ duration: 0.6, repeat: Infinity, delay: 0.3 }}
-                className="w-2 h-2 rounded-full"
+                className="w-1.5 h-1.5 rounded-full"
                 style={{ background: "#a855f7" }}
               />
             </div>
@@ -329,27 +435,27 @@ export default function MedicalChat({ onBack }: MedicalChatProps) {
         <div ref={messagesEndRef} />
       </div>
 
-      {/* Quick Prompts */}
-      {messages.length <= 1 && (
+      {/* Quick Prompts - show more often */}
+      {messages.length <= 2 && (
         <motion.div
           initial={{ opacity: 0, y: 10 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.3 }}
           className="px-4 pb-2 relative z-10 shrink-0"
         >
-          <p className="text-[10px] mb-2" style={{ color: "#64748b" }}>
-            ابدأ المحادثة:
+          <p className="text-[9px] mb-1.5" style={{ color: "#64748b" }}>
+            اختر عرضاً أو اكتب أعراضك:
           </p>
-          <div className="flex flex-wrap gap-2">
+          <div className="flex flex-wrap gap-1.5">
             {quickPrompts.map((prompt) => (
               <button
                 key={prompt}
                 onClick={() => sendMessage(prompt)}
-                className="text-[11px] px-3 py-1.5 rounded-full transition-all active:scale-95"
+                className="text-[10px] px-2.5 py-1.5 rounded-lg transition-all active:scale-95"
                 style={{
-                  background: "rgba(255,255,255,0.04)",
-                  border: "1px solid rgba(255,255,255,0.1)",
-                  color: "#94a3b8",
+                  background: "rgba(168,85,247,0.08)",
+                  border: "1px solid rgba(168,85,247,0.15)",
+                  color: "#c4b5fd",
                 }}
               >
                 {prompt}
