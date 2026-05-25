@@ -562,7 +562,7 @@ function generateAdvancedResponse(
   const state = analyzeConversationState(conversationHistory);
 
   // If user is answering a follow-up question
-  if (state.currentSymptom && state.followUpIndex > 0 && !state.hasProvidedDiagnosis) {
+  if (state.currentSymptom && state.followUpIndex > 0 && !state.hasProvidedDiagnosis && state.turnCount > 1) {
     return handleFollowUpResponse(msg, state, conversationHistory);
   }
 
@@ -608,19 +608,25 @@ function analyzeConversationState(history: ChatMessage[]): ConversationState {
     hasProvidedDiagnosis: false,
   };
 
-  // Analyze past messages
+  // Analyze past messages - scan ALL messages to build full context
+  let lastIdentifiedSymptom: SymptomProfile | null = null;
+
   for (const msg of history) {
     if (msg.role === "assistant") {
-      // Check if we already asked follow-ups
+      // Check if we already identified a symptom in previous response
       const matchedSymptom = SYMPTOM_DATABASE.find(s =>
         msg.content.includes(s.name)
       );
       if (matchedSymptom) {
-        state.currentSymptom = matchedSymptom;
+        lastIdentifiedSymptom = matchedSymptom;
       }
-      // Check if we already gave detailed analysis
-      if (msg.content.includes("🔍") || msg.content.includes("التشخيص") || msg.content.includes("الأسباب المحتملة")) {
+      // Check if we already gave comprehensive analysis
+      if (msg.content.includes("🔎 التحليل التفصيلي") || msg.content.includes("التحليل التفصيلي")) {
         state.hasProvidedDiagnosis = true;
+      }
+      // Check if we asked follow-up questions
+      if (msg.content.includes("❓")) {
+        state.followUpIndex++;
       }
     }
     if (msg.role === "user") {
@@ -628,24 +634,13 @@ function analyzeConversationState(history: ChatMessage[]): ConversationState {
       const matched = identifySymptoms(msg.content.toLowerCase());
       if (matched.length > 0) {
         state.identifiedSymptoms = matched.map(s => s.id);
-        state.currentSymptom = matched[0];
+        lastIdentifiedSymptom = matched[0];
       }
     }
   }
 
-  // Count follow-up questions asked
-  if (state.currentSymptom) {
-    for (const msg of history) {
-      if (msg.role === "assistant") {
-        for (const q of state.currentSymptom.followUpQuestions) {
-          if (msg.content.includes(q.substring(0, 20))) {
-            state.followUpIndex++;
-            state.askedFollowUps.push(q);
-          }
-        }
-      }
-    }
-  }
+  // Use the last identified symptom (persists through follow-up answers)
+  state.currentSymptom = lastIdentifiedSymptom;
 
   return state;
 }
@@ -705,12 +700,14 @@ function handleFollowUpResponse(
   history: ChatMessage[]
 ): string {
   const symptom = state.currentSymptom!;
-  const nextFollowUpIndex = state.followUpIndex;
+  // followUpIndex counts how many ❓ we've already asked
+  // So next question to ask is at index followUpIndex
+  const nextQuestionIndex = state.followUpIndex;
 
   let response = "";
 
-  // After 2 follow-ups, give comprehensive analysis
-  if (nextFollowUpIndex >= 2 || nextFollowUpIndex >= symptom.followUpQuestions.length) {
+  // After asking 2+ follow-ups, give comprehensive analysis
+  if (nextQuestionIndex >= 2 || nextQuestionIndex >= symptom.followUpQuestions.length) {
     return formatComprehensiveAnalysis(symptom);
   }
 
@@ -721,7 +718,7 @@ function handleFollowUpResponse(
     "ممتاز، هذا يوضح الصورة أكثر.",
     "فهمت، هذه معلومة مهمة.",
   ];
-  response += acknowledgments[nextFollowUpIndex % acknowledgments.length] + "\n\n";
+  response += acknowledgments[nextQuestionIndex % acknowledgments.length] + "\n\n";
 
   // Add a mini insight based on the answer
   if (msg.includes("واحدة") || msg.includes("عين واحدة") || msg.includes("يمين") || msg.includes("شمال")) {
@@ -732,13 +729,13 @@ function handleFollowUpResponse(
     response += "📌 الظهور المفاجئ يستدعي اهتماماً أكبر - المتابعة مع الطبيب مهمة جداً.\n\n";
   } else if (msg.includes("شاشة") || msg.includes("كمبيوتر") || msg.includes("موبايل")) {
     response += "📌 الشاشات سبب رئيسي - نصائح الراحة الرقمية ستساعدك كثيراً.\n\n";
-  } else if (msg.includes("طويل") || msg.includes("أسابيع") || msg.includes("شهور")) {
+  } else if (msg.includes("طويل") || msg.includes("أسابيع") || msg.includes("شهور") || msg.includes("3 أسابيع")) {
     response += "📌 استمرار الأعراض لفترة طويلة يعني ضرورة زيارة الطبيب للتقييم.\n\n";
   }
 
-  // Ask next follow-up
-  if (nextFollowUpIndex < symptom.followUpQuestions.length) {
-    response += `❓ ${symptom.followUpQuestions[nextFollowUpIndex]}`;
+  // Ask next follow-up question
+  if (nextQuestionIndex < symptom.followUpQuestions.length) {
+    response += `❓ ${symptom.followUpQuestions[nextQuestionIndex]}`;
   }
 
   return response;
