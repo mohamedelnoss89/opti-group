@@ -1,8 +1,8 @@
-const CACHE_NAME = 'optisize-v1';
+const CACHE_NAME = 'optisize-v105';
 const OFFLINE_URL = '/';
+const APP_VERSION = '105.0.0';
 
 const PRECACHE_URLS = [
-  '/',
   '/manifest.webmanifest',
   '/favicon.svg',
   '/icons/icon-192x192.png',
@@ -10,17 +10,18 @@ const PRECACHE_URLS = [
   '/icons/maskable-icon-512x512.png',
 ];
 
-// Install - precache essential resources
+// Install - precache essential resources and skip waiting
 self.addEventListener('install', (event) => {
   event.waitUntil(
     caches.open(CACHE_NAME).then((cache) => {
       return cache.addAll(PRECACHE_URLS);
     })
   );
+  // Force activate immediately - don't wait for old tabs to close
   self.skipWaiting();
 });
 
-// Activate - clean old caches
+// Activate - clean old caches and claim all clients immediately
 self.addEventListener('activate', (event) => {
   event.waitUntil(
     caches.keys().then((cacheNames) => {
@@ -29,45 +30,53 @@ self.addEventListener('activate', (event) => {
           .filter((name) => name !== CACHE_NAME)
           .map((name) => caches.delete(name))
       );
-    })
+    }).then(() => self.clients.claim())
   );
-  self.clients.claim();
+  // Notify all clients that a new version is available
+  self.clients.matchAll().then((clients) => {
+    clients.forEach((client) => {
+      client.postMessage({ type: 'SW_UPDATED', version: APP_VERSION });
+    });
+  });
 });
 
-// Fetch - network first, fallback to cache
+// Listen for messages from the app
+self.addEventListener('message', (event) => {
+  if (event.data && event.data.type === 'SKIP_WAITING') {
+    self.skipWaiting();
+  }
+  if (event.data && event.data.type === 'GET_VERSION') {
+    event.ports[0].postMessage({ version: APP_VERSION });
+  }
+});
+
+// Fetch strategy
 self.addEventListener('fetch', (event) => {
   // Skip non-GET requests
   if (event.request.method !== 'GET') return;
 
-  // Skip API calls and external requests
+  // Skip API calls and external requests — these are NEVER cached
   const url = new URL(event.request.url);
   if (url.pathname.startsWith('/api/') || url.origin !== self.location.origin) return;
 
-  // For navigation requests (HTML pages), try network first then cache
+  // ===== CRITICAL: HTML pages = NETWORK ONLY (no caching!) =====
+  // This ensures users ALWAYS get the latest HTML with the latest JS references.
+  // Old HTML would reference old JS files, defeating the purpose of updates.
+  // Offline users will see a fallback page.
   if (event.request.mode === 'navigate') {
     event.respondWith(
-      fetch(event.request)
-        .then((response) => {
-          // Cache successful responses
-          if (response.ok) {
-            const responseClone = response.clone();
-            caches.open(CACHE_NAME).then((cache) => {
-              cache.put(event.request, responseClone);
-            });
-          }
-          return response;
-        })
-        .catch(() => {
-          // Network failed - serve from cache or offline page
-          return caches.match(event.request).then((cachedResponse) => {
-            return cachedResponse || caches.match(OFFLINE_URL);
-          });
-        })
+      fetch(event.request).catch(() => {
+        // Only use cache as offline fallback — NEVER for online users
+        return caches.match(event.request).then((cachedResponse) => {
+          return cachedResponse || caches.match(OFFLINE_URL);
+        });
+      })
     );
     return;
   }
 
-  // For static assets (JS, CSS, images), try cache first then network
+  // For static assets (JS, CSS, images), use NETWORK FIRST with cache fallback
+  // This ensures new JS chunks are always fetched first
   if (
     url.pathname.startsWith('/_next/') ||
     url.pathname.startsWith('/icons/') ||
@@ -79,28 +88,17 @@ self.addEventListener('fetch', (event) => {
     url.pathname.endsWith('.woff2')
   ) {
     event.respondWith(
-      caches.match(event.request).then((cachedResponse) => {
-        if (cachedResponse) {
-          // Return cached, and update cache in background
-          fetch(event.request).then((response) => {
-            if (response.ok) {
-              caches.open(CACHE_NAME).then((cache) => {
-                cache.put(event.request, response);
-              });
-            }
-          }).catch(() => {});
-          return cachedResponse;
+      fetch(event.request).then((response) => {
+        if (response.ok) {
+          const responseClone = response.clone();
+          caches.open(CACHE_NAME).then((cache) => {
+            cache.put(event.request, responseClone);
+          });
         }
-        // Not in cache - fetch from network and cache
-        return fetch(event.request).then((response) => {
-          if (response.ok) {
-            const responseClone = response.clone();
-            caches.open(CACHE_NAME).then((cache) => {
-              cache.put(event.request, responseClone);
-            });
-          }
-          return response;
-        });
+        return response;
+      }).catch(() => {
+        // Offline fallback
+        return caches.match(event.request);
       })
     );
     return;

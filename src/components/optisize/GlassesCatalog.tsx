@@ -93,10 +93,10 @@ export default function GlassesCatalog({ onTryOn, onBack }: GlassesCatalogProps)
         <div className="w-10" />
       </div>
 
-      {/* Category Tabs */}
-      <div className="px-4 mb-3 relative z-10">
+      {/* Category Tabs - VERY BIG tappable buttons in grid */}
+      <div className="px-3 mb-5 relative z-10">
         <div
-          className="flex gap-1.5 overflow-x-auto pb-2 custom-scrollbar"
+          className="grid grid-cols-2 gap-3"
           style={{ direction: "rtl" }}
         >
           {GLASSES_CATEGORIES.map((cat) => (
@@ -106,22 +106,26 @@ export default function GlassesCatalog({ onTryOn, onBack }: GlassesCatalogProps)
                 setActiveCategory(cat.id);
                 setSearchQuery("");
               }}
-              className="flex items-center gap-1.5 px-4 py-2 rounded-xl text-xs font-medium whitespace-nowrap transition-all duration-200"
+              className="flex items-center justify-center gap-3 px-5 py-5 rounded-2xl text-xl font-bold whitespace-nowrap transition-all duration-200 w-full"
               style={{
                 background:
                   activeCategory === cat.id
-                    ? "linear-gradient(135deg, rgba(0,240,255,0.15), rgba(0,128,255,0.1))"
-                    : "rgba(255,255,255,0.04)",
-                border: `1px solid ${
+                    ? "linear-gradient(135deg, rgba(0,240,255,0.35), rgba(0,128,255,0.25))"
+                    : "rgba(255,255,255,0.06)",
+                border: `3px solid ${
                   activeCategory === cat.id
-                    ? "rgba(0,240,255,0.3)"
-                    : "rgba(255,255,255,0.06)"
+                    ? "rgba(0,240,255,0.7)"
+                    : "rgba(255,255,255,0.12)"
                 }`,
                 color:
                   activeCategory === cat.id ? "#00f0ff" : "#94a3b8",
+                boxShadow: activeCategory === cat.id
+                  ? "0 0 30px rgba(0,240,255,0.3), inset 0 0 20px rgba(0,240,255,0.1)"
+                  : "none",
+                minHeight: "76px",
               }}
             >
-              <span>{cat.icon}</span>
+              <span className="text-3xl">{cat.icon}</span>
               <span>{cat.label}</span>
             </button>
           ))}
@@ -157,13 +161,13 @@ export default function GlassesCatalog({ onTryOn, onBack }: GlassesCatalogProps)
       </div>
 
       {/* Glasses Grid */}
-      <div className="flex-1 px-4 pb-6 overflow-y-auto relative z-10 custom-scrollbar">
+      <div className="flex-1 px-3 pb-6 overflow-y-auto relative z-10 custom-scrollbar">
         {filteredGlasses.length > 0 ? (
           <motion.div
             variants={containerVariants}
             initial="initial"
             animate="animate"
-            className="grid grid-cols-2 gap-3"
+            className="grid grid-cols-2 gap-4"
           >
             {filteredGlasses.map((glasses) => (
               <motion.div
@@ -175,21 +179,21 @@ export default function GlassesCatalog({ onTryOn, onBack }: GlassesCatalogProps)
                 style={{
                   background:
                     "linear-gradient(180deg, rgba(15,23,42,0.8) 0%, rgba(10,14,26,0.95) 100%)",
-                  border: "1px solid rgba(255,255,255,0.08)",
+                  border: "2px solid rgba(255,255,255,0.12)",
                 }}
               >
                 {/* Glasses Image */}
                 <div
-                  className="relative flex items-center justify-center p-2"
+                  className="relative flex items-center justify-center p-5"
                   style={{
                     background: "transparent",
-                    minHeight: "130px",
+                    minHeight: "210px",
                   }}
                 >
                   <img
                     src={glasses.image}
                     alt={glasses.nameAr}
-                    className="max-h-32 w-auto object-contain drop-shadow-lg transition-transform duration-200 group-active:scale-95"
+                    className="max-h-52 w-auto object-contain drop-shadow-lg transition-transform duration-200 group-active:scale-95"
                     style={{ 
                       filter: "drop-shadow(0 2px 8px rgba(0,0,0,0.3)) brightness(1.1) contrast(1.2)",
                       mixBlendMode: "normal",
@@ -201,33 +205,34 @@ export default function GlassesCatalog({ onTryOn, onBack }: GlassesCatalogProps)
                     style={{ background: "rgba(10,14,26,0.5)" }}
                   >
                     <div
-                      className="flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium"
+                      className="flex items-center gap-2 px-4 py-2 rounded-full text-sm font-semibold"
                       style={{
                         background: "rgba(0,240,255,0.2)",
                         border: "1px solid rgba(0,240,255,0.4)",
                         color: "#00f0ff",
                       }}
                     >
-                      <Eye className="w-3.5 h-3.5" />
-                      تجربة افتراضية
+                      <Eye className="w-4 h-4" />
+                      تجربة
                     </div>
                   </div>
                 </div>
 
                 {/* Info */}
-                <div className="p-3">
+                <div className="p-4 pt-2">
                   <h3
-                    className="text-xs font-semibold mb-1 truncate"
+                    className="text-base font-bold mb-2 truncate"
                     style={{ color: "#e2e8f0" }}
                   >
                     {glasses.nameAr}
                   </h3>
-                  <div className="flex items-center gap-1.5">
+                  <div className="flex items-center gap-2">
                     <span
-                      className="text-[10px] px-2 py-0.5 rounded-md"
+                      className="text-sm px-3 py-1.5 rounded-lg"
                       style={{
-                        background: "rgba(0,240,255,0.08)",
+                        background: "rgba(0,240,255,0.1)",
                         color: "#00f0ff",
+                        border: "1px solid rgba(0,240,255,0.15)",
                       }}
                     >
                       {glasses.color}

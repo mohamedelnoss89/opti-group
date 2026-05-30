@@ -1,6 +1,7 @@
 "use client";
 
 import { motion } from "framer-motion";
+import Link from "next/link";
 import {
   Eye,
   Stethoscope,
@@ -25,6 +26,7 @@ import type { StoredUser } from "@/lib/auth";
 import { logout } from "@/lib/auth";
 import { useToast } from "@/hooks/use-toast";
 import { useI18n } from "@/lib/i18n";
+import AdBanner from "@/components/optisize/AdBanner";
 
 interface MainMenuProps {
   user: StoredUser;
@@ -414,6 +416,11 @@ export default function MainMenu({
           </div>
         </motion.div>
 
+        {/* Ad Banner - After Quick Tools */}
+        <motion.div variants={itemVariants}>
+          <AdBanner format="horizontal" />
+        </motion.div>
+
         {/* Disclaimer */}
         <motion.div
           variants={itemVariants}
@@ -452,6 +459,24 @@ export default function MainMenu({
               {t("menu.contact")}
             </a>
           </Button>
+        </motion.div>
+
+        {/* Legal Links */}
+        <motion.div variants={itemVariants} className="mb-4">
+          <div className="flex flex-wrap gap-3 justify-center">
+            <Link href="/privacy" className="text-[10px] px-2.5 py-1 rounded-lg transition-all hover:bg-white/5" style={{ color: "#64748b", background: "rgba(255,255,255,0.02)", border: "1px solid rgba(255,255,255,0.04)" }}>
+              سياسة الخصوصية
+            </Link>
+            <Link href="/about" className="text-[10px] px-2.5 py-1 rounded-lg transition-all hover:bg-white/5" style={{ color: "#64748b", background: "rgba(255,255,255,0.02)", border: "1px solid rgba(255,255,255,0.04)" }}>
+              من نحن
+            </Link>
+            <Link href="/terms" className="text-[10px] px-2.5 py-1 rounded-lg transition-all hover:bg-white/5" style={{ color: "#64748b", background: "rgba(255,255,255,0.02)", border: "1px solid rgba(255,255,255,0.04)" }}>
+              شروط الاستخدام
+            </Link>
+            <Link href="/contact" className="text-[10px] px-2.5 py-1 rounded-lg transition-all hover:bg-white/5" style={{ color: "#64748b", background: "rgba(255,255,255,0.02)", border: "1px solid rgba(255,255,255,0.04)" }}>
+              تواصل معنا
+            </Link>
+          </div>
         </motion.div>
 
         {/* Footer */}

@@ -25,7 +25,6 @@ import EyeProtectionTimer from "@/components/optisize/EyeProtectionTimer";
 import EyeNutrition from "@/components/optisize/EyeNutrition";
 import LightSensitivity from "@/components/optisize/LightSensitivity";
 
-// Dynamic imports for heavy components that use camera / face-api.js / TensorFlow
 const Scanner = dynamic(() => import("@/components/optisize/Scanner"), {
   ssr: false,
   loading: () => (
@@ -58,29 +57,12 @@ import { I18nProvider } from "@/lib/i18n";
 import LoginPrompt from "@/components/optisize/LoginPrompt";
 
 type Screen =
-  | "splash"
-  | "auth"
-  | "main"
-  | "scanner"
-  | "vision-test"
-  | "health-center"
-  | "glasses-catalog"
-  | "records"
-  | "results"
-  | "color-test"
-  | "strabismus-test"
-  | "cataract-test"
-  | "glaucoma-test"
-  | "glasses-try-on"
-  | "calibration-guide"
-  | "visual-acuity-test"
-  | "astigmatism-test"
-  | "prescription-calculator"
-  | "medical-chat"
-  | "prescription-comparison"
-  | "eye-protection"
-  | "eye-nutrition"
-  | "light-sensitivity";
+  | "splash" | "auth" | "main" | "scanner" | "vision-test" | "health-center"
+  | "glasses-catalog" | "records" | "results" | "color-test" | "strabismus-test"
+  | "cataract-test" | "glaucoma-test" | "glasses-try-on" | "calibration-guide"
+  | "visual-acuity-test" | "astigmatism-test" | "prescription-calculator"
+  | "medical-chat" | "prescription-comparison" | "eye-protection"
+  | "eye-nutrition" | "light-sensitivity";
 
 const pageVariants = {
   initial: { opacity: 0, y: 10 },
@@ -89,26 +71,67 @@ const pageVariants = {
 };
 
 export default function Home() {
+  // ===== STATE =====
   const [screen, setScreen] = useState<Screen>("splash");
   const [screenHistory, setScreenHistory] = useState<Screen[]>([]);
-  const screenRef = useRef<Screen>("splash");
-  const screenHistoryRef = useRef<Screen[]>([]);
-  const isNavigatingRef = useRef(false);
-
-  // Keep refs in sync with state
-  useEffect(() => {
-    screenRef.current = screen;
-  }, [screen]);
-  useEffect(() => {
-    screenHistoryRef.current = screenHistory;
-  }, [screenHistory]);
   const [user, setUser] = useState<StoredUser | null>(null);
   const [showLoginPrompt, setShowLoginPrompt] = useState(false);
   const [hasSubscription, setHasSubscription] = useState(false);
   const [scanResult, setScanResult] = useState<number | null>(null);
   const [selectedGlasses, setSelectedGlasses] = useState<GlassesItem | null>(null);
 
-  // Remove CSS-only loader and show app once React hydrates
+  // Refs for synchronous access in event handlers
+  const screenRef = useRef<Screen>("splash");
+  const screenHistoryRef = useRef<Screen[]>([]);
+
+  // Keep refs in sync with state
+  useEffect(() => { screenRef.current = screen; }, [screen]);
+  useEffect(() => { screenHistoryRef.current = screenHistory; }, [screenHistory]);
+
+  // ===== PERSIST STATE TO LOCALSTORAGE (survives app close!) =====
+  useEffect(() => {
+    if (screen !== "splash" && screen !== "auth") {
+      try {
+        localStorage.setItem("optisize-screen", screen);
+        localStorage.setItem("optisize-history", JSON.stringify(screenHistory));
+      } catch {}
+    }
+  }, [screen, screenHistory]);
+
+  // ===== STATE RESTORATION FROM LOCALSTORAGE =====
+  // Runs FIRST (before CSS loader removal) so user never sees splash on return
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+
+    try {
+      const splashShown = localStorage.getItem("optisize-splash-shown");
+      const savedScreen = localStorage.getItem("optisize-screen");
+      const savedHistory = localStorage.getItem("optisize-history");
+
+      if (splashShown === "1" && savedScreen && savedScreen !== "splash" && savedScreen !== "auth") {
+        const existingUser = getCurrentUser();
+        if (existingUser) {
+          // Don't restore transient screens that need extra state
+          const transient = ["results", "calibration-guide", "glasses-try-on"];
+          if (!transient.includes(savedScreen)) {
+            setScreen(savedScreen as Screen);
+            screenRef.current = savedScreen as Screen;
+            const hist = savedHistory ? JSON.parse(savedHistory) : [];
+            setScreenHistory(hist);
+            screenHistoryRef.current = hist;
+            setUser(existingUser);
+          } else {
+            // Transient screen → go to main
+            setScreen("main");
+            screenRef.current = "main";
+            setUser(existingUser);
+          }
+        }
+      }
+    } catch {}
+  }, []);
+
+  // ===== CSS LOADER REMOVAL =====
   useEffect(() => {
     const cssLoader = document.getElementById("css-loader");
     const appRoot = document.getElementById("app-root");
@@ -121,118 +144,131 @@ export default function Home() {
     }
   }, []);
 
-  // Sync browser history with app navigation
-  // Replace initial state so popstate works correctly
+  // ===== SERVICE WORKER AUTO-UPDATE =====
   useEffect(() => {
-    window.history.replaceState({ screen: "splash" }, "");
+    if (typeof window === "undefined" || !("serviceWorker" in navigator)) return;
 
-    const handlePopState = (event: PopStateEvent) => {
-      const prev = screenHistoryRef.current;
+    navigator.serviceWorker.addEventListener("message", (event) => {
+      if (event.data && event.data.type === "SW_UPDATED") {
+        if (screenRef.current === "main" || screenRef.current === "splash") {
+          window.location.reload();
+        }
+      }
+    });
+
+    // Check for SW updates every 3 minutes
+    const interval = setInterval(() => {
+      navigator.serviceWorker.getRegistration().then((reg) => {
+        if (reg) reg.update();
+      });
+    }, 3 * 60 * 1000);
+
+    return () => clearInterval(interval);
+  }, []);
+
+  // ===== HARDWARE BACK BUTTON — GUARD PATTERN =====
+  // Push a guard entry so hardware back doesn't exit the PWA
+  // When back is pressed: re-push guard + pop from React screenHistory
+  useEffect(() => {
+    window.history.pushState({ guard: true }, "");
+
+    const handlePopState = () => {
+      // Always re-push the guard so next back press stays in the app
+      window.history.pushState({ guard: true }, "");
+
+      // Go back in our React screen history
+      const prev = [...screenHistoryRef.current];
       if (prev.length > 0) {
         const newHistory = [...prev];
         const previousScreen = newHistory.pop() || "main";
-        isNavigatingRef.current = true;
-        setScreenHistory(newHistory);
         screenHistoryRef.current = newHistory;
+        setScreenHistory(newHistory);
         setScreen(previousScreen);
         screenRef.current = previousScreen;
-        isNavigatingRef.current = false;
-      } else {
-        // No more history - go to main
-        isNavigatingRef.current = true;
-        setScreen("main");
-        screenRef.current = "main";
-        isNavigatingRef.current = false;
       }
+      // If no history (user is on main), stay on current screen — do nothing
     };
 
     window.addEventListener("popstate", handlePopState);
     return () => window.removeEventListener("popstate", handlePopState);
   }, []);
 
+  // ===== NAVIGATION FUNCTIONS =====
+
+  // Navigate forward: push current screen to history, go to target
+  // NO browser history manipulation — the guard handles hardware back
+  const navigateForward = useCallback((target: Screen) => {
+    const currentScreen = screenRef.current;
+    const newHistory = [...screenHistoryRef.current, currentScreen];
+
+    // Update React state only
+    screenHistoryRef.current = newHistory;
+    setScreenHistory(newHistory);
+    setScreen(target);
+    screenRef.current = target;
+  }, []);
+
+  // In-app back: pure React state — NO browser history manipulation
+  const handleBack = useCallback(() => {
+    const prev = [...screenHistoryRef.current];
+    if (prev.length > 0) {
+      const newHistory = [...prev];
+      const previousScreen = newHistory.pop() || "main";
+      screenHistoryRef.current = newHistory;
+      setScreenHistory(newHistory);
+      setScreen(previousScreen);
+      screenRef.current = previousScreen;
+    } else {
+      // No history — go to main
+      setScreen("main");
+      screenRef.current = "main";
+    }
+  }, []);
+
   const handleSplashComplete = useCallback(() => {
     const existingUser = getCurrentUser();
+    try { localStorage.setItem("optisize-splash-shown", "1"); } catch {}
+
     if (existingUser) {
       setUser(existingUser);
       setScreenHistory([]);
+      screenHistoryRef.current = [];
+      setScreen("main");
+      screenRef.current = "main";
       if (existingUser.isGuest) {
-        setScreen("main");
         setTimeout(() => setShowLoginPrompt(true), 1500);
-      } else {
-        setScreen("main");
       }
     } else {
       setScreen("auth");
+      screenRef.current = "auth";
     }
   }, []);
 
   const handleAuth = useCallback((authUser: StoredUser) => {
     setUser(authUser);
     setScreenHistory([]);
-    // Check subscription status
+    screenHistoryRef.current = [];
+    try { localStorage.setItem("optisize-splash-shown", "1"); } catch {}
     checkSubscription(authUser.id);
     setScreen("main");
+    screenRef.current = "main";
   }, []);
 
   const handleLogout = useCallback(() => {
     setUser(null);
+    try {
+      localStorage.removeItem("optisize-splash-shown");
+      localStorage.removeItem("optisize-screen");
+      localStorage.removeItem("optisize-history");
+    } catch {}
     setScreen("auth");
-  }, []);
-
-  // Navigate forward: push current screen to history and sync with browser history
-  const navigateTo = useCallback((target: Screen) => {
-    setScreenHistory((prev) => {
-      const newHistory = [...prev, screenRef.current];
-      screenHistoryRef.current = newHistory;
-      return newHistory;
-    });
-    setScreen(target);
-    screenRef.current = target;
-    // Push to browser history so hardware back button works
-    if (!isNavigatingRef.current) {
-      window.history.pushState({ screen: target }, "");
-    }
+    screenRef.current = "auth";
   }, []);
 
   const handleNavigate = useCallback((target: string) => {
-    navigateTo(target as Screen);
-  }, [navigateTo]);
+    navigateForward(target as Screen);
+  }, [navigateForward]);
 
-  // Helper: forward navigation with browser history sync
-  const navigateForward = useCallback((target: Screen) => {
-    const currentScreen = screenRef.current;
-    setScreenHistory((prev) => {
-      const newHistory = [...prev, currentScreen];
-      screenHistoryRef.current = newHistory;
-      return newHistory;
-    });
-    setScreen(target);
-    screenRef.current = target;
-    window.history.pushState({ screen: target }, "");
-  }, []);
-
-  // Go back one step: pop from history and sync with browser history
-  const handleBack = useCallback(() => {
-    const prev = [...screenHistoryRef.current];
-    if (prev.length === 0) {
-      setScreen("main");
-      screenRef.current = "main";
-      return;
-    }
-    const newHistory = prev;
-    const previousScreen = newHistory.pop() || "main";
-    screenHistoryRef.current = newHistory;
-    setScreenHistory(newHistory);
-    setScreen(previousScreen);
-    screenRef.current = previousScreen;
-    // Mark as app-initiated so popstate handler skips
-    isNavigatingRef.current = true;
-    window.history.back();
-    // Reset flag after a tick (popstate fires synchronously in some browsers)
-    setTimeout(() => { isNavigatingRef.current = false; }, 50);
-  }, []);
-
-  // Guest tries to access a locked service → show login prompt
   const handleRequestLogin = useCallback(() => {
     setShowLoginPrompt(true);
   }, []);
@@ -246,7 +282,6 @@ export default function Home() {
     setShowLoginPrompt(false);
   }, []);
 
-  // Check subscription status from DB
   const checkSubscription = useCallback(async (userId: string) => {
     try {
       const res = await fetch(`/api/subscriptions?userId=${encodeURIComponent(userId)}`);
@@ -259,7 +294,6 @@ export default function Home() {
     }
   }, []);
 
-  // Handle subscription activation code
   const handleActivateCode = useCallback(async (code: string): Promise<boolean> => {
     if (!user) return false;
     try {
@@ -279,200 +313,139 @@ export default function Home() {
     }
   }, [user]);
 
-  // Scanner result
   const handleScanResult = useCallback((pd: number) => {
     setScanResult(pd);
     navigateForward("results");
   }, [navigateForward]);
 
-  // Save PD measurement
   const handleSaveResult = useCallback(() => {
     if (scanResult === null || !user) return;
-
     const record: StoredRecord = {
       id: Math.random().toString(36).substring(2) + Date.now().toString(36),
-      userId: user.id,
-      type: "pd",
-      title: "قياس مسافة البؤبؤ",
-      data: { pd: scanResult, value: scanResult },
-      timestamp: new Date().toISOString(),
+      userId: user.id, type: "pd", title: "قياس مسافة البؤبؤ",
+      data: { pd: scanResult, value: scanResult }, timestamp: new Date().toISOString(),
     };
-
     saveRecord(record);
   }, [scanResult, user]);
 
-  // Retake measurement
   const handleRetake = useCallback(() => {
     setScanResult(null);
     handleBack();
   }, [handleBack]);
 
-  // Go to records from results
   const handleGoToRecords = useCallback(() => {
     navigateForward("records");
   }, [navigateForward]);
 
-  // Vision test selection
   const handleSelectVisionTest = useCallback((testId: string) => {
-    if (testId === "color-vision") {
-      navigateForward("color-test");
-    } else if (testId === "visual-acuity") {
-      navigateForward("visual-acuity-test");
-    } else if (testId === "astigmatism") {
-      navigateForward("astigmatism-test");
-    }
+    if (testId === "color-vision") navigateForward("color-test");
+    else if (testId === "visual-acuity") navigateForward("visual-acuity-test");
+    else if (testId === "astigmatism") navigateForward("astigmatism-test");
   }, [navigateForward]);
 
-  // Health center test selection
   const handleSelectHealthTest = useCallback((testId: string) => {
-    if (testId === "color-test") {
-      navigateForward("color-test");
-    } else if (testId === "strabismus-test") {
-      navigateForward("strabismus-test");
-    } else if (testId === "cataract-test") {
-      navigateForward("cataract-test");
-    } else if (testId === "glaucoma-test") {
-      navigateForward("glaucoma-test");
-    } else if (testId === "visual-acuity" || testId === "astigmatism") {
+    if (testId === "color-test") navigateForward("color-test");
+    else if (testId === "strabismus-test") navigateForward("strabismus-test");
+    else if (testId === "cataract-test") navigateForward("cataract-test");
+    else if (testId === "glaucoma-test") navigateForward("glaucoma-test");
+    else if (testId === "visual-acuity" || testId === "astigmatism") {
       navigateForward(testId === "visual-acuity" ? "visual-acuity-test" : "astigmatism-test");
-    } else if (testId === "prescription-calculator") {
-      navigateForward("prescription-calculator");
-    } else if (testId === "medical-chat") {
-      navigateForward("medical-chat");
-    } else if (testId === "prescription-comparison") {
-      navigateForward("prescription-comparison");
-    } else if (testId === "eye-protection") {
-      navigateForward("eye-protection");
-    } else if (testId === "eye-nutrition") {
-      navigateForward("eye-nutrition");
-    } else if (testId === "light-sensitivity") {
-      navigateForward("light-sensitivity");
-    } else if (testId === "glasses-catalog") {
-      navigateForward("glasses-catalog");
     }
+    else if (testId === "prescription-calculator") navigateForward("prescription-calculator");
+    else if (testId === "medical-chat") navigateForward("medical-chat");
+    else if (testId === "prescription-comparison") navigateForward("prescription-comparison");
+    else if (testId === "eye-protection") navigateForward("eye-protection");
+    else if (testId === "eye-nutrition") navigateForward("eye-nutrition");
+    else if (testId === "light-sensitivity") navigateForward("light-sensitivity");
+    else if (testId === "glasses-catalog") navigateForward("glasses-catalog");
   }, [navigateForward]);
 
-  // Color vision test complete
   const handleColorTestComplete = useCallback((result: { score: number; total: number; status: string }) => {
     if (user) {
-      const record: StoredRecord = {
+      saveRecord({
         id: Math.random().toString(36).substring(2) + Date.now().toString(36),
-        userId: user.id,
-        type: "vision-test",
-        title: "اختبار الألوان - Ishihara",
-        data: { ...result, testType: "color-vision" },
-        timestamp: new Date().toISOString(),
-      };
-      saveRecord(record);
+        userId: user.id, type: "vision-test", title: "اختبار الألوان - Ishihara",
+        data: { ...result, testType: "color-vision" }, timestamp: new Date().toISOString(),
+      });
     }
-    // Go back to previous screen (vision-test or health-center)
     handleBack();
   }, [user, handleBack]);
 
-  // Strabismus test complete
   const handleStrabismusComplete = useCallback((result: { score: number; riskLevel: string; riskColor: string }) => {
     if (user) {
       saveRecord({
         id: Math.random().toString(36).substring(2) + Date.now().toString(36),
-        userId: user.id,
-        type: "vision-test",
-        title: "فحص الحول - Strabismus",
-        data: { ...result, testType: "strabismus" },
-        timestamp: new Date().toISOString(),
+        userId: user.id, type: "vision-test", title: "فحص الحول - Strabismus",
+        data: { ...result, testType: "strabismus" }, timestamp: new Date().toISOString(),
       });
     }
   }, [user]);
 
-  // Cataract test complete
   const handleCataractComplete = useCallback((result: { score: number; riskLevel: string; riskColor: string }) => {
     if (user) {
       saveRecord({
         id: Math.random().toString(36).substring(2) + Date.now().toString(36),
-        userId: user.id,
-        type: "vision-test",
-        title: "فحص المياه البيضاء - Cataract",
-        data: { ...result, testType: "cataract" },
-        timestamp: new Date().toISOString(),
+        userId: user.id, type: "vision-test", title: "فحص المياه البيضاء - Cataract",
+        data: { ...result, testType: "cataract" }, timestamp: new Date().toISOString(),
       });
     }
   }, [user]);
 
-  // Glaucoma test complete
   const handleGlaucomaComplete = useCallback((result: { score: number; riskLevel: string; riskColor: string }) => {
     if (user) {
       saveRecord({
         id: Math.random().toString(36).substring(2) + Date.now().toString(36),
-        userId: user.id,
-        type: "vision-test",
-        title: "فحص المياه الزرقاء - Glaucoma",
-        data: { ...result, testType: "glaucoma" },
-        timestamp: new Date().toISOString(),
+        userId: user.id, type: "vision-test", title: "فحص المياه الزرقاء - Glaucoma",
+        data: { ...result, testType: "glaucoma" }, timestamp: new Date().toISOString(),
       });
     }
   }, [user]);
 
-  // Glasses catalog try-on
   const handleTryOn = useCallback((glasses: GlassesItem) => {
     setSelectedGlasses(glasses);
     navigateForward("calibration-guide");
   }, [navigateForward]);
 
-  // Calibration guide start → go to try-on
   const handleCalibrationStart = useCallback(() => {
     if (selectedGlasses) {
-      navigateForward("glasses-try-on");
+      const newHistory = [...screenHistoryRef.current];
+      setScreenHistory(newHistory);
+      setScreen("glasses-try-on");
+      screenRef.current = "glasses-try-on";
     }
-  }, [selectedGlasses, navigateForward]);
+  }, [selectedGlasses]);
 
-  // Calibration guide back → go to catalog
   const handleCalibrationBack = useCallback(() => {
     setSelectedGlasses(null);
     handleBack();
   }, [handleBack]);
 
-  // Change glasses during try-on
   const handleChangeGlasses = useCallback((newGlasses: GlassesItem) => {
     setSelectedGlasses(newGlasses);
   }, []);
 
-  // Try-on back → catalog (directly, not through history)
   const handleTryOnBack = useCallback(() => {
     setSelectedGlasses(null);
-    // Pop back past calibration-guide to glasses-catalog or earlier
-    const originalLength = screenHistoryRef.current.length;
+    // Pop back past calibration-guide to glasses-catalog
     const newHistory = [...screenHistoryRef.current];
-    while (newHistory.length > 0) {
-      const last = newHistory[newHistory.length - 1];
-      if (last === "calibration-guide") {
-        newHistory.pop();
-      } else {
-        break;
-      }
+    while (newHistory.length > 0 && newHistory[newHistory.length - 1] === "calibration-guide") {
+      newHistory.pop();
     }
     const previousScreen = newHistory.length > 0 ? newHistory.pop()! : "glasses-catalog";
     screenHistoryRef.current = newHistory;
     setScreenHistory(newHistory);
     setScreen(previousScreen);
     screenRef.current = previousScreen;
-    // Go back in browser history for each popped entry
-    const poppedCount = originalLength - newHistory.length;
-    isNavigatingRef.current = true;
-    for (let i = 0; i < poppedCount; i++) {
-      window.history.back();
-    }
-    setTimeout(() => { isNavigatingRef.current = false; }, 100);
   }, []);
 
-  // Prevent body scroll when on splash
+  // Prevent body scroll on splash
   useEffect(() => {
     if (screen === "splash") {
       document.body.style.overflow = "hidden";
     } else {
       document.body.style.overflow = "";
     }
-    return () => {
-      document.body.style.overflow = "";
-    };
+    return () => { document.body.style.overflow = ""; };
   }, [screen]);
 
   return (
@@ -585,8 +558,6 @@ export default function Home() {
             <GlassesTryOn glasses={selectedGlasses} onBack={handleTryOnBack} onChangeGlasses={handleChangeGlasses} />
           </motion.div>
         )}
-
-        {/* ===== Eye Health Center Screens ===== */}
 
         {screen === "prescription-calculator" && (
           <motion.div key="prescription-calculator" variants={pageVariants} initial="initial" animate="animate" exit="exit" transition={{ duration: 0.3 }}>

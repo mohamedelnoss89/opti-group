@@ -21,6 +21,7 @@ import {
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useI18n } from "@/lib/i18n";
+import AdBanner from "@/components/optisize/AdBanner";
 
 interface HealthCenterProps {
   onSelectTest: (testId: string) => void;
@@ -478,6 +479,11 @@ export default function HealthCenter({
           <p className="text-xs leading-relaxed" style={{ color: "#94a3b8" }}>
             {t("health.disclaimer")}
           </p>
+        </motion.div>
+
+        {/* Ad Banner - Bottom of Health Center */}
+        <motion.div variants={itemVariants}>
+          <AdBanner format="rectangle" />
         </motion.div>
       </motion.div>
     </div>

@@ -28,7 +28,9 @@ import {
   getGlassesSVG,
   getFrameTypeLabel,
   GLASSES_STYLES,
+  GLASSES_CATEGORIES,
   type GlassesItem,
+  type GlassesCategory,
 } from "./RealisticGlasses";
 
 const GLASSES_OVERLAY_SIZE = 260;
@@ -69,6 +71,7 @@ export default function GlassesTryOn({
   const [autoPositioned, setAutoPositioned] = useState(false);
   const [isDragging, setIsDragging] = useState(false);
   const [showChangeSheet, setShowChangeSheet] = useState(false);
+  const [sheetCategory, setSheetCategory] = useState<GlassesCategory | "all">("all");
   const [detectionProgress, setDetectionProgress] = useState("");
   const [saveSuccess, setSaveSuccess] = useState(false);
   const [isAutoMode, setIsAutoMode] = useState(false);
@@ -1266,7 +1269,7 @@ export default function GlassesTryOn({
                   animate={{ y: 0 }}
                   exit={{ y: "100%" }}
                   transition={{ type: "spring", damping: 25 }}
-                  className="absolute bottom-0 left-0 right-0 rounded-t-3xl max-h-[70vh] flex flex-col"
+                  className="absolute bottom-0 left-0 right-0 rounded-t-3xl max-h-[80vh] flex flex-col"
                   style={{
                     background: "#111827",
                     border: "1px solid rgba(255,255,255,0.08)",
@@ -1307,62 +1310,68 @@ export default function GlassesTryOn({
                     </div>
                   </div>
 
-                  {/* Category Tabs */}
-                  <div className="flex gap-1.5 px-4 py-3 overflow-x-auto custom-scrollbar" style={{ direction: "rtl" }}>
-                    {GLASSES_STYLES.categories.map((cat) => (
+                  {/* Category Tabs - VERY BIG tappable buttons in grid */}
+                  <div className="grid grid-cols-2 gap-2.5 px-4 py-3" style={{ direction: "rtl" }}>
+                    {GLASSES_CATEGORIES.map((cat) => (
                       <button
                         key={cat.id}
-                        className="px-3 py-1.5 rounded-lg text-xs whitespace-nowrap"
+                        onClick={() => setSheetCategory(cat.id as GlassesCategory | "all")}
+                        className="flex items-center justify-center gap-2 px-4 py-4 rounded-xl text-lg font-bold whitespace-nowrap transition-all w-full"
                         style={{
-                          background: glasses.category === cat.id
-                            ? "rgba(0,240,255,0.12)"
-                            : "rgba(255,255,255,0.04)",
-                          border: `1px solid ${
-                            glasses.category === cat.id
-                              ? "rgba(0,240,255,0.25)"
-                              : "rgba(255,255,255,0.06)"
+                          background: sheetCategory === cat.id
+                            ? "rgba(0,240,255,0.3)"
+                            : "rgba(255,255,255,0.06)",
+                          border: `3px solid ${
+                            sheetCategory === cat.id
+                              ? "rgba(0,240,255,0.6)"
+                              : "rgba(255,255,255,0.1)"
                           }`,
-                          color: glasses.category === cat.id ? "#00f0ff" : "#94a3b8",
+                          color: sheetCategory === cat.id ? "#00f0ff" : "#94a3b8",
+                          boxShadow: sheetCategory === cat.id
+                            ? "0 0 25px rgba(0,240,255,0.25)"
+                            : "none",
+                          minHeight: "64px",
                         }}
                       >
-                        {cat.icon} {cat.label}
+                        <span className="text-2xl">{cat.icon}</span>
+                        <span>{cat.label}</span>
                       </button>
                     ))}
                   </div>
 
-                  {/* Glasses List */}
+                  {/* Glasses List - BIGGER cards */}
                   <div className="flex-1 overflow-y-auto px-4 pb-4 custom-scrollbar">
-                    <div className="grid grid-cols-2 gap-2">
-                      {ALL_GLASSES.filter((g) => g.category === glasses.category).map(
+                    <div className="grid grid-cols-2 gap-3">
+                      {(sheetCategory === "all" ? ALL_GLASSES : ALL_GLASSES.filter((g) => g.category === sheetCategory)).map(
                         (g) => (
                           <motion.button
                             key={g.id}
                             whileTap={{ scale: 0.97 }}
                             onClick={() => handleChangeGlasses(g)}
-                            className="p-3 rounded-xl transition-all text-right"
+                            className="p-4 rounded-xl transition-all text-right"
                             style={{
                               background:
                                 g.id === glasses.id
-                                  ? "rgba(0,240,255,0.1)"
-                                  : "rgba(255,255,255,0.03)",
-                              border: `1px solid ${
+                                  ? "rgba(0,240,255,0.15)"
+                                  : "rgba(255,255,255,0.04)",
+                              border: `2px solid ${
                                 g.id === glasses.id
-                                  ? "rgba(0,240,255,0.3)"
-                                  : "rgba(255,255,255,0.05)"
+                                  ? "rgba(0,240,255,0.5)"
+                                  : "rgba(255,255,255,0.08)"
                               }`,
                             }}
                           >
-                            <div className="flex items-center justify-center mb-2 h-10">
-                              <img src={g.image} alt={g.nameAr} className="max-h-10 w-auto object-contain" />
+                            <div className="flex items-center justify-center mb-3 h-24">
+                              <img src={g.image} alt={g.nameAr} className="max-h-24 w-auto object-contain" />
                             </div>
                             <p
-                              className="text-xs font-medium truncate"
+                              className="text-base font-semibold truncate"
                               style={{ color: "#e2e8f0" }}
                             >
                               {g.nameAr}
                             </p>
                             <p
-                              className="text-[10px] truncate"
+                              className="text-sm truncate mt-1"
                               style={{ color: "#64748b" }}
                             >
                               {g.color}

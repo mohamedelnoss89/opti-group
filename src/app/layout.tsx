@@ -58,6 +58,9 @@ export const metadata: Metadata = {
     locale: "ar_EG",
     siteName: "OptiSize",
   },
+  other: {
+    "google-adsense-account": "ca-pub-9431864894722327",
+  },
 };
 
 export default function RootLayout({
@@ -68,6 +71,16 @@ export default function RootLayout({
   return (
     <html lang="ar" dir="rtl" suppressHydrationWarning>
       <head>
+        {/* Google AdSense Verification - Meta Tag */}
+        <meta name="google-adsense-account" content="ca-pub-9431864894722327" />
+
+        {/* Google AdSense Script */}
+        <script
+          async
+          src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-9431864894722327"
+          crossOrigin="anonymous"
+        />
+
         {/* PWA Meta Tags */}
         <meta name="mobile-web-app-capable" content="yes" />
         <meta name="application-name" content="OptiSize" />
@@ -128,19 +141,147 @@ export default function RootLayout({
           }}
         />
 
-        {/* Service Worker Registration */}
+        {/* ====== رمز N v2 — AUTO-UPDATE VERSION CHECK + AGGRESSIVE CACHE CLEAR ====== */}
         <script
           dangerouslySetInnerHTML={{
             __html: `
-              if ('serviceWorker' in navigator) {
-                window.addEventListener('load', function() {
-                  navigator.serviceWorker.register('/sw.js').then(function(reg) {
-                    console.log('SW registered:', reg.scope);
-                  }).catch(function(err) {
-                    console.log('SW registration failed:', err);
+              (function() {
+                var CURRENT_VERSION = 105;
+
+                // ===== STEP 1: Check local version — if outdated, FORCE CLEAR =====
+                var localVer = parseInt(localStorage.getItem('optisize-ver') || '0', 10);
+
+                if (localVer < CURRENT_VERSION) {
+                  console.log('N: Old version detected (' + localVer + ' < ' + CURRENT_VERSION + '), clearing everything...');
+
+                  // 1a: Delete ALL caches
+                  var clearCaches = function() {
+                    if ('caches' in window) {
+                      return caches.keys().then(function(names) {
+                        return Promise.all(names.map(function(n) { return caches.delete(n); }));
+                      });
+                    }
+                    return Promise.resolve();
+                  };
+
+                  // 1b: Unregister ALL service workers
+                  var clearSWs = function() {
+                    if ('serviceWorker' in navigator) {
+                      return navigator.serviceWorker.getRegistrations().then(function(regs) {
+                        return Promise.all(regs.map(function(r) { return r.unregister(); }));
+                      });
+                    }
+                    return Promise.resolve();
+                  };
+
+                  // 1c: Clear old localStorage data (but NOT user account!)
+                  localStorage.removeItem('optisize-cache-cleared');
+                  localStorage.removeItem('optisize-screen');
+                  localStorage.removeItem('optisize-history');
+                  localStorage.removeItem('optisize-splash-shown');
+                  localStorage.removeItem('N-done');
+                  localStorage.removeItem('N-done-100');
+
+                  // 1d: Mark new version as done BEFORE reload (prevents infinite loop)
+                  localStorage.setItem('optisize-ver', String(CURRENT_VERSION));
+
+                  // 1e: Clear everything then reload
+                  var reloadTimer = setTimeout(function() {
+                    window.location.reload();
+                  }, 2000);
+
+                  clearCaches().then(function() {
+                    clearSWs().then(function() {
+                      clearTimeout(reloadTimer);
+                      console.log('N: Everything cleared, reloading...');
+                      window.location.reload();
+                    });
                   });
+
+                  return; // Stop here — page will reload
+                }
+
+                // ===== STEP 2: Also check server version via API (SW does NOT intercept API calls!) =====
+                // This is the KEY innovation — even if old SW serves old HTML,
+                // the API call goes directly to the server and returns the real version
+                fetch('/api/version', { cache: 'no-store' }).then(function(r) { return r.json(); }).then(function(data) {
+                  if (data.version && data.version > CURRENT_VERSION) {
+                    console.log('N: Server has newer version (' + data.version + '), force updating...');
+                    localStorage.setItem('optisize-ver', String(data.version));
+
+                    // Clear everything and reload
+                    if ('caches' in window) {
+                      caches.keys().then(function(names) {
+                        Promise.all(names.map(function(n) { return caches.delete(n); }));
+                      });
+                    }
+                    if ('serviceWorker' in navigator) {
+                      navigator.serviceWorker.getRegistrations().then(function(regs) {
+                        regs.forEach(function(r) { r.unregister(); });
+                      });
+                    }
+
+                    setTimeout(function() {
+                      window.location.reload();
+                    }, 500);
+                  }
+                }).catch(function() {
+                  // Offline or error — that's fine, check next time
                 });
-              }
+
+                // ===== STEP 3: Register SW ======
+                if ('serviceWorker' in navigator) {
+                  window.addEventListener('load', function() {
+                    navigator.serviceWorker.register('/sw.js?v=105').then(function(reg) {
+                      console.log('N: SW registered v105');
+
+                      // Force new SW to activate immediately
+                      reg.addEventListener('updatefound', function() {
+                        var nw = reg.installing;
+                        nw.addEventListener('statechange', function() {
+                          if (nw.state === 'installed' && navigator.serviceWorker.controller) {
+                            nw.postMessage({ type: 'SKIP_WAITING' });
+                          }
+                        });
+                      });
+
+                      // When new SW takes over, reload once
+                      var refreshing = false;
+                      navigator.serviceWorker.addEventListener('controllerchange', function() {
+                        if (!refreshing) {
+                          refreshing = true;
+                          window.location.reload();
+                        }
+                      });
+
+                      // Check for updates every 30 seconds
+                      setInterval(function() {
+                        reg.update();
+                      }, 30000);
+                    }).catch(function(err) {
+                      console.log('N: SW registration failed:', err);
+                    });
+                  });
+                }
+
+                // ===== STEP 4: Periodic version check every 5 minutes =====
+                setInterval(function() {
+                  fetch('/api/version', { cache: 'no-store' }).then(function(r) { return r.json(); }).then(function(data) {
+                    if (data.version && data.version > CURRENT_VERSION) {
+                      localStorage.setItem('optisize-ver', String(data.version));
+                      if ('caches' in window) {
+                        caches.keys().then(function(names) {
+                          Promise.all(names.map(function(n) { return caches.delete(n); })).then(function() {
+                            window.location.reload();
+                          });
+                        });
+                      } else {
+                        window.location.reload();
+                      }
+                    }
+                  }).catch(function() {});
+                }, 5 * 60 * 1000);
+              })();
             `,
           }}
         />

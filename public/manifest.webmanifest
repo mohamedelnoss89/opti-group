@@ -2,7 +2,7 @@
   "name": "OptiSize - مركز صحة العين الشامل",
   "short_name": "OptiSize",
   "description": "قياس مسافة البؤبؤ، اختبارات النظر، مركز صحة العين، ومعرض النظارات - الدقة في كل تفصيلة",
-  "start_url": "/",
+  "start_url": "/?v=105",
   "display": "standalone",
   "orientation": "portrait",
   "dir": "rtl",
@@ -65,7 +65,7 @@
       "name": "قياس مسافة البؤبؤ",
       "short_name": "قياس PD",
       "description": "قياس مسافة البؤبؤ باستخدام الكاميرا",
-      "url": "/?screen=scanner",
+      "url": "/#scanner",
       "icons": [
         {
           "src": "/icons/icon-96x96.png",
@@ -77,7 +77,7 @@
       "name": "مركز صحة العين",
       "short_name": "صحة العين",
       "description": "اختبارات وفحوصات صحة العين",
-      "url": "/?screen=health-center",
+      "url": "/#health-center",
       "icons": [
         {
           "src": "/icons/icon-96x96.png",
@@ -89,7 +89,7 @@
       "name": "معرض النظارات",
       "short_name": "النظارات",
       "description": "تصفح وتجربة النظارات افتراضياً",
-      "url": "/?screen=glasses-catalog",
+      "url": "/#glasses-catalog",
       "icons": [
         {
           "src": "/icons/icon-96x96.png",

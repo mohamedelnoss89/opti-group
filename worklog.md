@@ -1,23 +1,24 @@
 ---
 Task ID: 1
-Agent: Main Agent
-Task: Fix OptiSize app - was broken/not working on mobile
+Agent: Main
+Task: Fix back button navigation bug in OptiSize PWA
 
 Work Log:
-- Investigated why the app was broken: Next.js server was not running (port 3000 not listening)
-- Found subscription system was using in-memory storage (lost on server restart)
-- Fixed subscription route to use Prisma database for persistent storage
-- Added SubscriptionActivation model to support multi-user codes (e.g., SIZE2026 maxUsers=3)
-- Rebuilt the Next.js app (production build)
-- Started the production server with persistent process (detach-start.sh with auto-restart)
-- Verified Caddy proxy (port 81) correctly forwards to Next.js (port 3000)
-- Cleaned up all test data and reset all subscription codes for production use
-- All 14 built-in codes are now available: SIZE2026, OPTI2026, EYES2026 (master), OPTA7X9K-OPTF9H3J (normal), GIFTA1B2-GIFTM3N4 (gift)
+- Analyzed the code and found the ROOT CAUSE: `isNavigatingRef` flag was causing the popstate handler to IGNORE the first hardware back button press
+- The flag was set to `true` in `navigateForward` (via `pushState`) but `pushState` doesn't trigger `popstate`, so the flag was NEVER reset before the user pressed back
+- This caused the browser to navigate back in history while React state stayed on the current screen = app restart
+- Also found that `sessionStorage` gets cleared when PWA is closed, causing the app to always start from splash
+
+Fix Applied:
+- REMOVED `isNavigatingRef` entirely - it was the root cause of the bug
+- Switched to GUARD PATTERN: push a single guard entry on mount, re-push on popstate
+- `navigateForward` and `handleBack` are now PURE React state changes - no browser history manipulation
+- Changed from `sessionStorage` to `localStorage` - state survives app close/reopen
+- State restoration runs before CSS loader removal so user never sees splash on return
+- Simplified code: removed all hash-based routing, pushState/replaceState in navigation functions
 
 Stage Summary:
-- App server is now running and accessible on port 3000 (direct) and port 81 (via Caddy)
-- Subscription system now uses database (Prisma/SQLite) instead of in-memory
-- Multi-user code support added via SubscriptionActivation table
-- All API endpoints verified working: health check, subscription status, code activation
-- Key files modified: src/app/api/subscriptions/route.ts, prisma/schema.prisma
-- Server auto-restarts via detach-start.sh (while loop with 3s delay)
+- Root cause identified and fixed: isNavigatingRef was blocking the first back press
+- Deployed to Vercel (production) - deployment ID: dpl_FzokZaAGf9UwX3LBGs4STeqJSuH2
+- Pushed to GitHub: commit 0fe8071
+- User needs to clear app data ONE FINAL TIME to get the new SW (v5) which uses network-first for navigation

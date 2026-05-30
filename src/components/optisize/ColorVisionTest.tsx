@@ -355,8 +355,8 @@ export default function ColorVisionTest({ onBack, onComplete }: ColorVisionTestP
 
   const finish = useCallback(() => {
     onComplete({ score, total, status: score >= 6 ? "normal" : "deficient" });
-    onBack();
-  }, [onComplete, onBack, score, total]);
+    // Don't call onBack() here - onComplete already calls handleBack in page.tsx
+  }, [onComplete, score, total]);
 
   return (
     <div className="min-h-screen flex flex-col" style={{ background: "#0a0e1a" }}>
