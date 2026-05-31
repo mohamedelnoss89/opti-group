@@ -20,13 +20,15 @@ import {
   Lock,
   Crown,
   Languages,
+  ShieldCheck,
+  AlertTriangle,
+  BookOpen,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import type { StoredUser } from "@/lib/auth";
 import { logout } from "@/lib/auth";
 import { useToast } from "@/hooks/use-toast";
 import { useI18n } from "@/lib/i18n";
-import AdBanner from "@/components/optisize/AdBanner";
 
 interface MainMenuProps {
   user: StoredUser;
@@ -417,6 +419,169 @@ export default function MainMenu({
         </motion.div>
 
         {/* Ad Banner - Hidden until AdSense approval */}
+
+        {/* Eye Health Article - Publisher Content */}
+        <motion.div variants={itemVariants} className="mb-6">
+          <div
+            className="rounded-2xl overflow-hidden"
+            style={{
+              background: "linear-gradient(180deg, rgba(15,23,42,0.9) 0%, rgba(10,14,26,0.95) 100%)",
+              border: "1px solid rgba(0,240,255,0.12)",
+            }}
+          >
+            {/* Article Header */}
+            <div
+              className="p-4 pb-3"
+              style={{
+                background: "linear-gradient(135deg, rgba(0,240,255,0.08), rgba(0,128,255,0.04))",
+                borderBottom: "1px solid rgba(255,255,255,0.06)",
+              }}
+            >
+              <div className="flex items-center gap-2 mb-2">
+                <BookOpen className="w-5 h-5" style={{ color: "#00f0ff" }} />
+                <h3 className="text-base font-bold" style={{ color: "#00f0ff" }}>
+                  نصائح لصحة عينيك
+                </h3>
+              </div>
+              <p className="text-xs" style={{ color: "#64748b" }}>
+                كيف تحافظ على نظرك في العصر الرقمي
+              </p>
+            </div>
+
+            {/* Article Body */}
+            <div className="p-4 space-y-4">
+              {/* Intro */}
+              <p className="text-sm leading-relaxed" style={{ color: "#cbd5e1" }}>
+                تعتبر العين من أهم الحواس التي نمتلكها، ومع زيادة استخدام الشاشات في حياتنا اليومية، أصبحت العناية بصحة العين أكثر أهمية من أي وقت مضى. تشير الإحصائيات إلى أن أكثر من 80% من المعلومات التي نتلقاها تأتي عبر حاسة البصر، مما يجعل الحفاظ على صحة العين أولوية قصوى لكل فرد.
+              </p>
+
+              {/* Tip 1 */}
+              <div className="flex gap-3">
+                <div
+                  className="w-8 h-8 rounded-lg flex items-center justify-center shrink-0 mt-0.5"
+                  style={{ background: "rgba(0,240,255,0.1)", border: "1px solid rgba(0,240,255,0.15)" }}
+                >
+                  <span className="text-sm font-bold" style={{ color: "#00f0ff" }}>1</span>
+                </div>
+                <div>
+                  <h4 className="text-sm font-bold mb-1" style={{ color: "#e2e8f0" }}>
+                    قاعدة 20-20-20
+                  </h4>
+                  <p className="text-xs leading-relaxed" style={{ color: "#94a3b8" }}>
+                    كل 20 دقيقة أمام الشاشة، انظر إلى شيء على بعد 20 قدماً (6 أمتار) لمدة 20 ثانية. هذه القاعدة البسيطة تقلل إجهاد العين بشكل ملحوظ وتساعد في منع جفاف العين والصداع الناتج عن الاستخدام المطول للشاشات.
+                  </p>
+                </div>
+              </div>
+
+              {/* Tip 2 */}
+              <div className="flex gap-3">
+                <div
+                  className="w-8 h-8 rounded-lg flex items-center justify-center shrink-0 mt-0.5"
+                  style={{ background: "rgba(168,85,247,0.1)", border: "1px solid rgba(168,85,247,0.15)" }}
+                >
+                  <span className="text-sm font-bold" style={{ color: "#a855f7" }}>2</span>
+                </div>
+                <div>
+                  <h4 className="text-sm font-bold mb-1" style={{ color: "#e2e8f0" }}>
+                    الإضاءة المناسبة
+                  </h4>
+                  <p className="text-xs leading-relaxed" style={{ color: "#94a3b8" }}>
+                    تجنب العمل في الظلام الدامس أو تحت إضاءة ساطعة جداً. أفضل ظروف الإضاءة هي أن تكون إضاءة الغرفة مماثلة لسطوع الشاشة. استخدم مصابح مكتبية ذات ضوء دافئ لتقليل التباين بين الشاشة والبيئة المحيطة.
+                  </p>
+                </div>
+              </div>
+
+              {/* Tip 3 */}
+              <div className="flex gap-3">
+                <div
+                  className="w-8 h-8 rounded-lg flex items-center justify-center shrink-0 mt-0.5"
+                  style={{ background: "rgba(0,212,170,0.1)", border: "1px solid rgba(0,212,170,0.15)" }}
+                >
+                  <span className="text-sm font-bold" style={{ color: "#00d4aa" }}>3</span>
+                </div>
+                <div>
+                  <h4 className="text-sm font-bold mb-1" style={{ color: "#e2e8f0" }}>
+                    قياس مسافة البؤبؤ بانتظام
+                  </h4>
+                  <p className="text-xs leading-relaxed" style={{ color: "#94a3b8" }}>
+                    القياس الدقيق لمسافة البؤبؤ (PD) ضروري للحصول على نظارات مريحة وفعالة. النظارات ذات القياس الخاطئ تسبب صداع وإجهاد العين. استخدم تطبيق OptiSize لقياس مسافة البؤبؤ بدقة عالية من المنزل.
+                  </p>
+                </div>
+              </div>
+
+              {/* Tip 4 */}
+              <div className="flex gap-3">
+                <div
+                  className="w-8 h-8 rounded-lg flex items-center justify-center shrink-0 mt-0.5"
+                  style={{ background: "rgba(251,191,36,0.1)", border: "1px solid rgba(251,191,36,0.15)" }}
+                >
+                  <span className="text-sm font-bold" style={{ color: "#fbbf24" }}>4</span>
+                </div>
+                <div>
+                  <h4 className="text-sm font-bold mb-1" style={{ color: "#e2e8f0" }}>
+                    الفحص الدوري للعين
+                  </h4>
+                  <p className="text-xs leading-relaxed" style={{ color: "#94a3b8" }}>
+                    يُنصح بزيارة طبيب العيون مرة واحدة على الأقل كل سنة، حتى لو لم تلاحظ أي مشاكل في النظر. بعض أمراض العين مثل المياه الزرقاء تتطور تدريجياً دون أعراض واضحة في البداية، والاكتشاف المبكر يُحدث فرقاً كبيراً في العلاج.
+                  </p>
+                </div>
+              </div>
+
+              {/* Tip 5 */}
+              <div className="flex gap-3">
+                <div
+                  className="w-8 h-8 rounded-lg flex items-center justify-center shrink-0 mt-0.5"
+                  style={{ background: "rgba(255,59,48,0.1)", border: "1px solid rgba(255,59,48,0.15)" }}
+                >
+                  <span className="text-sm font-bold" style={{ color: "#ff3b30" }}>5</span>
+                </div>
+                <div>
+                  <h4 className="text-sm font-bold mb-1" style={{ color: "#e2e8f0" }}>
+                    التغذية السليمة للعين
+                  </h4>
+                  <p className="text-xs leading-relaxed" style={{ color: "#94a3b8" }}>
+                    تناول الأطعمة الغنية بفيتامين A وC وE وأوميغا 3، مثل الجزر والسبانخ والسمك والبرتقال. هذه العناصر الغذائية تلعب دوراً حيوياً في حماية العين من الضمور البقعي المرتبط بالعمر وإعتام عدسة العين.
+                  </p>
+                </div>
+              </div>
+
+              {/* Medical Warning */}
+              <div
+                className="rounded-xl p-3 mt-3"
+                style={{
+                  background: "rgba(255,59,48,0.06)",
+                  border: "1px solid rgba(255,59,48,0.15)",
+                }}
+              >
+                <div className="flex gap-2">
+                  <AlertTriangle className="w-4 h-4 shrink-0 mt-0.5" style={{ color: "#ff3b30" }} />
+                  <div>
+                    <p className="text-xs font-bold mb-1" style={{ color: "#ff6b6b" }}>
+                      تحذير طبي هام
+                    </p>
+                    <p className="text-[11px] leading-relaxed" style={{ color: "#94a3b8" }}>
+                      هذا التطبيق أداة مساعدة فقط ولا يُغني عن استشارة طبيب العيون المتخصص. إذا كنت تعاني من ألم في العين، أو ضعف مفاجئ في النظر، أو أي أعراض مقلقة، تواصل فوراً مع طبيب مختص. التشخيص الذاتي قد يكون خطيراً على صحتك.
+                    </p>
+                  </div>
+                </div>
+              </div>
+
+              {/* Reliability Badge */}
+              <div
+                className="flex items-center gap-2 px-3 py-2 rounded-lg"
+                style={{
+                  background: "rgba(0,240,255,0.04)",
+                  border: "1px solid rgba(0,240,255,0.08)",
+                }}
+              >
+                <ShieldCheck className="w-3.5 h-3.5" style={{ color: "#00d4aa" }} />
+                <span className="text-[10px]" style={{ color: "#00d4aa" }}>
+                  محتوى طبي مراجع - للاطلاع فقط وليس للتشخيص
+                </span>
+              </div>
+            </div>
+          </div>
+        </motion.div>
 
         {/* Disclaimer */}
         <motion.div

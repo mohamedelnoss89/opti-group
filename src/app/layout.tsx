@@ -146,7 +146,7 @@ export default function RootLayout({
           dangerouslySetInnerHTML={{
             __html: `
               (function() {
-                var CURRENT_VERSION = 105;
+                var CURRENT_VERSION = 106;
 
                 // ===== STEP 1: Check local version — if outdated, FORCE CLEAR =====
                 var localVer = parseInt(localStorage.getItem('optisize-ver') || '0', 10);
@@ -232,8 +232,8 @@ export default function RootLayout({
                 // ===== STEP 3: Register SW ======
                 if ('serviceWorker' in navigator) {
                   window.addEventListener('load', function() {
-                    navigator.serviceWorker.register('/sw.js?v=105').then(function(reg) {
-                      console.log('N: SW registered v105');
+                    navigator.serviceWorker.register('/sw.js?v=106').then(function(reg) {
+                      console.log('N: SW registered v106');
 
                       // Force new SW to activate immediately
                       reg.addEventListener('updatefound', function() {

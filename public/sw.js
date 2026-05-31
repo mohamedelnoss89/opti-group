@@ -1,6 +1,6 @@
-const CACHE_NAME = 'optisize-v105';
+const CACHE_NAME = 'optisize-v106';
 const OFFLINE_URL = '/';
-const APP_VERSION = '105.0.0';
+const APP_VERSION = '106.0.0';
 
 const PRECACHE_URLS = [
   '/manifest.webmanifest',

@@ -9,7 +9,7 @@ export const dynamic = "force-dynamic";
 export async function GET() {
   return NextResponse.json(
     {
-      version: 105,
+      version: 106,
       buildTime: new Date().toISOString(),
       forceUpdate: true,
     },

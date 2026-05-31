@@ -2,7 +2,7 @@
   "name": "OptiSize - مركز صحة العين الشامل",
   "short_name": "OptiSize",
   "description": "قياس مسافة البؤبؤ، اختبارات النظر، مركز صحة العين، ومعرض النظارات - الدقة في كل تفصيلة",
-  "start_url": "/?v=105",
+  "start_url": "/?v=106",
   "display": "standalone",
   "orientation": "portrait",
   "dir": "rtl",
