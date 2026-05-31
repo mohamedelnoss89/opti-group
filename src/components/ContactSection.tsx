@@ -39,7 +39,7 @@ export default function ContactSection() {
               border: '1px solid rgba(14,165,233,0.25)',
             }}
           >
-            <Phone className="w-7 h-7 text-accent-cyan" />
+            <Mail className="w-7 h-7 text-accent-cyan" />
           </div>
           <div className={locale === 'ar' ? 'text-right' : ''}>
             <h2 className="text-2xl sm:text-3xl font-bold text-accent-cyan">

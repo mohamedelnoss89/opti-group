@@ -5,3 +5,4 @@ Checked 1 install across 2 packages (no changes) [8.00ms]
 [ai-service] Running bun run dev...
 $ bun --hot index.ts
 AI Service running on port 3031
+error: Module not found '/home/z/my-project/mini-services/ai-service/index.ts'
