@@ -1,0 +1,278 @@
+==========================================
+[2026-05-31 18:24:16] Starting: bun install
+==========================================
+[BUN] Installing dependencies...
+[0.13ms] ".env"
+bun install v1.3.14 (0d9b296a)
+
+Checked 855 installs across 924 packages (no changes) [46.00ms]
+==========================================
+[2026-05-31 18:24:16] Completed: bun install
+[LOG] Step: bun install | Duration: 0s
+==========================================
+
+==========================================
+[2026-05-31 18:24:16] Starting: bun run db:push
+==========================================
+[BUN] Setting up database...
+$ prisma db push
+Environment variables loaded from .env
+Prisma schema loaded from prisma/schema.prisma
+Datasource "db": SQLite database "custom.db" at "file:/home/z/my-project/db/custom.db"
+
+The database is already in sync with the Prisma schema.
+
+Running generate... (Use --skip-generate to skip the generators)
+[2K[1A[2K[GRunning generate... - Prisma Client
+[2K[1A[2K[G✔ Generated Prisma Client (v6.19.2) to ./node_modules/@prisma/client in 98ms
+
+==========================================
+[2026-05-31 18:24:17] Completed: bun run db:push
+[LOG] Step: bun run db:push | Duration: 1s
+==========================================
+
+==========================================
+[2026-05-31 18:24:17] Starting: Starting Next.js dev server
+==========================================
+[BUN] Starting development server...
+==========================================
+$ next dev -p 3000 2>&1 | tee dev.log
+[2026-05-31 18:24:17] Completed: Starting Next.js dev server
+[LOG] Step: Starting Next.js dev server | Duration: 0s
+==========================================
+
+==========================================
+[2026-05-31 18:24:17] Starting: Waiting for Next.js dev server
+==========================================
+Waiting for Next.js dev server to be ready on localhost:3000...
+Next.js dev server is ready!
+==========================================
+[2026-05-31 18:24:17] Completed: Waiting for Next.js dev server
+[LOG] Step: Waiting for Next.js dev server | Duration: 0s
+==========================================
+
+==========================================
+[2026-05-31 18:24:17] Starting: Health check
+==========================================
+[BUN] Performing health check...
+[BUN] Health check passed
+==========================================
+[2026-05-31 18:24:18] Completed: Health check
+[LOG] Step: Health check | Duration: 1s
+==========================================
+
+==========================================
+[2026-05-31 18:24:18] Starting: Starting mini-services
+==========================================
+Found mini-services directory, scanning for sub-services...
+Checking service: ai-service
+Starting ai-service in background...
+[ai-service] Started in background (PID: 10012)
+[ai-service] Log: /home/z/my-project/.zscripts/mini-service-ai-service.log
+Checking service: whatsapp-bot
+Starting whatsapp-bot in background...
+[whatsapp-bot] Started in background (PID: 10016)
+[whatsapp-bot] Log: /home/z/my-project/.zscripts/mini-service-whatsapp-bot.log
+Mini-services startup completed. Started 2 service(s).
+==========================================
+[2026-05-31 18:24:18] Completed: Starting mini-services
+[LOG] Step: Starting mini-services | Duration: 0s
+==========================================
+
+Next.js dev server is running in background (PID: 9985).
+Use 'kill 9985' to stop it.
+⨯ Failed to start server
+Error: listen EADDRINUSE: address already in use :::3000
+    at <unknown> (Error: listen EADDRINUSE: address already in use :::3000)
+    at new Promise (<anonymous>) {
+  code: 'EADDRINUSE',
+  errno: -98,
+  syscall: 'listen',
+  address: '::',
+  port: 3000
+}
+[?25h
+==========================================
+[2026-05-31 18:26:07] Starting: bun install
+==========================================
+[BUN] Installing dependencies...
+[0.11ms] ".env"
+bun install v1.3.14 (0d9b296a)
+
+Checked 865 installs across 934 packages (no changes) [45.00ms]
+==========================================
+[2026-05-31 18:26:07] Completed: bun install
+[LOG] Step: bun install | Duration: 0s
+==========================================
+
+==========================================
+[2026-05-31 18:26:07] Starting: bun run db:push
+==========================================
+[BUN] Setting up database...
+$ prisma db push
+Environment variables loaded from .env
+Prisma schema loaded from prisma/schema.prisma
+Datasource "db": SQLite database "custom.db" at "file:/home/z/my-project/db/custom.db"
+
+The database is already in sync with the Prisma schema.
+
+Running generate... (Use --skip-generate to skip the generators)
+[2K[1A[2K[GRunning generate... - Prisma Client
+[2K[1A[2K[G✔ Generated Prisma Client (v6.19.2) to ./node_modules/@prisma/client in 149ms
+
+==========================================
+[2026-05-31 18:26:08] Completed: bun run db:push
+[LOG] Step: bun run db:push | Duration: 1s
+==========================================
+
+==========================================
+[2026-05-31 18:26:08] Starting: Starting Next.js dev server
+==========================================
+[BUN] Starting development server...
+==========================================
+$ next dev -p 3000 2>&1 | tee dev.log
+[2026-05-31 18:26:09] Completed: Starting Next.js dev server
+[LOG] Step: Starting Next.js dev server | Duration: 1s
+==========================================
+
+==========================================
+[2026-05-31 18:26:09] Starting: Waiting for Next.js dev server
+==========================================
+Waiting for Next.js dev server to be ready on localhost:3000...
+Next.js dev server is ready!
+==========================================
+[2026-05-31 18:26:09] Completed: Waiting for Next.js dev server
+[LOG] Step: Waiting for Next.js dev server | Duration: 0s
+==========================================
+
+==========================================
+[2026-05-31 18:26:09] Starting: Health check
+==========================================
+[BUN] Performing health check...
+[BUN] Health check passed
+==========================================
+[2026-05-31 18:26:09] Completed: Health check
+[LOG] Step: Health check | Duration: 0s
+==========================================
+
+==========================================
+[2026-05-31 18:26:09] Starting: Starting mini-services
+==========================================
+Found mini-services directory, scanning for sub-services...
+Checking service: ai-service
+Starting ai-service in background...
+[ai-service] Started in background (PID: 10344)
+[ai-service] Log: /home/z/my-project/.zscripts/mini-service-ai-service.log
+Checking service: whatsapp-bot
+Starting whatsapp-bot in background...
+[whatsapp-bot] Started in background (PID: 10348)
+[whatsapp-bot] Log: /home/z/my-project/.zscripts/mini-service-whatsapp-bot.log
+Mini-services startup completed. Started 2 service(s).
+==========================================
+[2026-05-31 18:26:09] Completed: Starting mini-services
+[LOG] Step: Starting mini-services | Duration: 0s
+==========================================
+
+Next.js dev server is running in background (PID: 10317).
+Use 'kill 10317' to stop it.
+⨯ Failed to start server
+Error: listen EADDRINUSE: address already in use :::3000
+    at <unknown> (Error: listen EADDRINUSE: address already in use :::3000)
+    at new Promise (<anonymous>) {
+  code: 'EADDRINUSE',
+  errno: -98,
+  syscall: 'listen',
+  address: '::',
+  port: 3000
+}
+[?25h
+==========================================
+[2026-05-31 18:57:41] Starting: bun install
+==========================================
+[BUN] Installing dependencies...
+[0.11ms] ".env"
+bun install v1.3.14 (0d9b296a)
+
+Checked 371 installs across 436 packages (no changes) [20.00ms]
+==========================================
+[2026-05-31 18:57:41] Completed: bun install
+[LOG] Step: bun install | Duration: 0s
+==========================================
+
+==========================================
+[2026-05-31 18:57:41] Starting: bun run db:push
+==========================================
+[BUN] Setting up database...
+$ echo 'No database to push'
+No database to push
+==========================================
+[2026-05-31 18:57:41] Completed: bun run db:push
+[LOG] Step: bun run db:push | Duration: 0s
+==========================================
+
+==========================================
+[2026-05-31 18:57:41] Starting: Starting Next.js dev server
+==========================================
+[BUN] Starting development server...
+==========================================
+$ next dev -p 3000
+[2026-05-31 18:57:41] Completed: Starting Next.js dev server
+[LOG] Step: Starting Next.js dev server | Duration: 0s
+==========================================
+
+==========================================
+[2026-05-31 18:57:41] Starting: Waiting for Next.js dev server
+==========================================
+Waiting for Next.js dev server to be ready on localhost:3000...
+Attempt 1/60: Next.js dev server not ready yet, waiting...
+▲ Next.js 16.2.6 (Turbopack)
+- Local:         http://localhost:3000
+- Network:       http://21.0.4.76:3000
+- Environments: .env
+✓ Ready in 394ms
+
+○ Compiling / ...
+ GET / 200 in 4.3s (next.js: 4.0s, application-code: 280ms)
+Next.js dev server is ready!
+==========================================
+[2026-05-31 18:57:46] Completed: Waiting for Next.js dev server
+[LOG] Step: Waiting for Next.js dev server | Duration: 5s
+==========================================
+
+==========================================
+[2026-05-31 18:57:46] Starting: Health check
+==========================================
+[BUN] Performing health check...
+ GET / 200 in 43ms (next.js: 2ms, application-code: 41ms)
+[BUN] Health check passed
+==========================================
+[2026-05-31 18:57:46] Completed: Health check
+[LOG] Step: Health check | Duration: 0s
+==========================================
+
+==========================================
+[2026-05-31 18:57:46] Starting: Starting mini-services
+==========================================
+Found mini-services directory, scanning for sub-services...
+Checking service: ai-service
+Starting ai-service in background...
+[ai-service] Started in background (PID: 16315)
+[ai-service] Log: /home/z/my-project/.zscripts/mini-service-ai-service.log
+Checking service: whatsapp-bot
+Starting whatsapp-bot in background...
+[whatsapp-bot] Started in background (PID: 16319)
+[whatsapp-bot] Log: /home/z/my-project/.zscripts/mini-service-whatsapp-bot.log
+Mini-services startup completed. Started 2 service(s).
+==========================================
+[2026-05-31 18:57:46] Completed: Starting mini-services
+[LOG] Step: Starting mini-services | Duration: 0s
+==========================================
+
+Next.js dev server is running in background (PID: 16238).
+Use 'kill 16238' to stop it.
+ GET / 200 in 63ms (next.js: 4ms, application-code: 59ms)
+ GET / 200 in 49ms (next.js: 2ms, application-code: 46ms)
+ GET / 200 in 49ms (next.js: 3ms, application-code: 46ms)
+ GET /login 200 in 676ms (next.js: 597ms, application-code: 80ms)
+ GET /signup 200 in 558ms (next.js: 516ms, application-code: 42ms)
+ GET /login 200 in 44ms (next.js: 3ms, application-code: 41ms)

@@ -1,0 +1,32 @@
+[whatsapp-bot] Installing dependencies...
+bun install v1.3.14 (0d9b296a)
+
+Checked 108 installs across 130 packages (no changes) [14.00ms]
+[whatsapp-bot] Running bun run dev...
+$ bun --hot index.js
+[2026-05-31T18:57:47.384Z] 🚀 OptiSize Bot v3.0 starting (Mini Service)...
+[2026-05-31T18:57:47.384Z] Node: v24.3.0 PID: 16332
+[2026-05-31T18:57:47.384Z] Port: 3003
+[2026-05-31T18:57:47.384Z] Website API: http://localhost:3000
+[2026-05-31T18:57:47.384Z] GEMINI_API_KEY: SET (AIzaSyBe...)
+[2026-05-31T18:57:47.385Z] Loaded 0 LID mappings
+[2026-05-31T18:57:47.392Z] 🌐 Mini Service API on port 3003
+[2026-05-31T18:57:47.392Z] AI: Gemini API initialized successfully
+[2026-05-31T18:57:47.393Z] Starting WhatsApp connection...
+[2026-05-31T18:57:47.552Z] Baileys version: 2.3000.1035194821
+{"level":40,"time":"2026-05-31T18:57:47.559Z","pid":16332,"hostname":"c-6a1c2d83-1445a456-ff791371432a","class":"baileys","msg":"⚠️ The printQRInTerminal option has been deprecated. You will no longer receive QR codes in the terminal automatically. Please listen to the connection.update event yourself and handle the QR your way. You can remove this message by removing this opttion. This message will be removed in a future version."}
+[bun] Warning: ws.WebSocket 'upgrade' event is not implemented in bun
+[bun] Warning: ws.WebSocket 'unexpected-response' event is not implemented in bun
+{"level":30,"time":"2026-05-31T18:57:47.774Z","pid":16332,"hostname":"c-6a1c2d83-1445a456-ff791371432a","class":"baileys","browser":["OptiSize Bot","Chrome","3.0"],"helloMsg":{"clientHello":{"ephemeral":"SlapBlmCqhiwI2FHrC+aQFs5/q2QWi2mJuNi/sfxoFM="}},"msg":"connected to WA"}
+{"level":30,"time":"2026-05-31T18:57:48.009Z","pid":16332,"hostname":"c-6a1c2d83-1445a456-ff791371432a","class":"baileys","node":{"username":"201028900122","passive":true,"userAgent":{"platform":"WEB","appVersion":{"primary":2,"secondary":3000,"tertiary":1035194821},"mcc":"000","mnc":"000","osVersion":"0.1","device":"Desktop","osBuildNumber":"0.1","releaseChannel":"RELEASE","localeLanguageIso6391":"en","localeCountryIso31661Alpha2":"US"},"webInfo":{"webSubPlatform":"WEB_BROWSER"},"connectType":"WIFI_UNKNOWN","connectReason":"USER_ACTIVATED","pull":true,"lidDbMigrated":false},"msg":"logging in..."}
+{"level":30,"time":"2026-05-31T18:57:53.010Z","pid":16332,"hostname":"c-6a1c2d83-1445a456-ff791371432a","class":"baileys","trace":"Error: Connection Terminated\n    at <anonymous> (/home/z/my-project/mini-services/whatsapp-bot/node_modules/@whiskeysockets/baileys/lib/Socket/socket.js:687:39)\n    at emit (node:events:101:22)\n    at emit (node:events:101:22)\n    at <anonymous> (ws:185:20)","msg":"connection errored"}
+[2026-05-31T18:57:53.011Z] Connection closed. Status: 428
+[2026-05-31T18:57:53.012Z] Reconnecting in 5s (attempt 1/10)...
+[2026-05-31T18:57:58.013Z] Starting WhatsApp connection...
+[2026-05-31T18:57:58.064Z] Baileys version: 2.3000.1035194821
+{"level":40,"time":"2026-05-31T18:57:58.065Z","pid":16332,"hostname":"c-6a1c2d83-1445a456-ff791371432a","class":"baileys","msg":"⚠️ The printQRInTerminal option has been deprecated. You will no longer receive QR codes in the terminal automatically. Please listen to the connection.update event yourself and handle the QR your way. You can remove this message by removing this opttion. This message will be removed in a future version."}
+{"level":30,"time":"2026-05-31T18:57:58.341Z","pid":16332,"hostname":"c-6a1c2d83-1445a456-ff791371432a","class":"baileys","browser":["OptiSize Bot","Chrome","3.0"],"helloMsg":{"clientHello":{"ephemeral":"a4Fn0rOQXrnSgQFmW5NDB8Iifogv8NVr3a/BrzUoYUE="}},"msg":"connected to WA"}
+{"level":30,"time":"2026-05-31T18:57:58.631Z","pid":16332,"hostname":"c-6a1c2d83-1445a456-ff791371432a","class":"baileys","node":{"username":"201028900122","passive":true,"userAgent":{"platform":"WEB","appVersion":{"primary":2,"secondary":3000,"tertiary":1035194821},"mcc":"000","mnc":"000","osVersion":"0.1","device":"Desktop","osBuildNumber":"0.1","releaseChannel":"RELEASE","localeLanguageIso6391":"en","localeCountryIso31661Alpha2":"US"},"webInfo":{"webSubPlatform":"WEB_BROWSER"},"connectType":"WIFI_UNKNOWN","connectReason":"USER_ACTIVATED","pull":true,"lidDbMigrated":false},"msg":"logging in..."}
+{"level":30,"time":"2026-05-31T18:57:59.399Z","pid":16332,"hostname":"c-6a1c2d83-1445a456-ff791371432a","class":"baileys","trace":"Error: Connection Failure\n    at <anonymous> (/home/z/my-project/mini-services/whatsapp-bot/node_modules/@whiskeysockets/baileys/lib/Socket/socket.js:797:22)\n    at emit (node:events:95:22)\n    at <anonymous> (/home/z/my-project/mini-services/whatsapp-bot/node_modules/@whiskeysockets/baileys/lib/Socket/socket.js:462:35)\n    at <anonymous> (/home/z/my-project/mini-services/whatsapp-bot/node_modules/@whiskeysockets/baileys/lib/Utils/noise-handler.js:126:13)\n    at async <anonymous> (/home/z/my-project/mini-services/whatsapp-bot/node_modules/@whiskeysockets/baileys/lib/Utils/noise-handler.js:197:19)\n    at async <anonymous> (/home/z/my-project/mini-services/whatsapp-bot/node_modules/@whiskeysockets/baileys/lib/Socket/socket.js:439:21)\n    at processTicksAndRejections (native:7:39)","msg":"connection errored"}
+[2026-05-31T18:57:59.400Z] Connection closed. Status: 401
+[2026-05-31T18:57:59.401Z] Logged out. Need to re-pair.

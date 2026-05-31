@@ -1,0 +1,7 @@
+[ai-service] Installing dependencies...
+bun install v1.3.14 (0d9b296a)
+
+Checked 1 install across 2 packages (no changes) [8.00ms]
+[ai-service] Running bun run dev...
+$ bun --hot index.ts
+AI Service running on port 3031
