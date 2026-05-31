@@ -3,8 +3,8 @@
 :root {
   --background: #0a0e1a;
   --foreground: #e8e8e8;
-  --card-bg: rgba(26, 31, 54, 0.6);
-  --card-border: rgba(192, 192, 192, 0.12);
+  --card-bg: rgba(26, 31, 54, 0.4);
+  --card-border: rgba(192, 192, 192, 0.08);
   --accent-blue: #1e40af;
   --accent-cyan: #0ea5e9;
   --accent-silver: #c0c0c0;
@@ -45,6 +45,7 @@ body {
   background: var(--background);
   color: var(--foreground);
   font-family: Arial, Helvetica, sans-serif;
+  overflow-x: hidden;
 }
 
 /* Subtle grid background pattern */
@@ -56,16 +57,16 @@ body::before {
   width: 100%;
   height: 100%;
   background-image: 
-    linear-gradient(rgba(192, 192, 192, 0.03) 1px, transparent 1px),
-    linear-gradient(90deg, rgba(192, 192, 192, 0.03) 1px, transparent 1px);
-  background-size: 60px 60px;
+    linear-gradient(rgba(192, 192, 192, 0.015) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(192, 192, 192, 0.015) 1px, transparent 1px);
+  background-size: 80px 80px;
   pointer-events: none;
   z-index: 0;
 }
 
 /* Custom scrollbar */
 ::-webkit-scrollbar {
-  width: 6px;
+  width: 4px;
 }
 
 ::-webkit-scrollbar-track {
@@ -73,26 +74,26 @@ body::before {
 }
 
 ::-webkit-scrollbar-thumb {
-  background: var(--navy-light);
-  border-radius: 3px;
+  background: rgba(192, 192, 192, 0.15);
+  border-radius: 2px;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: var(--accent-silver);
+  background: rgba(192, 192, 192, 0.3);
 }
 
 /* Glass card effect */
 .glass-card {
-  background: rgba(26, 31, 54, 0.6);
-  backdrop-filter: blur(16px);
-  -webkit-backdrop-filter: blur(16px);
-  border: 1px solid rgba(192, 192, 192, 0.1);
+  background: rgba(26, 31, 54, 0.4);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid rgba(192, 192, 192, 0.08);
   border-radius: 16px;
 }
 
 .glass-card-hover:hover {
-  border-color: rgba(192, 192, 192, 0.25);
-  box-shadow: 0 8px 32px rgba(14, 165, 233, 0.08);
+  border-color: rgba(192, 192, 192, 0.2);
+  box-shadow: 0 8px 32px rgba(14, 165, 233, 0.05);
 }
 
 /* Metallic text gradient */
@@ -105,11 +106,11 @@ body::before {
 
 /* Glow effects */
 .glow-blue {
-  box-shadow: 0 0 20px rgba(14, 165, 233, 0.15), 0 0 60px rgba(14, 165, 233, 0.05);
+  box-shadow: 0 0 20px rgba(14, 165, 233, 0.1), 0 0 60px rgba(14, 165, 233, 0.03);
 }
 
 .glow-silver {
-  box-shadow: 0 0 20px rgba(192, 192, 192, 0.1), 0 0 60px rgba(192, 192, 192, 0.05);
+  box-shadow: 0 0 20px rgba(192, 192, 192, 0.08), 0 0 60px rgba(192, 192, 192, 0.03);
 }
 
 /* Arabic font support */
@@ -143,7 +144,7 @@ input:focus {
 }
 
 .shimmer {
-  background: linear-gradient(90deg, transparent 0%, rgba(192, 192, 192, 0.05) 50%, transparent 100%);
+  background: linear-gradient(90deg, transparent 0%, rgba(192, 192, 192, 0.03) 50%, transparent 100%);
   background-size: 200% 100%;
   animation: shimmer 3s infinite;
 }

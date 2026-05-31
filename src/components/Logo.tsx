@@ -5,9 +5,9 @@ import Image from 'next/image';
 
 export default function Logo({ size = 'large' }: { size?: 'small' | 'medium' | 'large' }) {
   const sizes = {
-    small: { img: 120, textBase: 16, textSub: 10, textAr: 9 },
-    medium: { img: 200, textBase: 24, textSub: 14, textAr: 12 },
-    large: { img: 320, textBase: 36, textSub: 18, textAr: 15 },
+    small: { img: 140, gap: 8, textBase: 18, textSub: 10, textAr: 9 },
+    medium: { img: 220, gap: 12, textBase: 28, textSub: 14, textAr: 12 },
+    large: { img: 360, gap: 16, textBase: 42, textSub: 20, textAr: 16 },
   };
 
   const s = sizes[size];
@@ -15,11 +15,11 @@ export default function Logo({ size = 'large' }: { size?: 'small' | 'medium' | '
   return (
     <motion.div 
       className="flex flex-col items-center"
-      initial={{ opacity: 0, scale: 0.9 }}
+      initial={{ opacity: 0, scale: 0.95 }}
       animate={{ opacity: 1, scale: 1 }}
-      transition={{ duration: 0.8, ease: 'easeOut' }}
+      transition={{ duration: 1, ease: 'easeOut' }}
     >
-      {/* Logo Image */}
+      {/* Logo Image - just the graphic, no text inside */}
       <div 
         className="relative"
         style={{ 
@@ -29,29 +29,35 @@ export default function Logo({ size = 'large' }: { size?: 'small' | 'medium' | '
       >
         <Image
           src="/logo.png"
-          alt="Opti Group Logo"
+          alt="Opti Group"
           fill
-          className="object-contain drop-shadow-2xl"
+          className="object-contain"
+          style={{
+            filter: 'drop-shadow(0 0 30px rgba(59,130,246,0.15)) drop-shadow(0 4px 20px rgba(0,0,0,0.5))',
+          }}
           priority
         />
       </div>
 
-      {/* OPTI text below logo */}
+      {/* OPTI text below logo with premium styling */}
       <motion.div 
-        className="flex flex-col items-center mt-4"
-        initial={{ opacity: 0, y: 10 }}
+        className="flex flex-col items-center"
+        style={{ marginTop: s.gap }}
+        initial={{ opacity: 0, y: 15 }}
         animate={{ opacity: 1, y: 0 }}
-        transition={{ delay: 0.4, duration: 0.6 }}
+        transition={{ delay: 0.5, duration: 0.8 }}
       >
         <span 
           style={{
             fontSize: s.textBase,
-            fontWeight: 800,
-            letterSpacing: '0.25em',
-            background: 'linear-gradient(135deg, #e8e8e8 0%, #a0a0a0 25%, #e8e8e8 50%, #909090 75%, #c0c0c0 100%)',
+            fontWeight: 900,
+            letterSpacing: '0.3em',
+            lineHeight: 1,
+            background: 'linear-gradient(180deg, #f0f0f0 0%, #c0c0c0 40%, #888888 70%, #b0b0b0 100%)',
             WebkitBackgroundClip: 'text',
             WebkitTextFillColor: 'transparent',
             backgroundClip: 'text',
+            filter: 'drop-shadow(0 1px 2px rgba(0,0,0,0.5))',
           }}
         >
           OPTI
@@ -59,10 +65,11 @@ export default function Logo({ size = 'large' }: { size?: 'small' | 'medium' | '
         <span 
           style={{
             fontSize: s.textSub,
-            fontWeight: 400,
-            letterSpacing: '0.5em',
-            color: '#909090',
-            marginTop: '2px',
+            fontWeight: 300,
+            letterSpacing: '0.6em',
+            color: 'rgba(192,192,192,0.6)',
+            marginTop: '4px',
+            lineHeight: 1,
           }}
         >
           GROUP
@@ -71,9 +78,10 @@ export default function Logo({ size = 'large' }: { size?: 'small' | 'medium' | '
           style={{
             fontSize: s.textAr,
             fontWeight: 400,
-            color: '#707070',
-            marginTop: '4px',
+            color: 'rgba(192,192,192,0.4)',
+            marginTop: '8px',
             fontFamily: "'Noto Kufi Arabic', 'Traditional Arabic', serif",
+            letterSpacing: '0.1em',
           }}
         >
           مجموعة أوبتي

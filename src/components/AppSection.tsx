@@ -15,26 +15,22 @@ const categoryConfig = {
   health: {
     icon: Heart,
     color: '#10b981',
-    bgGlow: 'rgba(16,185,129,0.06)',
-    gradientFrom: 'from-section-health/5',
+    bgGlow: 'rgba(16,185,129,0.03)',
   },
   outings: {
     icon: MapPin,
     color: '#f59e0b',
-    bgGlow: 'rgba(245,158,11,0.06)',
-    gradientFrom: 'from-section-outings/5',
+    bgGlow: 'rgba(245,158,11,0.03)',
   },
   ai: {
     icon: Brain,
     color: '#8b5cf6',
-    bgGlow: 'rgba(139,92,246,0.06)',
-    gradientFrom: 'from-section-ai/5',
+    bgGlow: 'rgba(139,92,246,0.03)',
   },
   landmarks: {
     icon: Landmark,
     color: '#f97316',
-    bgGlow: 'rgba(249,115,22,0.06)',
-    gradientFrom: 'from-section-landmarks/5',
+    bgGlow: 'rgba(249,115,22,0.03)',
   },
 };
 
@@ -61,7 +57,7 @@ export default function AppSection({ category, sectionId }: AppSectionProps) {
   return (
     <section
       id={sectionId}
-      className="relative py-20 px-4"
+      className="relative py-16 px-4"
     >
       {/* Background glow */}
       <div
@@ -74,33 +70,36 @@ export default function AppSection({ category, sectionId }: AppSectionProps) {
       <div className="max-w-7xl mx-auto relative z-10">
         {/* Section header */}
         <motion.div
-          className={`flex items-center gap-4 mb-12 ${locale === 'ar' ? 'flex-row-reverse' : ''}`}
-          initial={{ opacity: 0, x: locale === 'ar' ? 30 : -30 }}
+          className={`flex items-center gap-3 mb-8 ${locale === 'ar' ? 'flex-row-reverse' : ''}`}
+          initial={{ opacity: 0, x: locale === 'ar' ? 20 : -20 }}
           whileInView={{ opacity: 1, x: 0 }}
           viewport={{ once: true }}
-          transition={{ duration: 0.5 }}
+          transition={{ duration: 0.4 }}
         >
           <div
-            className="p-3 rounded-2xl"
+            className="p-2.5 rounded-xl"
             style={{
-              background: `${config.color}15`,
-              border: `1px solid ${config.color}30`,
+              background: `${config.color}10`,
+              border: `1px solid ${config.color}20`,
             }}
           >
-            <Icon className="w-7 h-7" style={{ color: config.color }} />
+            <Icon className="w-5 h-5" style={{ color: config.color }} />
           </div>
           <div className={locale === 'ar' ? 'text-right' : ''}>
-            <h2 className={`text-2xl sm:text-3xl font-bold ${locale === 'ar' ? 'font-arabic' : ''}`} style={{ color: config.color }}>
+            <h2 
+              className={`text-lg sm:text-xl font-bold ${locale === 'ar' ? 'font-arabic' : ''}`} 
+              style={{ color: config.color }}
+            >
               {t[categoryTitleKeys[category]]}
             </h2>
-            <p className={`text-sm text-accent-silver/50 mt-1 ${locale === 'ar' ? 'font-arabic' : ''}`}>
+            <p className={`text-xs mt-0.5 ${locale === 'ar' ? 'font-arabic' : ''}`} style={{ color: 'rgba(192,192,192,0.35)' }}>
               {t[categoryDescKeys[category]]}
             </p>
           </div>
         </motion.div>
 
         {/* Apps grid */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
           {apps.map((app, index) => (
             <AppCard key={app.id} app={app} index={index} />
           ))}

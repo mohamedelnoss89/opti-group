@@ -10,30 +10,34 @@ interface AppCardProps {
   index: number;
 }
 
-const categoryAccentColors: Record<string, { border: string; glow: string; badge: string; badgeText: string }> = {
+const categoryAccentColors: Record<string, { border: string; glow: string; badge: string; badgeText: string; hoverBorder: string }> = {
   health: {
-    border: 'rgba(16,185,129,0.2)',
-    glow: '0 0 20px rgba(16,185,129,0.08)',
-    badge: 'rgba(16,185,129,0.12)',
+    border: 'rgba(16,185,129,0.12)',
+    glow: '0 8px 32px rgba(16,185,129,0.06)',
+    badge: 'rgba(16,185,129,0.1)',
     badgeText: '#10b981',
+    hoverBorder: 'rgba(16,185,129,0.3)',
   },
   outings: {
-    border: 'rgba(245,158,11,0.2)',
-    glow: '0 0 20px rgba(245,158,11,0.08)',
-    badge: 'rgba(245,158,11,0.12)',
+    border: 'rgba(245,158,11,0.12)',
+    glow: '0 8px 32px rgba(245,158,11,0.06)',
+    badge: 'rgba(245,158,11,0.1)',
     badgeText: '#f59e0b',
+    hoverBorder: 'rgba(245,158,11,0.3)',
   },
   ai: {
-    border: 'rgba(139,92,246,0.2)',
-    glow: '0 0 20px rgba(139,92,246,0.08)',
-    badge: 'rgba(139,92,246,0.12)',
+    border: 'rgba(139,92,246,0.12)',
+    glow: '0 8px 32px rgba(139,92,246,0.06)',
+    badge: 'rgba(139,92,246,0.1)',
     badgeText: '#8b5cf6',
+    hoverBorder: 'rgba(139,92,246,0.3)',
   },
   landmarks: {
-    border: 'rgba(249,115,22,0.2)',
-    glow: '0 0 20px rgba(249,115,22,0.08)',
-    badge: 'rgba(249,115,22,0.12)',
+    border: 'rgba(249,115,22,0.12)',
+    glow: '0 8px 32px rgba(249,115,22,0.06)',
+    badge: 'rgba(249,115,22,0.1)',
     badgeText: '#f97316',
+    hoverBorder: 'rgba(249,115,22,0.3)',
   },
 };
 
@@ -44,76 +48,86 @@ export default function AppCard({ app, index }: AppCardProps) {
 
   return (
     <motion.div
-      className="glass-card p-6 flex flex-col gap-4 relative overflow-hidden group"
+      className="relative overflow-hidden group rounded-2xl"
       style={{
-        borderColor: colors.border,
+        background: 'rgba(26, 31, 54, 0.4)',
+        backdropFilter: 'blur(12px)',
+        border: `1px solid ${colors.border}`,
+        padding: '24px',
+        display: 'flex',
+        flexDirection: 'column',
+        gap: '16px',
       }}
-      initial={{ opacity: 0, y: 30 }}
+      initial={{ opacity: 0, y: 20 }}
       whileInView={{ opacity: 1, y: 0 }}
-      viewport={{ once: true, margin: '-50px' }}
-      transition={{ duration: 0.5, delay: index * 0.1 }}
+      viewport={{ once: true, margin: '-30px' }}
+      transition={{ duration: 0.4, delay: index * 0.08 }}
       whileHover={{
-        borderColor: isLive ? colors.border.replace('0.2', '0.4') : undefined,
-        boxShadow: isLive ? colors.glow : undefined,
-        y: -4,
+        borderColor: isLive ? colors.hoverBorder : colors.border,
+        boxShadow: isLive ? colors.glow : 'none',
+        y: -2,
       }}
     >
-      {/* Shimmer overlay on hover */}
-      <div className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-500 shimmer pointer-events-none" />
-
-      {/* App icon and status */}
+      {/* Top row: icon + status */}
       <div className="flex items-start justify-between">
-        <span className="text-4xl">{app.icon}</span>
+        <span className="text-3xl">{app.icon}</span>
         <span
-          className="text-xs font-medium px-3 py-1 rounded-full"
+          className="text-[10px] font-medium px-2.5 py-1 rounded-full uppercase tracking-wider"
           style={{
-            background: isLive ? colors.badge : 'rgba(255,255,255,0.05)',
-            color: isLive ? colors.badgeText : 'rgba(192,192,192,0.5)',
+            background: isLive ? colors.badge : 'rgba(255,255,255,0.03)',
+            color: isLive ? colors.badgeText : 'rgba(192,192,192,0.35)',
+            border: isLive ? 'none' : '1px solid rgba(192,192,192,0.06)',
           }}
         >
           {isLive ? t.live : t.comingSoon}
         </span>
       </div>
 
-      {/* App name */}
-      <div>
-        <h3 className={`text-lg font-bold text-accent-silver ${locale === 'ar' ? 'font-arabic text-right' : ''}`}>
+      {/* App name + desc */}
+      <div style={{ flex: 1 }}>
+        <h3 
+          className={`text-base font-bold mb-1 ${locale === 'ar' ? 'font-arabic text-right' : ''}`}
+          style={{ color: 'rgba(232,232,232,0.9)' }}
+        >
           {app.name[locale]}
         </h3>
-        <p className={`mt-1 text-sm text-accent-silver/50 leading-relaxed ${locale === 'ar' ? 'font-arabic text-right' : ''}`}>
+        <p 
+          className={`text-xs leading-relaxed ${locale === 'ar' ? 'font-arabic text-right' : ''}`}
+          style={{ color: 'rgba(192,192,192,0.45)' }}
+        >
           {app.description[locale]}
         </p>
       </div>
 
-      {/* Visit button */}
-      <div className="mt-auto">
+      {/* Action button */}
+      <div>
         {isLive ? (
           <motion.a
             href={app.url}
             target="_blank"
             rel="noopener noreferrer"
-            className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl text-sm font-semibold no-underline transition-all duration-300"
+            className="inline-flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-semibold no-underline transition-all duration-300"
             style={{
-              background: `linear-gradient(135deg, ${colors.badge}, rgba(14,165,233,0.1))`,
+              background: colors.badge,
               border: `1px solid ${colors.border}`,
               color: colors.badgeText,
             }}
-            whileHover={{ scale: 1.05, boxShadow: colors.glow }}
-            whileTap={{ scale: 0.95 }}
+            whileHover={{ scale: 1.03 }}
+            whileTap={{ scale: 0.97 }}
           >
             {t.visit}
-            <ExternalLink className="w-4 h-4" />
+            <ExternalLink className="w-3 h-3" />
           </motion.a>
         ) : (
           <div
-            className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl text-sm font-medium cursor-not-allowed"
+            className="inline-flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-medium"
             style={{
-              background: 'rgba(255,255,255,0.03)',
-              border: '1px solid rgba(192,192,192,0.08)',
-              color: 'rgba(192,192,192,0.4)',
+              background: 'rgba(255,255,255,0.02)',
+              border: '1px solid rgba(192,192,192,0.06)',
+              color: 'rgba(192,192,192,0.3)',
             }}
           >
-            <Lock className="w-4 h-4" />
+            <Lock className="w-3 h-3" />
             {t.comingSoon}
           </div>
         )}
