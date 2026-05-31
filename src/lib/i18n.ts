@@ -34,6 +34,8 @@ export const translations = {
     email: 'البريد الإلكتروني',
     password: 'كلمة المرور',
     confirmPassword: 'تأكيد كلمة المرور',
+    country: 'الدولة',
+    selectCountry: 'اختر دولتك',
     loginButton: 'دخول',
     signupButton: 'إنشاء حساب',
     logout: 'تسجيل الخروج',
@@ -41,6 +43,10 @@ export const translations = {
     hasAccount: 'لديك حساب بالفعل؟',
     signupLink: 'إنشاء حساب جديد',
     loginLink: 'تسجيل الدخول',
+    googleLogin: 'تسجيل الدخول بحساب جوجل',
+    googleSignup: 'التسجيل بحساب جوجل',
+    orContinueWith: 'أو المتابعة بواسطة',
+    countryRequired: 'يرجى اختيار الدولة',
     
     // Contact
     contactTitle: 'اتصل بنا',
@@ -104,6 +110,8 @@ export const translations = {
     email: 'Email',
     password: 'Password',
     confirmPassword: 'Confirm Password',
+    country: 'Country',
+    selectCountry: 'Select your country',
     loginButton: 'Login',
     signupButton: 'Sign Up',
     logout: 'Logout',
@@ -111,6 +119,10 @@ export const translations = {
     hasAccount: 'Already have an account?',
     signupLink: 'Create new account',
     loginLink: 'Login',
+    googleLogin: 'Sign in with Google',
+    googleSignup: 'Sign up with Google',
+    orContinueWith: 'Or continue with',
+    countryRequired: 'Please select a country',
     
     // Contact
     contactTitle: 'Contact Us',
