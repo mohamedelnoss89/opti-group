@@ -2,9 +2,15 @@
 
 import { useLanguage } from '@/contexts/LanguageContext';
 import { motion } from 'framer-motion';
+import { useCallback } from 'react';
 
 export default function ContactSection() {
   const { t, locale } = useLanguage();
+
+  const handleEmailClick = useCallback((e: React.MouseEvent) => {
+    e.preventDefault();
+    window.location.href = 'mailto:mohamed10.mohamed10@gmail.com';
+  }, []);
 
   return (
     <section id="section-contact" className="relative py-20 px-4">
@@ -47,16 +53,17 @@ export default function ContactSection() {
           </div>
         </motion.div>
 
-        {/* Email button - full width, premium look */}
+        {/* Email button */}
         <div className="max-w-lg mx-auto">
-          <motion.a
-            href="mailto:mohamed10.mohamed10@gmail.com"
-            className="block p-5 sm:p-6 rounded-2xl cursor-pointer no-underline transition-all duration-300"
+          <motion.button
+            onClick={handleEmailClick}
+            className="w-full p-5 sm:p-6 rounded-2xl cursor-pointer transition-all duration-300 border-0 text-left"
             style={{
               background: 'rgba(26, 31, 54, 0.6)',
               backdropFilter: 'blur(16px)',
               border: '1px solid rgba(14,165,233,0.12)',
               boxShadow: '0 4px 24px rgba(0,0,0,0.2)',
+              outline: 'none',
             }}
             initial={{ opacity: 0, y: 20 }}
             whileInView={{ opacity: 1, y: 0 }}
@@ -82,7 +89,7 @@ export default function ContactSection() {
                 <p className={`text-xs mb-1 ${locale === 'ar' ? 'font-arabic' : ''}`} style={{ color: 'rgba(192,192,192,0.4)' }}>
                   {t.emailLabel}
                 </p>
-                <p className="text-sm sm:text-base font-medium truncate" style={{ color: 'rgba(192,192,192,0.85)' }} dir="ltr">
+                <p className="text-sm sm:text-base font-medium" style={{ color: 'rgba(192,192,192,0.85)' }} dir="ltr">
                   mohamed10.mohamed10@gmail.com
                 </p>
               </div>
@@ -94,7 +101,7 @@ export default function ContactSection() {
                 </svg>
               </div>
             </div>
-          </motion.a>
+          </motion.button>
         </div>
       </div>
     </section>
