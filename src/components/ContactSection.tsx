@@ -2,7 +2,7 @@
 
 import { useLanguage } from '@/contexts/LanguageContext';
 import { motion } from 'framer-motion';
-import { Mail, Phone, Globe, Share2, MessageSquare } from 'lucide-react';
+import { Mail, Globe, Share2, MessageSquare } from 'lucide-react';
 
 export default function ContactSection() {
   const { t, locale } = useLanguage();
@@ -51,43 +51,32 @@ export default function ContactSection() {
           </div>
         </motion.div>
 
-        {/* Contact cards */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
-          {/* Email card */}
-          <motion.div
-            className="glass-card p-6 flex items-center gap-4"
+        {/* Contact card - Email button */}
+        <div className="max-w-md mx-auto">
+          <motion.a
+            href="mailto:mohamed10.mohamed10@gmail.com"
+            className="glass-card p-6 flex items-center gap-4 cursor-pointer no-underline transition-all duration-300 block"
             initial={{ opacity: 0, y: 20 }}
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
             transition={{ duration: 0.5 }}
-            whileHover={{ y: -4, borderColor: 'rgba(14,165,233,0.25)' }}
+            whileHover={{ y: -4, borderColor: 'rgba(14,165,233,0.4)', boxShadow: '0 0 25px rgba(14,165,233,0.15)' }}
+            whileTap={{ scale: 0.97 }}
           >
             <div className="p-3 rounded-xl bg-accent-cyan/10">
-              <Mail className="w-6 h-6 text-accent-cyan" />
+              <Mail className="w-7 h-7 text-accent-cyan" />
             </div>
-            <div className={locale === 'ar' ? 'text-right' : ''}>
-              <p className="text-xs text-accent-silver/50">{t.emailLabel}</p>
-              <p className="text-sm text-accent-silver mt-1">contact@optigroup.app</p>
+            <div className={`flex-1 ${locale === 'ar' ? 'text-right' : ''}`}>
+              <p className={`text-xs text-accent-silver/50 ${locale === 'ar' ? 'font-arabic' : ''}`}>{t.emailLabel}</p>
+              <p className="text-base text-accent-silver mt-1 font-medium" dir="ltr">mohamed10.mohamed10@gmail.com</p>
             </div>
-          </motion.div>
-
-          {/* Phone card */}
-          <motion.div
-            className="glass-card p-6 flex items-center gap-4"
-            initial={{ opacity: 0, y: 20 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }}
-            transition={{ duration: 0.5, delay: 0.1 }}
-            whileHover={{ y: -4, borderColor: 'rgba(14,165,233,0.25)' }}
-          >
-            <div className="p-3 rounded-xl bg-accent-cyan/10">
-              <Phone className="w-6 h-6 text-accent-cyan" />
+            <div className="p-2 rounded-lg bg-accent-cyan/15">
+              <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-accent-cyan">
+                <path d="M22 2L11 13" />
+                <path d="M22 2L15 22L11 13L2 9L22 2Z" />
+              </svg>
             </div>
-            <div className={locale === 'ar' ? 'text-right' : ''}>
-              <p className="text-xs text-accent-silver/50">{t.phoneLabel}</p>
-              <p className="text-sm text-accent-silver mt-1" dir="ltr">+20 123 456 7890</p>
-            </div>
-          </motion.div>
+          </motion.a>
         </div>
 
         {/* Social links */}

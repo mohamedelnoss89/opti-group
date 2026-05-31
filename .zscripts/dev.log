@@ -282,3 +282,33 @@ Use 'kill 16238' to stop it.
  GET / 200 in 44ms (next.js: 2ms, application-code: 42ms)
  GET /sw.js?v=106 404 in 355ms (next.js: 313ms, application-code: 43ms)
  GET / 200 in 96ms (next.js: 5ms, application-code: 91ms)
+ GET / 200 in 73ms (next.js: 3ms, application-code: 70ms)
+ GET / 200 in 50ms (next.js: 2ms, application-code: 48ms)
+ GET / 200 in 59ms (next.js: 1906µs, application-code: 57ms)
+ GET / 200 in 57ms (next.js: 1968µs, application-code: 55ms)
+ GET / 200 in 52ms (next.js: 3ms, application-code: 50ms)
+ GET /sw.js?v=106 404 in 58ms (next.js: 6ms, application-code: 52ms)
+✓ Compiled in 1179ms
+⚠ Blocked cross-origin request to Next.js dev resource /__nextjs_original-stack-frames from "preview-chat-ad330afb-f5a1-4d60-bb68-17fe8d844bac.space-z.ai".
+Cross-origin access to Next.js dev resources is blocked by default for safety.
+
+To allow this host in development, add it to "allowedDevOrigins" in next.config.js and restart the dev server:
+
+// next.config.js
+module.exports = {
+  allowedDevOrigins: ['preview-chat-ad330afb-f5a1-4d60-bb68-17fe8d844bac.space-z.ai'],
+}
+
+Read more: https://nextjs.org/docs/app/api-reference/config/next-config-js/allowedDevOrigins
+⨯ ReferenceError: Phone is not defined
+    at ContactSection (src/components/ContactSection.tsx:42:14)
+  40 |             }}
+  41 |           >
+> 42 |             <Phone className="w-7 h-7 text-accent-cyan" />
+     |              ^
+  43 |           </div>
+  44 |           <div className={locale === 'ar' ? 'text-right' : ''}>
+  45 |             <h2 className="text-2xl sm:text-3xl font-bold text-accent-cyan"> {
+  digest: '2540952735'
+}
+ GET / 500 in 108ms (next.js: 5ms, application-code: 102ms)
