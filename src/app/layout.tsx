@@ -74,12 +74,12 @@ export default function RootLayout({
         {/* Google AdSense Verification - Meta Tag */}
         <meta name="google-adsense-account" content="ca-pub-9431864894722327" />
 
-        {/* Google AdSense Script */}
-        <script
+        {/* Google AdSense Script - Disabled until AdSense approval */}
+        {/* <script
           async
           src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-9431864894722327"
           crossOrigin="anonymous"
-        />
+        /> */}
 
         {/* PWA Meta Tags */}
         <meta name="mobile-web-app-capable" content="yes" />

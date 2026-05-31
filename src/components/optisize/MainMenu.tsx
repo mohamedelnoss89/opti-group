@@ -416,10 +416,7 @@ export default function MainMenu({
           </div>
         </motion.div>
 
-        {/* Ad Banner - After Quick Tools */}
-        <motion.div variants={itemVariants}>
-          <AdBanner format="horizontal" />
-        </motion.div>
+        {/* Ad Banner - Hidden until AdSense approval */}
 
         {/* Disclaimer */}
         <motion.div

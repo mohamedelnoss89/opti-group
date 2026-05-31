@@ -481,10 +481,7 @@ export default function HealthCenter({
           </p>
         </motion.div>
 
-        {/* Ad Banner - Bottom of Health Center */}
-        <motion.div variants={itemVariants}>
-          <AdBanner format="rectangle" />
-        </motion.div>
+        {/* Ad Banner - Hidden until AdSense approval */}
       </motion.div>
     </div>
   );
