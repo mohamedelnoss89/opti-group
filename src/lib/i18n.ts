@@ -154,6 +154,38 @@ export const translations = {
     notificationsTitle: 'الإشعارات',
     notificationsEmpty: 'لا توجد إشعارات حالياً',
     notificationsMarkRead: 'تم القراءة',
+    
+    // Profile & Favorites
+    profileTitle: 'الملف الشخصي',
+    profileFavorites: 'التطبيقات المفضلة',
+    profileNoFavorites: 'لا توجد تطبيقات مفضلة بعد',
+    profileNoFavoritesDesc: 'ابدأ بإضافة تطبيقاتك المفضلة بالنقر على أيقونة القلب',
+    favoriteAdded: 'تمت الإضافة إلى المفضلة',
+    favoriteRemoved: 'تمت الإزالة من المفضلة',
+    profileAccountInfo: 'معلومات الحساب',
+    profileRemoveFavorite: 'إزالة من المفضلة',
+    favoriteLoginPrompt: 'سجّل دخولك لإضافة تطبيقات إلى المفضلة',
+    
+    // Status Page
+    statusPage: 'حالة الخدمات',
+    statusAllOperational: 'جميع الأنظمة تعمل',
+    statusPartialOutage: 'انقطاع جزئي',
+    statusMajorOutage: 'انقطاع كامل',
+    statusMaintenance: 'صيانة مجدولة',
+    statusOperational: 'يعمل',
+    statusDegraded: 'أداء متدني',
+    statusDown: 'متوقف',
+    statusUnderMaintenance: 'صيانة',
+    statusUptime: 'وقت التشغيل',
+    statusLast90Days: 'آخر ٩٠ يوماً',
+    statusIncidents: 'الحوادث الحالية',
+    statusNoIncidents: 'لا توجد حوادث حالياً',
+    statusScheduledMaintenance: 'صيانة مجدولة',
+    statusNoMaintenance: 'لا توجد صيانة مجدولة',
+    statusHistory: 'سجل الحالات',
+    
+    // RSS
+    blogRss: 'خلاصة RSS',
   },
   en: {
     // Brand
@@ -308,6 +340,38 @@ export const translations = {
     notificationsTitle: 'Notifications',
     notificationsEmpty: 'No notifications yet',
     notificationsMarkRead: 'Mark as read',
+    
+    // Profile & Favorites
+    profileTitle: 'My Profile',
+    profileFavorites: 'Favorite Apps',
+    profileNoFavorites: 'No favorite apps yet',
+    profileNoFavoritesDesc: 'Start adding your favorite apps by clicking the heart icon',
+    favoriteAdded: 'Added to favorites',
+    favoriteRemoved: 'Removed from favorites',
+    profileAccountInfo: 'Account Information',
+    profileRemoveFavorite: 'Remove from favorites',
+    favoriteLoginPrompt: 'Sign in to add apps to your favorites',
+    
+    // Status Page
+    statusPage: 'Service Status',
+    statusAllOperational: 'All Systems Operational',
+    statusPartialOutage: 'Partial Outage',
+    statusMajorOutage: 'Major Outage',
+    statusMaintenance: 'Scheduled Maintenance',
+    statusOperational: 'Operational',
+    statusDegraded: 'Degraded Performance',
+    statusDown: 'Down',
+    statusUnderMaintenance: 'Maintenance',
+    statusUptime: 'Uptime',
+    statusLast90Days: 'Last 90 Days',
+    statusIncidents: 'Current Incidents',
+    statusNoIncidents: 'No ongoing incidents',
+    statusScheduledMaintenance: 'Scheduled Maintenance',
+    statusNoMaintenance: 'No scheduled maintenance',
+    statusHistory: 'Status History',
+    
+    // RSS
+    blogRss: 'RSS Feed',
   },
 } as const;
 

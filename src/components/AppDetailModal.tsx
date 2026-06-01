@@ -3,9 +3,10 @@
 import { useState } from 'react';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { useAuth } from '@/contexts/AuthContext';
+import { useFavorites } from '@/contexts/FavoritesContext';
 import { App } from '@/lib/apps-data';
 import { motion, AnimatePresence } from 'framer-motion';
-import { X, ExternalLink, Lock, CheckCircle2 } from 'lucide-react';
+import { X, ExternalLink, Lock, CheckCircle2, Heart } from 'lucide-react';
 import LoginPrompt from './LoginPrompt';
 
 interface AppDetailModalProps {
@@ -55,13 +56,27 @@ const categoryLabels: Record<string, { ar: string; en: string }> = {
 export default function AppDetailModal({ app, isOpen, onClose }: AppDetailModalProps) {
   const { t, locale } = useLanguage();
   const { user } = useAuth();
+  const { isFavorite, toggleFavorite } = useFavorites();
   const [showLogin, setShowLogin] = useState(false);
+  const [heartAnimating, setHeartAnimating] = useState(false);
   const isArabic = locale === 'ar';
 
   if (!app) return null;
 
   const colors = categoryAccentColors[app.category];
   const isLive = app.status === 'live';
+  const favorited = isFavorite(app.id);
+
+  const handleHeartClick = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    if (!user) {
+      setShowLogin(true);
+      return;
+    }
+    setHeartAnimating(true);
+    setTimeout(() => setHeartAnimating(false), 400);
+    toggleFavorite(app.id);
+  };
 
   return (
     <>
@@ -119,7 +134,7 @@ export default function AppDetailModal({ app, isOpen, onClose }: AppDetailModalP
                 />
 
                 <div className="p-6 sm:p-8">
-                  {/* Header: Icon + Name + Badges */}
+                  {/* Header: Icon + Name + Badges + Heart */}
                   <motion.div
                     className={`flex items-start gap-4 mb-6 ${isArabic ? 'flex-row-reverse text-right' : ''}`}
                     initial={{ opacity: 0, y: 10 }}
@@ -137,14 +152,38 @@ export default function AppDetailModal({ app, isOpen, onClose }: AppDetailModalP
                       {app.icon}
                     </div>
 
-                    {/* Name & Badges */}
+                    {/* Name, Heart & Badges */}
                     <div className={`flex-1 min-w-0 ${isArabic ? 'text-right' : ''}`}>
-                      <h2
-                        className={`text-xl font-bold mb-2 ${isArabic ? 'font-arabic' : ''}`}
-                        style={{ color: 'rgba(232,232,232,0.95)' }}
-                      >
-                        {app.name[locale]}
-                      </h2>
+                      <div className={`flex items-center gap-2 mb-2 ${isArabic ? 'flex-row-reverse' : ''}`}>
+                        <h2
+                          className={`text-xl font-bold ${isArabic ? 'font-arabic' : ''}`}
+                          style={{ color: 'rgba(232,232,232,0.95)' }}
+                        >
+                          {app.name[locale]}
+                        </h2>
+                        {/* Heart/Favorite Button */}
+                        <motion.button
+                          onClick={handleHeartClick}
+                          className="p-1.5 rounded-lg cursor-pointer transition-colors flex-shrink-0"
+                          style={{
+                            background: favorited ? 'rgba(239,68,68,0.1)' : 'rgba(255,255,255,0.03)',
+                            border: favorited ? '1px solid rgba(239,68,68,0.2)' : '1px solid rgba(255,255,255,0.05)',
+                          }}
+                          whileHover={{ scale: 1.1 }}
+                          whileTap={{ scale: 0.85 }}
+                          animate={heartAnimating ? { scale: [1, 1.3, 1] } : {}}
+                          transition={heartAnimating ? { duration: 0.3 } : {}}
+                          aria-label={favorited ? t.favoriteRemoved : t.favoriteAdded}
+                        >
+                          <Heart
+                            className="w-4 h-4"
+                            style={{
+                              color: favorited ? '#ef4444' : 'rgba(192,192,192,0.4)',
+                              fill: favorited ? '#ef4444' : 'none',
+                            }}
+                          />
+                        </motion.button>
+                      </div>
                       <div className={`flex flex-wrap gap-2 ${isArabic ? 'justify-end' : ''}`}>
                         {/* Category Badge */}
                         <span
@@ -313,8 +352,8 @@ export default function AppDetailModal({ app, isOpen, onClose }: AppDetailModalP
       <LoginPrompt
         isOpen={showLogin}
         onClose={() => setShowLogin(false)}
-        messageAr="سجّل دخولك لزيارة التطبيق والاستفادة من جميع الميزات"
-        message="Sign in to visit the app and enjoy all features"
+        messageAr="سجّل دخولك لإضافة تطبيقات إلى المفضلة"
+        message="Sign in to add apps to your favorites"
       />
     </>
   );

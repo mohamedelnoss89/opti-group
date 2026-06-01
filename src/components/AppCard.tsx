@@ -3,9 +3,10 @@
 import { useState } from 'react';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { useAuth } from '@/contexts/AuthContext';
+import { useFavorites } from '@/contexts/FavoritesContext';
 import { App } from '@/lib/apps-data';
 import { motion } from 'framer-motion';
-import { ExternalLink, Lock } from 'lucide-react';
+import { ExternalLink, Lock, Heart } from 'lucide-react';
 import LoginPrompt from './LoginPrompt';
 import AppDetailModal from './AppDetailModal';
 
@@ -48,10 +49,13 @@ const categoryAccentColors: Record<string, { border: string; glow: string; badge
 export default function AppCard({ app, index }: AppCardProps) {
   const { t, locale } = useLanguage();
   const { user } = useAuth();
+  const { isFavorite, toggleFavorite } = useFavorites();
   const colors = categoryAccentColors[app.category];
   const isLive = app.status === 'live';
   const [showLogin, setShowLogin] = useState(false);
   const [showDetail, setShowDetail] = useState(false);
+  const [heartAnimating, setHeartAnimating] = useState(false);
+  const favorited = isFavorite(app.id);
 
   const handleVisitClick = (e: React.MouseEvent) => {
     e.stopPropagation();
@@ -62,6 +66,17 @@ export default function AppCard({ app, index }: AppCardProps) {
 
   const handleCardClick = () => {
     setShowDetail(true);
+  };
+
+  const handleHeartClick = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    if (!user) {
+      setShowLogin(true);
+      return;
+    }
+    setHeartAnimating(true);
+    setTimeout(() => setHeartAnimating(false), 400);
+    toggleFavorite(app.id);
   };
 
   return (
@@ -88,19 +103,45 @@ export default function AppCard({ app, index }: AppCardProps) {
         }}
         onClick={handleCardClick}
       >
-        {/* Top row: icon + status */}
+        {/* Top row: icon + heart + status */}
         <div className="flex items-start justify-between">
           <span className="text-3xl">{app.icon}</span>
-          <span
-            className="text-[10px] font-medium px-2.5 py-1 rounded-full uppercase tracking-wider"
-            style={{
-              background: isLive ? colors.badge : 'rgba(255,255,255,0.03)',
-              color: isLive ? colors.badgeText : 'rgba(192,192,192,0.35)',
-              border: isLive ? 'none' : '1px solid rgba(192,192,192,0.06)',
-            }}
-          >
-            {isLive ? t.live : t.comingSoon}
-          </span>
+          <div className="flex items-center gap-2">
+            {/* Heart/Favorite Button */}
+            <motion.button
+              onClick={handleHeartClick}
+              className="p-1.5 rounded-lg cursor-pointer transition-colors relative"
+              style={{
+                background: favorited ? 'rgba(239,68,68,0.1)' : 'rgba(255,255,255,0.03)',
+                border: favorited ? '1px solid rgba(239,68,68,0.2)' : '1px solid rgba(255,255,255,0.05)',
+              }}
+              whileHover={{ scale: 1.1 }}
+              whileTap={{ scale: 0.85 }}
+              animate={heartAnimating ? { scale: [1, 1.3, 1] } : {}}
+              transition={heartAnimating ? { duration: 0.3 } : {}}
+              aria-label={favorited ? t.favoriteRemoved : t.favoriteAdded}
+            >
+              <Heart
+                className="w-3.5 h-3.5"
+                style={{
+                  color: favorited ? '#ef4444' : 'rgba(192,192,192,0.4)',
+                  fill: favorited ? '#ef4444' : 'none',
+                }}
+              />
+            </motion.button>
+
+            {/* Status Badge */}
+            <span
+              className="text-[10px] font-medium px-2.5 py-1 rounded-full uppercase tracking-wider"
+              style={{
+                background: isLive ? colors.badge : 'rgba(255,255,255,0.03)',
+                color: isLive ? colors.badgeText : 'rgba(192,192,192,0.35)',
+                border: isLive ? 'none' : '1px solid rgba(192,192,192,0.06)',
+              }}
+            >
+              {isLive ? t.live : t.comingSoon}
+            </span>
+          </div>
         </div>
 
         {/* App name + desc */}
@@ -159,8 +200,8 @@ export default function AppCard({ app, index }: AppCardProps) {
       <LoginPrompt
         isOpen={showLogin}
         onClose={() => setShowLogin(false)}
-        messageAr="سجّل دخولك لزيارة التطبيق والاستفادة من جميع الميزات"
-        message="Sign in to visit the app and enjoy all features"
+        messageAr="سجّل دخولك لإضافة تطبيقات إلى المفضلة"
+        message="Sign in to add apps to your favorites"
       />
 
       {/* App Detail Modal */}

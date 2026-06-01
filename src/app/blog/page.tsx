@@ -6,7 +6,7 @@ import Header from '@/components/Header';
 import SideMenu from '@/components/SideMenu';
 import BackToTop from '@/components/BackToTop';
 import { motion } from 'framer-motion';
-import { Calendar, Clock, ArrowRight, ArrowLeft, Tag } from 'lucide-react';
+import { Calendar, Clock, ArrowRight, ArrowLeft, Tag, Rss } from 'lucide-react';
 import Link from 'next/link';
 import { blogPosts, getBlogPostsByCategory, type BlogPost } from '@/lib/blog-data';
 
@@ -80,17 +80,32 @@ export default function BlogPage() {
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.5 }}
           >
-            <h1
-              className={`text-2xl sm:text-3xl font-bold mb-3 ${isArabic ? 'font-arabic' : ''}`}
-              style={{
-                background: 'linear-gradient(135deg, #0ea5e9, #38bdf8)',
-                WebkitBackgroundClip: 'text',
-                WebkitTextFillColor: 'transparent',
-                backgroundClip: 'text',
-              }}
-            >
-              {t.blogTitle}
-            </h1>
+            <div className="flex items-center justify-center gap-3 mb-3">
+              <h1
+                className={`text-2xl sm:text-3xl font-bold ${isArabic ? 'font-arabic' : ''}`}
+                style={{
+                  background: 'linear-gradient(135deg, #0ea5e9, #38bdf8)',
+                  WebkitBackgroundClip: 'text',
+                  WebkitTextFillColor: 'transparent',
+                  backgroundClip: 'text',
+                }}
+              >
+                {t.blogTitle}
+              </h1>
+              <a
+                href="/feed.xml"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="p-2 rounded-lg transition-colors no-underline"
+                style={{
+                  background: 'rgba(255,255,255,0.03)',
+                  border: '1px solid rgba(14,165,233,0.1)',
+                }}
+                title={t.blogRss}
+              >
+                <Rss className="w-4 h-4" style={{ color: '#0ea5e9' }} />
+              </a>
+            </div>
             <p
               className={`text-sm ${isArabic ? 'font-arabic' : ''}`}
               style={{ color: 'rgba(192,192,192,0.5)' }}

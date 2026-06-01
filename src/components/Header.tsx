@@ -3,7 +3,7 @@
 import { useState, useRef, useEffect } from 'react';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { useAuth } from '@/contexts/AuthContext';
-import { Menu, User, LogOut, Mail, ChevronDown } from 'lucide-react';
+import { Menu, User, LogOut, Mail, ChevronDown, UserCircle } from 'lucide-react';
 import LanguageSwitcher from './LanguageSwitcher';
 import NotificationBell from './NotificationBell';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -216,8 +216,25 @@ export default function Header({ onMenuToggle }: HeaderProps) {
                       {/* Divider */}
                       <div className="mx-4 h-px" style={{ background: 'rgba(192,192,192,0.06)' }} />
 
-                      {/* Logout */}
+                      {/* Profile & Logout */}
                       <div className="p-2">
+                        <a
+                          href="/profile"
+                          className="w-full flex items-center gap-2.5 px-3 py-2.5 rounded-xl transition-all cursor-pointer no-underline"
+                          style={{ background: 'rgba(14,165,233,0.05)' }}
+                          onMouseEnter={(e) => {
+                            e.currentTarget.style.background = 'rgba(14,165,233,0.1)';
+                          }}
+                          onMouseLeave={(e) => {
+                            e.currentTarget.style.background = 'rgba(14,165,233,0.05)';
+                          }}
+                          onClick={() => setShowProfile(false)}
+                        >
+                          <UserCircle className="w-4 h-4" style={{ color: 'rgba(14,165,233,0.7)' }} />
+                          <span className={`text-xs font-medium ${locale === 'ar' ? 'font-arabic' : ''}`} style={{ color: 'rgba(14,165,233,0.8)' }}>
+                            {locale === 'ar' ? 'الملف الشخصي' : 'My Profile'}
+                          </span>
+                        </a>
                         <button
                           onClick={handleSignOut}
                           className="w-full flex items-center gap-2.5 px-3 py-2.5 rounded-xl transition-all cursor-pointer"

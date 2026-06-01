@@ -57,6 +57,8 @@ export default function RootLayout({
             `,
           }}
         />
+        {/* RSS Auto-Discovery */}
+        <link rel="alternate" type="application/rss+xml" title="Opti Group Blog" href="/feed.xml" />
       </head>
       <body className={`${geistSans.variable} ${geistMono.variable} ${notoKufiArabic.variable} min-h-screen flex flex-col`}>
         <Providers>

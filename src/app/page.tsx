@@ -176,6 +176,8 @@ export default function HomePage() {
               <span className="text-accent-silver/10">•</span>
               <a href="/blog" className="text-accent-silver/25 hover:text-accent-silver/50 transition-colors no-underline">{t.blog}</a>
               <span className="text-accent-silver/10">•</span>
+              <a href="/status" className="text-accent-silver/25 hover:text-accent-silver/50 transition-colors no-underline">{t.statusPage}</a>
+              <span className="text-accent-silver/10">•</span>
               <a href="/privacy" className="text-accent-silver/25 hover:text-accent-silver/50 transition-colors no-underline">{t.privacyPolicy}</a>
               <span className="text-accent-silver/10">•</span>
               <a href="/terms" className="text-accent-silver/25 hover:text-accent-silver/50 transition-colors no-underline">{t.termsOfService}</a>
