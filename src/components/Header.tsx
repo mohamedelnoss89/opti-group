@@ -5,6 +5,7 @@ import { useLanguage } from '@/contexts/LanguageContext';
 import { useAuth } from '@/contexts/AuthContext';
 import { Menu, User, LogOut, Mail, ChevronDown } from 'lucide-react';
 import LanguageSwitcher from './LanguageSwitcher';
+import NotificationBell from './NotificationBell';
 import { motion, AnimatePresence } from 'framer-motion';
 
 interface HeaderProps {
@@ -93,6 +94,7 @@ export default function Header({ onMenuToggle }: HeaderProps) {
           {/* Right side */}
           <div className="flex items-center gap-3">
             <LanguageSwitcher />
+            {user && <NotificationBell />}
             {user ? (
               <div className="relative" ref={profileRef}>
                 <motion.button

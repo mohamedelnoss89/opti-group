@@ -106,6 +106,54 @@ export const translations = {
     cookieDescription: 'نستخدم ملفات تعريف الارتباط لتحسين تجربتك وعرض إعلانات مخصصة. بالاستمرار في استخدام الموقع، فإنك توافق على استخدام ملفات تعريف الارتباط.',
     cookieAccept: 'قبول',
     cookieDecline: 'رفض',
+    
+    // FAQ
+    faqTitle: 'الأسئلة الشائعة',
+    faqSubtitle: 'إجابات على أكثر الأسئلة شيوعاً',
+    faqQ1: 'ما هي مجموعة أوبتي؟',
+    faqA1: 'مجموعة أوبتي هي شركة تقنية متخصصة في تطوير تطبيقات ذكية تهدف لتحسين جودة حياتك. نقدم مجموعة متكاملة من التطبيقات في مجالات الصحة والخروجات والذكاء الاصطناعي والسياحة، مصممة خصيصاً لتلبية احتياجاتك اليومية.',
+    faqQ2: 'هل التطبيقات مجانية؟',
+    faqA2: 'نعم، جميع تطبيقاتنا الأساسية مجانية للاستخدام. نقدم ميزات أساسية مجانية بالكامل مع خيارات اشتراك مميز للحصول على ميزات إضافية ومحتوى حصري.',
+    faqQ3: 'كيف أسجل حساباً جديداً؟',
+    faqA3: 'يمكنك إنشاء حساب بسهولة عن طريق النقر على زر "إنشاء حساب" في أعلى الصفحة. يمكنك التسجيل باستخدام بريدك الإلكتروني أو حساب جوجل. التسجيل سريع ويستغرق أقل من دقيقة.',
+    faqQ4: 'ما التطبيقات المتاحة حالياً؟',
+    faqA4: 'حالياً تطبيق أوبتي سايز (OptiSize) متاح وهو مركز شامل لصحة العين. نعمل على إطلاق المزيد من التطبيقات قريباً.',
+    faqQ5: 'هل بياناتي آمنة؟',
+    faqA5: 'بالتأكيد! نأخذ خصوصية بياناتك على محمل الجد. نستخدم أحدث تقنيات التشفير وحماية البيانات، ولا نشارك معلوماتك الشخصية مع أي طرف ثالث.',
+    faqQ6: 'كيف يمكنني التواصل معكم؟',
+    faqA6: 'يمكنك التواصل معنا عبر نموذج الاتصال في صفحة "اتصل بنا"، أو عبر البريد الإلكتروني، أو من خلال حساباتنا على وسائل التواصل الاجتماعي.',
+    
+    // Newsletter
+    newsletterTitle: 'اشترك في نشرتنا البريدية',
+    newsletterDescription: 'احصل على آخر الأخبار والتحديثات والعروض الحصرية مباشرة في بريدك الإلكتروني. لا تفوت أي جديد!',
+    newsletterPlaceholder: 'أدخل بريدك الإلكتروني',
+    newsletterButton: 'اشتراك',
+    newsletterSending: 'جاري الاشتراك...',
+    newsletterSuccess: 'تم الاشتراك بنجاح! شكراً لك.',
+    newsletterAlready: 'هذا البريد الإلكتروني مشترك بالفعل.',
+    newsletterError: 'حدث خطأ أثناء الاشتراك. يرجى المحاولة مرة أخرى.',
+    
+    // Testimonials
+    testimonialsTitle: 'ماذا يقول مستخدمونا',
+    testimonialsSubtitle: 'آراء حقيقية من مستخدمين يثقون في تطبيقاتنا',
+    
+    // Blog
+    blogTitle: 'المدونة',
+    blogSubtitle: 'آخر الأخبار والمقالات من مجموعة أوبتي',
+    blogReadMore: 'اقرأ المزيد',
+    blogBackToBlog: 'العودة إلى المدونة',
+    blogMinRead: 'دقيقة قراءة',
+    blogAll: 'الكل',
+    blogHealth: 'الصحة',
+    blogAI: 'الذكاء الاصطناعي',
+    blogTourism: 'السياحة',
+    blogUpdates: 'التحديثات',
+    blog: 'المدونة',
+    
+    // Notifications
+    notificationsTitle: 'الإشعارات',
+    notificationsEmpty: 'لا توجد إشعارات حالياً',
+    notificationsMarkRead: 'تم القراءة',
   },
   en: {
     // Brand
@@ -212,6 +260,54 @@ export const translations = {
     cookieDescription: 'We use cookies to improve your experience and display personalized ads. By continuing to use the site, you agree to our use of cookies.',
     cookieAccept: 'Accept',
     cookieDecline: 'Decline',
+    
+    // FAQ
+    faqTitle: 'Frequently Asked Questions',
+    faqSubtitle: 'Answers to the most common questions',
+    faqQ1: 'What is Opti Group?',
+    faqA1: 'Opti Group is a technology company specializing in developing smart applications aimed at improving your quality of life. We offer a comprehensive suite of apps in health, outings, artificial intelligence, and tourism.',
+    faqQ2: 'Are the apps free?',
+    faqA2: 'Yes, all our core applications are free to use. We offer fully free basic features with premium subscription options for additional features and exclusive content.',
+    faqQ3: 'How do I create a new account?',
+    faqA3: 'You can easily create an account by clicking the "Sign Up" button at the top of the page. You can register using your email or Google account. Registration is quick and takes less than a minute.',
+    faqQ4: 'What apps are currently available?',
+    faqA4: 'Currently, OptiSize is available — a comprehensive eye health center. We are working on launching more apps soon.',
+    faqQ5: 'Is my data safe?',
+    faqA5: 'Absolutely! We take your data privacy very seriously. We use the latest encryption and data protection technologies, and we never share your personal information with any third party.',
+    faqQ6: 'How can I contact you?',
+    faqA6: 'You can reach us through the contact form on our "Contact Us" page, via email, or through our social media accounts.',
+    
+    // Newsletter
+    newsletterTitle: 'Subscribe to Our Newsletter',
+    newsletterDescription: 'Get the latest news, updates, and exclusive offers delivered directly to your inbox. Never miss out!',
+    newsletterPlaceholder: 'Enter your email address',
+    newsletterButton: 'Subscribe',
+    newsletterSending: 'Subscribing...',
+    newsletterSuccess: 'Successfully subscribed! Thank you.',
+    newsletterAlready: 'This email is already subscribed.',
+    newsletterError: 'An error occurred during subscription. Please try again.',
+    
+    // Testimonials
+    testimonialsTitle: 'What Our Users Say',
+    testimonialsSubtitle: 'Real reviews from users who trust our apps',
+    
+    // Blog
+    blogTitle: 'Blog',
+    blogSubtitle: 'Latest news and articles from Opti Group',
+    blogReadMore: 'Read More',
+    blogBackToBlog: 'Back to Blog',
+    blogMinRead: 'min read',
+    blogAll: 'All',
+    blogHealth: 'Health',
+    blogAI: 'AI',
+    blogTourism: 'Tourism',
+    blogUpdates: 'Updates',
+    blog: 'Blog',
+    
+    // Notifications
+    notificationsTitle: 'Notifications',
+    notificationsEmpty: 'No notifications yet',
+    notificationsMarkRead: 'Mark as read',
   },
 } as const;
 

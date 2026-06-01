@@ -5,8 +5,13 @@ import { useLanguage } from '@/contexts/LanguageContext';
 import Header from '@/components/Header';
 import SideMenu from '@/components/SideMenu';
 import HeroSection from '@/components/HeroSection';
+import StatsSection from '@/components/StatsSection';
+import TestimonialsSection from '@/components/TestimonialsSection';
 import AppSection from '@/components/AppSection';
 import ContactSection from '@/components/ContactSection';
+import FAQSection from '@/components/FAQSection';
+import NewsletterSection from '@/components/NewsletterSection';
+import BackToTop from '@/components/BackToTop';
 import { categories } from '@/lib/apps-data';
 import SocialLinks from '@/components/SocialLinks';
 import { motion } from 'framer-motion';
@@ -55,6 +60,15 @@ export default function HomePage() {
         {/* Hero */}
         <HeroSection />
 
+        {/* Stats Section */}
+        <StatsSection />
+
+        {/* Testimonials Section */}
+        <div className="max-w-7xl mx-auto px-4">
+          <div className="h-px bg-gradient-to-r from-transparent via-accent-silver/10 to-transparent" />
+        </div>
+        <TestimonialsSection />
+
         {/* App sections */}
         {categories.map((cat, index) => (
           <div key={cat.id}>
@@ -73,6 +87,18 @@ export default function HomePage() {
           <div className="h-px bg-gradient-to-r from-transparent via-accent-silver/10 to-transparent" />
         </div>
         <ContactSection />
+
+        {/* FAQ Section */}
+        <div className="max-w-7xl mx-auto px-4">
+          <div className="h-px bg-gradient-to-r from-transparent via-accent-silver/10 to-transparent" />
+        </div>
+        <FAQSection />
+
+        {/* Newsletter Section */}
+        <div className="max-w-7xl mx-auto px-4">
+          <div className="h-px bg-gradient-to-r from-transparent via-accent-silver/10 to-transparent" />
+        </div>
+        <NewsletterSection />
       </main>
 
       {/* Follow Us Section */}
@@ -148,6 +174,8 @@ export default function HomePage() {
             <div className={`flex flex-wrap justify-center gap-4 text-xs ${locale === 'ar' ? 'font-arabic' : ''}`}>
               <a href="/about" className="text-accent-silver/25 hover:text-accent-silver/50 transition-colors no-underline">{t.aboutUs}</a>
               <span className="text-accent-silver/10">•</span>
+              <a href="/blog" className="text-accent-silver/25 hover:text-accent-silver/50 transition-colors no-underline">{t.blog}</a>
+              <span className="text-accent-silver/10">•</span>
               <a href="/privacy" className="text-accent-silver/25 hover:text-accent-silver/50 transition-colors no-underline">{t.privacyPolicy}</a>
               <span className="text-accent-silver/10">•</span>
               <a href="/terms" className="text-accent-silver/25 hover:text-accent-silver/50 transition-colors no-underline">{t.termsOfService}</a>
@@ -166,6 +194,9 @@ export default function HomePage() {
           </div>
         </div>
       </footer>
+
+      {/* Back to Top Button */}
+      <BackToTop />
     </div>
   );
 }

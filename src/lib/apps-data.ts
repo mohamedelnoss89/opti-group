@@ -6,6 +6,9 @@ export interface App {
   icon: string;
   url: string;
   status: 'live' | 'coming_soon';
+  fullDescription: { ar: string; en: string };
+  features: { ar: string[]; en: string[] };
+  imageUrl?: string;
 }
 
 export const apps: App[] = [
@@ -20,6 +23,28 @@ export const apps: App[] = [
     icon: '👁️',
     url: 'https://optisize-nine.vercel.app',
     status: 'live',
+    fullDescription: {
+      ar: 'أوبتي سايز هو تطبيق متكامل لصحة العين يجمع بين التقنية الحديثة والبساطة في الاستخدام. يتيح لك قياس مسافة البؤبؤ (PD) بدقة عالية باستخدام كاميرا هاتفك، وإجراء اختبارات نظر شاملة تشمل اختبار حدة البصر واختبار عمى الألوان واختبار الاستجماتيزم. كما يضم معرض نظارات تفاعلي يمكنك من تجربة النظارات افتراضياً قبل الشراء، مع توصيات ذكية بناءً على شكل وجهك ووصفتك الطبية.',
+      en: 'OptiSize is a comprehensive eye health app that combines modern technology with user-friendly design. It allows you to measure your Pupillary Distance (PD) with high accuracy using your phone camera, and conduct thorough vision tests including visual acuity, color blindness, and astigmatism tests. It also features an interactive glasses gallery where you can virtually try on glasses before purchasing, with smart recommendations based on your face shape and prescription.'
+    },
+    features: {
+      ar: [
+        'قياس مسافة البؤبؤ (PD) بدقة عالية عبر الكاميرا',
+        'اختبارات نظر شاملة: حدة البصر، عمى الألوان، الاستجماتيزم',
+        'معرض نظارات تفاعلي مع تجربة افتراضية',
+        'توصيات ذكية للنظارات بناءً على شكل الوجه',
+        'حفظ وتتبع نتائج الفحوصات',
+        'واجهة سهلة الاستخدام باللغتين العربية والإنجليزية'
+      ],
+      en: [
+        'High-accuracy Pupillary Distance (PD) measurement via camera',
+        'Comprehensive vision tests: visual acuity, color blindness, astigmatism',
+        'Interactive glasses gallery with virtual try-on',
+        'Smart glasses recommendations based on face shape',
+        'Save and track your test results over time',
+        'User-friendly bilingual interface (Arabic & English)'
+      ]
+    },
   },
   {
     id: 'optifit',
@@ -32,6 +57,28 @@ export const apps: App[] = [
     icon: '🏋️',
     url: '#',
     status: 'coming_soon',
+    fullDescription: {
+      ar: 'أوبتي فيت هو مدربك الشخصي الذكي الذي يصمم برامج تدريبية مخصصة بناءً على أهدافك ومستواك البدني. باستخدام تقنيات الذكاء الاصطناعي، يتابع تقدمك ويعدل خطتك تلقائياً لضمان أفضل النتائج. سواء كنت مبتدئاً أو محترفاً، ستجد برنامجاً يناسبك.',
+      en: 'OptiFit is your smart personal trainer that designs customized workout programs based on your goals and fitness level. Using AI technology, it tracks your progress and automatically adjusts your plan to ensure optimal results. Whether you are a beginner or a pro, you will find a program that suits you.'
+    },
+    features: {
+      ar: [
+        'برامج تدريبية مخصصة بالذكاء الاصطناعي',
+        'تتبع التقدم والإنجازات يومياً',
+        'تعديل تلقائي لخطة التدريب',
+        'تمارين مصورة مع شرح تفصيلي',
+        'تكامل مع الأجهزة الذكية',
+        'دعم التغذية والنصائح الصحية'
+      ],
+      en: [
+        'AI-customized workout programs',
+        'Daily progress and achievement tracking',
+        'Automatic workout plan adjustments',
+        'Illustrated exercises with detailed instructions',
+        'Smart device integration',
+        'Nutrition support and health tips'
+      ]
+    },
   },
   {
     id: 'optinutrition',
@@ -44,6 +91,28 @@ export const apps: App[] = [
     icon: '🥗',
     url: '#',
     status: 'coming_soon',
+    fullDescription: {
+      ar: 'أوبتي نيوتريشن يساعدك على التغذية السليمة من خلال تخطيط وجبات مخصصة وتتبع العناصر الغذائية. يقدم نصائح غذائية مبنية على أهدافك الصحية ويحلل وجباتك لضمان حصولك على كل ما يحتاجه جسمك.',
+      en: 'OptiNutrition helps you eat healthy through personalized meal planning and nutrient tracking. It provides dietary advice based on your health goals and analyzes your meals to ensure your body gets everything it needs.'
+    },
+    features: {
+      ar: [
+        'تخطيط وجبات أسبوعية مخصص',
+        'تتبع السعرات الحرارية والعناصر الغذائية',
+        'قاعدة بيانات واسعة من الأطعمة',
+        'نصائح غذائية ذكية حسب الأهداف',
+        'قوائم تسوق تلقائية',
+        'دعم الحميات الخاصة والتحسسات'
+      ],
+      en: [
+        'Custom weekly meal planning',
+        'Calorie and nutrient tracking',
+        'Extensive food database',
+        'Smart dietary advice based on goals',
+        'Automatic shopping lists',
+        'Special diet and allergy support'
+      ]
+    },
   },
   {
     id: 'optitrip',
@@ -56,6 +125,28 @@ export const apps: App[] = [
     icon: '🗺️',
     url: '#',
     status: 'coming_soon',
+    fullDescription: {
+      ar: 'أوبتي ترب هو رفيقك المثالي لتخطيط الخروجات والرحلات. يقدم توصيات مخصصة لأفضل المطاعم والحدائق والأماكن الترفيهية بناءً على اهتماماتك وموقعك. خطط رحلاتك بسهولة واكتشف أماكن جديدة لم تكن لتعرفها.',
+      en: 'OptiTrip is your ideal companion for planning outings and trips. It provides personalized recommendations for the best restaurants, parks, and entertainment venues based on your interests and location. Plan your trips easily and discover new places you never knew existed.'
+    },
+    features: {
+      ar: [
+        'توصيات مخصصة بناءً على الاهتمامات',
+        'تخطيط مسارات الرحلات الذكية',
+        'تقييمات ومراجعات حقيقية',
+        'خرائط تفاعلية مع إرشادات',
+        'حجز مطاعم وتذاكر',
+        'وضع أوفلاين للرحلات'
+      ],
+      en: [
+        'Personalized recommendations based on interests',
+        'Smart trip route planning',
+        'Real ratings and reviews',
+        'Interactive maps with directions',
+        'Restaurant and ticket reservations',
+        'Offline mode for trips'
+      ]
+    },
   },
   {
     id: 'optievent',
@@ -68,6 +159,28 @@ export const apps: App[] = [
     icon: '🎉',
     url: '#',
     status: 'coming_soon',
+    fullDescription: {
+      ar: 'أوبتي إيفنت يتيح لك اكتشاف الفعاليات والأنشطة المحلية القريبة منك. من الحفلات الموسيقية والمعارض الفنية إلى الورش التعليمية والفعاليات الرياضية، لن تفوتك أي فرصة للترفيه والتواصل.',
+      en: 'OptiEvent lets you discover local events and activities near you. From concerts and art exhibitions to educational workshops and sports events, you will never miss an opportunity for entertainment and socializing.'
+    },
+    features: {
+      ar: [
+        'اكتشاف فعاليات قريبة بناءً على الموقع',
+        'تصنيفات متعددة: فن، رياضة، تعليم، ترفيه',
+        'تذاكر إلكترونية وحجز فوري',
+        'تذكيرات بالفعاليات القادمة',
+        'مشاركة الفعاليات مع الأصدقاء',
+        'تقويم شخصي للفعاليات'
+      ],
+      en: [
+        'Discover nearby events based on location',
+        'Multiple categories: art, sports, education, entertainment',
+        'E-tickets and instant booking',
+        'Reminders for upcoming events',
+        'Share events with friends',
+        'Personal event calendar'
+      ]
+    },
   },
   {
     id: 'optichat',
@@ -80,6 +193,28 @@ export const apps: App[] = [
     icon: '🤖',
     url: '#',
     status: 'coming_soon',
+    fullDescription: {
+      ar: 'أوبتي شات هو مساعدك الذكي المحادث الذي يجيب على أسئلتك في مختلف المجالات. من المساعدة في الدراسة إلى كتابة المحتوى وحل المشكلات، يقدم لك إجابات دقيقة وسريعة بأسلوب محادثة طبيعي.',
+      en: 'OptiChat is your smart conversational assistant that answers your questions across various domains. From study help to content writing and problem solving, it provides accurate and fast answers in a natural conversation style.'
+    },
+    features: {
+      ar: [
+        'محادثة ذكية بأسلوب طبيعي',
+        'دعم متعدد اللغات بما فيها العربية',
+        'مساعدة في الكتابة والترجمة',
+        'حل المسائل الرياضية والعلمية',
+        'حفظ سجل المحادثات',
+        'تخصيص نمط المحادثة'
+      ],
+      en: [
+        'Smart natural-style conversation',
+        'Multi-language support including Arabic',
+        'Writing and translation assistance',
+        'Math and science problem solving',
+        'Conversation history saving',
+        'Customizable conversation style'
+      ]
+    },
   },
   {
     id: 'optivision',
@@ -92,6 +227,28 @@ export const apps: App[] = [
     icon: '👁️',
     url: '#',
     status: 'coming_soon',
+    fullDescription: {
+      ar: 'أوبتي فيجن يستخدم أحدث تقنيات الذكاء الاصطناعي لتحليل وفهم الصور. ارفع أي صورة واحصل على وصف تفصيلي وتحليل محتواها، مع إمكانية التعرف على النصوص والكائنات والأشخاص في الصورة.',
+      en: 'OptiVision uses the latest AI technology to analyze and understand images. Upload any image and get a detailed description and content analysis, with the ability to recognize text, objects, and people in the image.'
+    },
+    features: {
+      ar: [
+        'وصف وتحليل الصور بالذكاء الاصطناعي',
+        'التعرف على النصوص في الصور (OCR)',
+        'كشف الكائنات والعناصر',
+        'تحليل الألوان والتركيب البصري',
+        'مشاركة النتائج بسهولة',
+        'دعم صيغ صور متعددة'
+      ],
+      en: [
+        'AI-powered image description and analysis',
+        'Text recognition in images (OCR)',
+        'Object and element detection',
+        'Color and visual composition analysis',
+        'Easy results sharing',
+        'Multiple image format support'
+      ]
+    },
   },
   {
     id: 'optipyr',
@@ -104,6 +261,28 @@ export const apps: App[] = [
     icon: '🏛️',
     url: '#',
     status: 'coming_soon',
+    fullDescription: {
+      ar: 'أوبتي باير يأخذك في رحلة افتراضية مذهلة داخل أهرامات الجيزة. استكشف الغرف السرية والممرات القديمة بتقنية ثلاثية الأبعاد عالية الدقة، مع شرح تفصيلي لتاريخ كل جزء وأسرار البناء الفرعوني.',
+      en: 'OptiPyr takes you on an amazing virtual tour inside the Giza Pyramids. Explore secret chambers and ancient passages in high-resolution 3D technology, with detailed explanations of the history of each part and the secrets of Pharaonic construction.'
+    },
+    features: {
+      ar: [
+        'جولة ثلاثية الأبعاد داخل الأهرامات',
+        'استكشاف الغرف والممرات السرية',
+        'شرح صوتي تفصيلي بالعربية',
+        'صور ومعلومات تاريخية غنية',
+        'وضع الواقع الافتراضي (VR)',
+        'خرائط تفاعلية للمواقع الأثرية'
+      ],
+      en: [
+        '3D tour inside the Pyramids',
+        'Explore secret chambers and passages',
+        'Detailed Arabic audio narration',
+        'Rich historical images and information',
+        'Virtual Reality (VR) mode',
+        'Interactive archaeological site maps'
+      ]
+    },
   },
   {
     id: 'optinile',
@@ -116,6 +295,28 @@ export const apps: App[] = [
     icon: '🌊',
     url: '#',
     status: 'coming_soon',
+    fullDescription: {
+      ar: 'أوبتي نايل يرشدك لاكتشاف أجمل معالم نهر النيل من الأقصر إلى القاهرة. جولات افتراضية على سفن النيل، استكشاف المعابد الفرعونية، والتعرف على الحضارة المصرية القديمة عبر تجربة تفاعلية فريدة.',
+      en: 'OptiNile guides you to discover the most beautiful landmarks of the Nile River from Luxor to Cairo. Virtual Nile cruise tours, exploration of Pharaonic temples, and learning about ancient Egyptian civilization through a unique interactive experience.'
+    },
+    features: {
+      ar: [
+        'جولات افتراضية على سفن النيل',
+        'استكشاف المعابد الفرعونية',
+        'خرائط تفاعلية لنهر النيل',
+        'محتوى تاريخي غني بالصور والفيديو',
+        'توصيات لأفضل الأماكن السياحية',
+        'دعم الواقع المعزز (AR)'
+      ],
+      en: [
+        'Virtual Nile cruise tours',
+        'Pharaonic temple exploration',
+        'Interactive Nile River maps',
+        'Rich historical content with photos and videos',
+        'Recommendations for best tourist spots',
+        'Augmented Reality (AR) support'
+      ]
+    },
   },
 ];
 

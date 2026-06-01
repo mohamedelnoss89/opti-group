@@ -7,6 +7,7 @@ import { App } from '@/lib/apps-data';
 import { motion } from 'framer-motion';
 import { ExternalLink, Lock } from 'lucide-react';
 import LoginPrompt from './LoginPrompt';
+import AppDetailModal from './AppDetailModal';
 
 interface AppCardProps {
   app: App;
@@ -50,18 +51,23 @@ export default function AppCard({ app, index }: AppCardProps) {
   const colors = categoryAccentColors[app.category];
   const isLive = app.status === 'live';
   const [showLogin, setShowLogin] = useState(false);
+  const [showDetail, setShowDetail] = useState(false);
 
   const handleVisitClick = (e: React.MouseEvent) => {
+    e.stopPropagation();
     if (!user) {
-      e.preventDefault();
       setShowLogin(true);
     }
+  };
+
+  const handleCardClick = () => {
+    setShowDetail(true);
   };
 
   return (
     <>
       <motion.div
-        className="relative overflow-hidden group rounded-2xl"
+        className="relative overflow-hidden group rounded-2xl cursor-pointer"
         style={{
           background: 'rgba(26, 31, 54, 0.4)',
           backdropFilter: 'blur(12px)',
@@ -80,6 +86,7 @@ export default function AppCard({ app, index }: AppCardProps) {
           boxShadow: isLive ? colors.glow : 'none',
           y: -2,
         }}
+        onClick={handleCardClick}
       >
         {/* Top row: icon + status */}
         <div className="flex items-start justify-between">
@@ -154,6 +161,13 @@ export default function AppCard({ app, index }: AppCardProps) {
         onClose={() => setShowLogin(false)}
         messageAr="سجّل دخولك لزيارة التطبيق والاستفادة من جميع الميزات"
         message="Sign in to visit the app and enjoy all features"
+      />
+
+      {/* App Detail Modal */}
+      <AppDetailModal
+        app={app}
+        isOpen={showDetail}
+        onClose={() => setShowDetail(false)}
       />
     </>
   );
