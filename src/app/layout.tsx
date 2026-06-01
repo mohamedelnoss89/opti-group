@@ -25,6 +25,9 @@ export const metadata: Metadata = {
   icons: {
     icon: "/favicon.ico",
   },
+  other: {
+    "google-adsense-account": "ca-pub-2715535111154362",
+  },
 };
 
 export default function RootLayout({
@@ -34,6 +37,15 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="ar" className="antialiased" suppressHydrationWarning>
+      <head>
+        {/* Google AdSense */}
+        <meta name="google-adsense-account" content="ca-pub-2715535111154362" />
+        <script
+          async
+          src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-2715535111154362"
+          crossOrigin="anonymous"
+        />
+      </head>
       <body className={`${geistSans.variable} ${geistMono.variable} ${notoKufiArabic.variable} min-h-screen flex flex-col`}>
         <Providers>
           {children}
