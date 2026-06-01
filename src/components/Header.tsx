@@ -125,7 +125,7 @@ export default function Header({ onMenuToggle }: HeaderProps) {
                       animate={{ opacity: 1, y: 0, scale: 1 }}
                       exit={{ opacity: 0, y: -10, scale: 0.95 }}
                       transition={{ duration: 0.15 }}
-                      className="absolute top-full mt-2 right-0 w-72 rounded-2xl overflow-hidden"
+                      className={`absolute top-full mt-2 w-72 rounded-2xl overflow-hidden ${locale === 'ar' ? 'left-0' : 'right-0'}`}
                       style={{
                         background: 'rgba(16, 20, 38, 0.98)',
                         backdropFilter: 'blur(24px)',

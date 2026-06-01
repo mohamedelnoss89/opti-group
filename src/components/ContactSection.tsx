@@ -7,7 +7,9 @@ export default function ContactSection() {
   const { t, locale } = useLanguage();
 
   const handleEmailClick = () => {
-    window.open('mailto:mohamed10.mohamed10@gmail.com', '_self');
+    const link = document.createElement('a');
+    link.href = 'mailto:mohamed10.mohamed10@gmail.com';
+    link.click();
   };
 
   return (
