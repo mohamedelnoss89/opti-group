@@ -71,8 +71,8 @@ export default function Header({ onMenuToggle }: HeaderProps) {
             <Menu className="w-5 h-5" style={{ color: 'rgba(192,192,192,0.7)' }} />
           </motion.button>
 
-          {/* Brand - minimal */}
-          <div className="flex items-center gap-1.5">
+          {/* Brand - clickable home link */}
+          <a href="/" className="flex items-center gap-1.5 no-underline" style={{ textDecoration: 'none' }}>
             <span 
               style={{
                 fontSize: '15px',
@@ -89,7 +89,7 @@ export default function Header({ onMenuToggle }: HeaderProps) {
             <span style={{ fontSize: '11px', fontWeight: 300, letterSpacing: '0.3em', color: 'rgba(192,192,192,0.4)' }}>
               GROUP
             </span>
-          </div>
+          </a>
 
           {/* Right side */}
           <div className="flex items-center gap-3">

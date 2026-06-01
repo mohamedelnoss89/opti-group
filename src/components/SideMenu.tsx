@@ -12,6 +12,7 @@ import {
   X,
   LogIn,
   LogOut,
+  Home,
 } from 'lucide-react';
 import { getAppCountByCategory } from '@/lib/apps-data';
 import Logo from './Logo';
@@ -114,6 +115,29 @@ export default function SideMenu({ isOpen, onClose, onNavigate, onContactClick }
 
             {/* Menu items */}
             <nav className="flex-1 overflow-y-auto p-4 space-y-2">
+              {/* Home Link */}
+              <motion.a
+                href="/"
+                className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl transition-all duration-200 group no-underline ${locale === 'ar' ? 'flex-row-reverse text-right' : 'flex-row text-left'}`}
+                style={{
+                  background: 'rgba(14,165,233,0.06)',
+                }}
+                initial={{ opacity: 0, x: locale === 'ar' ? 20 : -20 }}
+                animate={{ opacity: 1, x: 0 }}
+                transition={{ delay: 0.05 }}
+                whileHover={{ 
+                  background: 'rgba(14,165,233,0.12)',
+                  scale: 1.02,
+                }}
+              >
+                <span className="p-2 rounded-lg bg-accent-cyan/10 text-accent-cyan">
+                  <Home className="w-5 h-5" />
+                </span>
+                <span className="flex-1 text-sm font-medium text-accent-cyan/80 group-hover:text-accent-cyan transition-colors">
+                  {t.home}
+                </span>
+              </motion.a>
+
               {menuItems.map((item, index) => (
                 <motion.button
                   key={item.id}
