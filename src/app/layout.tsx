@@ -39,12 +39,23 @@ export default function RootLayout({
   return (
     <html lang="ar" className="antialiased" suppressHydrationWarning>
       <head>
-        {/* Google AdSense */}
+        {/* Google AdSense - Auto Ads */}
         <meta name="google-adsense-account" content="ca-pub-2715535111154362" />
         <script
           async
           src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-2715535111154362"
           crossOrigin="anonymous"
+        />
+        {/* Auto Ads - Google places ads automatically */}
+        <script
+          dangerouslySetInnerHTML={{
+            __html: `
+              (adsbygoogle = window.adsbygoogle || []).push({
+                google_ad_client: "ca-pub-2715535111154362",
+                enable_page_level_ads: true
+              });
+            `,
+          }}
         />
       </head>
       <body className={`${geistSans.variable} ${geistMono.variable} ${notoKufiArabic.variable} min-h-screen flex flex-col`}>

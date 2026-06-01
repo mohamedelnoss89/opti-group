@@ -3,7 +3,6 @@
 import { useLanguage } from '@/contexts/LanguageContext';
 import { motion } from 'framer-motion';
 import { FileText } from 'lucide-react';
-import AdBanner from '@/components/AdBanner';
 
 export default function TermsPage() {
   const { locale } = useLanguage();
@@ -36,11 +35,6 @@ export default function TermsPage() {
             {isArabic ? 'آخر تحديث: يونيو 2026' : 'Last updated: June 2026'}
           </p>
         </div>
-      </div>
-
-      {/* Ad Banner */}
-      <div className="max-w-4xl mx-auto px-4 py-2">
-        <AdBanner adSlot="terms-top" adFormat="horizontal" />
       </div>
 
       {/* Content */}
@@ -130,10 +124,6 @@ export default function TermsPage() {
           )}
         </motion.div>
 
-        {/* Ad Banner - Bottom */}
-        <div className="mt-10">
-          <AdBanner adSlot="terms-bottom" adFormat="horizontal" />
-        </div>
       </div>
     </div>
   );

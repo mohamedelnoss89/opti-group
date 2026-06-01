@@ -7,7 +7,6 @@ import SideMenu from '@/components/SideMenu';
 import HeroSection from '@/components/HeroSection';
 import AppSection from '@/components/AppSection';
 import ContactSection from '@/components/ContactSection';
-import AdBanner from '@/components/AdBanner';
 import { categories } from '@/lib/apps-data';
 import { motion } from 'framer-motion';
 
@@ -55,12 +54,7 @@ export default function HomePage() {
         {/* Hero */}
         <HeroSection />
 
-        {/* Ad Banner - After Hero */}
-        <div className="max-w-5xl mx-auto px-4 py-4">
-          <AdBanner adSlot="1234567890" adFormat="horizontal" />
-        </div>
-
-        {/* App sections with ads between them */}
+        {/* App sections */}
         {categories.map((cat, index) => (
           <div key={cat.id}>
             {/* Divider between sections */}
@@ -70,13 +64,6 @@ export default function HomePage() {
               </div>
             )}
             <AppSection category={cat.id} sectionId={cat.sectionId} />
-
-            {/* Ad Banner - After each section (except last) */}
-            {index < categories.length - 1 && (
-              <div className="max-w-5xl mx-auto px-4 py-6">
-                <AdBanner adSlot={`234567890${index + 1}`} adFormat="auto" />
-              </div>
-            )}
           </div>
         ))}
 
@@ -85,11 +72,6 @@ export default function HomePage() {
           <div className="h-px bg-gradient-to-r from-transparent via-accent-silver/10 to-transparent" />
         </div>
         <ContactSection />
-
-        {/* Ad Banner - Before Footer */}
-        <div className="max-w-5xl mx-auto px-4 py-6">
-          <AdBanner adSlot="3456789012" adFormat="horizontal" />
-        </div>
       </main>
 
       {/* Footer */}

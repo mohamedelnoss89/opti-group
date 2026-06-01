@@ -3,7 +3,6 @@
 import { useLanguage } from '@/contexts/LanguageContext';
 import { motion } from 'framer-motion';
 import { Info, Heart, MapPin, Brain, Landmark, Users, Target, Sparkles } from 'lucide-react';
-import AdBanner from '@/components/AdBanner';
 
 export default function AboutPage() {
   const { locale } = useLanguage();
@@ -47,11 +46,6 @@ export default function AboutPage() {
             </h1>
           </motion.div>
         </div>
-      </div>
-
-      {/* Ad Banner - Top */}
-      <div className="max-w-4xl mx-auto px-4 py-2">
-        <AdBanner adSlot="about-top" adFormat="horizontal" />
       </div>
 
       {/* Content */}
@@ -109,11 +103,6 @@ export default function AboutPage() {
                 );
               })}
             </div>
-          </div>
-
-          {/* Ad Banner - Middle */}
-          <div className="py-4">
-            <AdBanner adSlot="about-mid" adFormat="auto" />
           </div>
 
           {/* Our Sections */}
@@ -175,10 +164,6 @@ export default function AboutPage() {
           </div>
         </motion.div>
 
-        {/* Ad Banner - Bottom */}
-        <div className="mt-10">
-          <AdBanner adSlot="about-bottom" adFormat="horizontal" />
-        </div>
       </div>
     </div>
   );
