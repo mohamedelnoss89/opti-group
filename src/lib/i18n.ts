@@ -82,6 +82,11 @@ export const translations = {
     // Footer
     footerText: '© 2026 مجموعة أوبتي. جميع الحقوق محفوظة.',
     
+    // Legal pages
+    privacyPolicy: 'سياسة الخصوصية',
+    aboutUs: 'من نحن',
+    termsOfService: 'شروط الاستخدام',
+    
     // Errors
     invalidCredentials: 'البريد الإلكتروني أو كلمة المرور غير صحيحة',
     emailRequired: 'البريد الإلكتروني مطلوب',
@@ -95,6 +100,12 @@ export const translations = {
     outingsDesc: 'تطبيقات الخروجات والترفيه',
     aiDesc: 'تطبيقات الذكاء الاصطناعي',
     landmarksDesc: 'تطبيقات المعالم السياحية المصرية',
+    
+    // Cookie consent
+    cookieTitle: 'نستخدم ملفات تعريف الارتباط',
+    cookieDescription: 'نستخدم ملفات تعريف الارتباط لتحسين تجربتك وعرض إعلانات مخصصة. بالاستمرار في استخدام الموقع، فإنك توافق على استخدام ملفات تعريف الارتباط.',
+    cookieAccept: 'قبول',
+    cookieDecline: 'رفض',
   },
   en: {
     // Brand
@@ -177,6 +188,11 @@ export const translations = {
     // Footer
     footerText: '© 2026 Opti Group. All rights reserved.',
     
+    // Legal pages
+    privacyPolicy: 'Privacy Policy',
+    aboutUs: 'About Us',
+    termsOfService: 'Terms of Service',
+    
     // Errors
     invalidCredentials: 'Invalid email or password',
     emailRequired: 'Email is required',
@@ -190,6 +206,12 @@ export const translations = {
     outingsDesc: 'Outings & Entertainment Apps',
     aiDesc: 'AI-Powered Apps',
     landmarksDesc: 'Egyptian Landmarks & Tourism Apps',
+    
+    // Cookie consent
+    cookieTitle: 'We use cookies',
+    cookieDescription: 'We use cookies to improve your experience and display personalized ads. By continuing to use the site, you agree to our use of cookies.',
+    cookieAccept: 'Accept',
+    cookieDecline: 'Decline',
   },
 } as const;
 

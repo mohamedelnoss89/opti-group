@@ -123,6 +123,15 @@ export default function HomePage() {
               <span className="hover:text-section-landmarks transition-colors cursor-pointer" onClick={() => handleNavigate('section-landmarks')}>{t.landmarksSection}</span>
             </div>
 
+            {/* Legal links */}
+            <div className={`flex flex-wrap justify-center gap-4 text-xs ${locale === 'ar' ? 'font-arabic' : ''}`}>
+              <a href="/about" className="text-accent-silver/25 hover:text-accent-silver/50 transition-colors no-underline">{t.aboutUs}</a>
+              <span className="text-accent-silver/10">•</span>
+              <a href="/privacy" className="text-accent-silver/25 hover:text-accent-silver/50 transition-colors no-underline">{t.privacyPolicy}</a>
+              <span className="text-accent-silver/10">•</span>
+              <a href="/terms" className="text-accent-silver/25 hover:text-accent-silver/50 transition-colors no-underline">{t.termsOfService}</a>
+            </div>
+
             {/* Divider */}
             <div className="w-24 h-px bg-gradient-to-r from-transparent via-accent-silver/20 to-transparent" />
 

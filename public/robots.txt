@@ -1,0 +1,12 @@
+# robots.txt for Opti Group
+User-agent: *
+Allow: /
+Disallow: /setup
+Disallow: /api/
+
+# Sitemap
+Sitemap: https://opti-group-deploy.vercel.app/sitemap.xml
+
+# AdSense crawler
+User-agent: Mediapartners-Google
+Allow: /

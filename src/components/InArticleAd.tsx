@@ -2,40 +2,37 @@
 
 import { useEffect, useRef } from 'react';
 
-interface AdBannerProps {
+interface InArticleAdProps {
   adSlot: string;
-  adFormat?: 'auto' | 'rectangle' | 'horizontal' | 'vertical' | 'fluid';
-  style?: React.CSSProperties;
   className?: string;
 }
 
-export default function AdBanner({ adSlot, adFormat = 'auto', style, className = '' }: AdBannerProps) {
+export default function InArticleAd({ adSlot, className = '' }: InArticleAdProps) {
   const adRef = useRef<HTMLDivElement>(null);
   const isPushed = useRef(false);
 
   useEffect(() => {
-    // Only push the ad once per component mount
     if (adRef.current && !isPushed.current) {
       try {
         // @ts-expect-error adsbygoogle is injected by the AdSense script
         (window.adsbygoogle = window.adsbygoogle || []).push({});
         isPushed.current = true;
       } catch (e) {
-        console.log('AdSense push error:', e);
+        console.log('AdSense in-article push error:', e);
       }
     }
   }, []);
 
   return (
-    <div className={`ad-container flex justify-center ${className}`} style={style}>
+    <div className={`ad-in-article flex justify-center my-6 ${className}`}>
       <ins
         ref={adRef as React.RefObject<HTMLModElement>}
         className="adsbygoogle"
-        style={{ display: 'block', minHeight: '90px', ...style }}
+        style={{ display: 'block', textAlign: 'center' }}
         data-ad-client="ca-pub-2715535111154362"
         data-ad-slot={adSlot}
-        data-ad-format={adFormat}
-        data-full-width-responsive="true"
+        data-ad-layout="in-article"
+        data-ad-format="fluid"
       />
     </div>
   );
