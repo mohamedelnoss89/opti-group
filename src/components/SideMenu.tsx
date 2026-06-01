@@ -15,6 +15,7 @@ import {
 } from 'lucide-react';
 import { getAppCountByCategory } from '@/lib/apps-data';
 import Logo from './Logo';
+import SocialLinks from './SocialLinks';
 
 interface SideMenuProps {
   isOpen: boolean;
@@ -164,6 +165,14 @@ export default function SideMenu({ isOpen, onClose, onNavigate, onContactClick }
                 </span>
               </motion.button>
             </nav>
+
+            {/* Divider */}
+            <div className="mx-6 h-px bg-gradient-to-r from-transparent via-accent-silver/20 to-transparent" />
+
+            {/* Social Links */}
+            <div className="px-6 py-3">
+              <SocialLinks size="small" isArabic={locale === 'ar'} />
+            </div>
 
             {/* Divider */}
             <div className="mx-6 h-px bg-gradient-to-r from-transparent via-accent-silver/20 to-transparent" />

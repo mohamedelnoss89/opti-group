@@ -8,6 +8,7 @@ import HeroSection from '@/components/HeroSection';
 import AppSection from '@/components/AppSection';
 import ContactSection from '@/components/ContactSection';
 import { categories } from '@/lib/apps-data';
+import SocialLinks from '@/components/SocialLinks';
 import { motion } from 'framer-motion';
 
 export default function HomePage() {
@@ -113,6 +114,9 @@ export default function HomePage() {
               <span className="text-accent-silver/10">•</span>
               <a href="/terms" className="text-accent-silver/25 hover:text-accent-silver/50 transition-colors no-underline">{t.termsOfService}</a>
             </div>
+
+            {/* Social Media Links */}
+            <SocialLinks isArabic={locale === 'ar'} />
 
             {/* Divider */}
             <div className="w-24 h-px bg-gradient-to-r from-transparent via-accent-silver/20 to-transparent" />
