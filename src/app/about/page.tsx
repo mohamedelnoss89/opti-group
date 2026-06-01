@@ -3,7 +3,6 @@
 import { useLanguage } from '@/contexts/LanguageContext';
 import { motion } from 'framer-motion';
 import { Info, Heart, MapPin, Brain, Landmark, Users, Target, Sparkles } from 'lucide-react';
-import SocialLinks from '@/components/SocialLinks';
 
 export default function AboutPage() {
   const { locale } = useLanguage();
@@ -164,21 +163,7 @@ export default function AboutPage() {
             </p>
           </div>
 
-          {/* Follow Us */}
-          <div className="p-6 rounded-2xl" style={{
-            background: 'rgba(26, 31, 54, 0.5)',
-            border: '1px solid rgba(14,165,233,0.08)',
-          }}>
-            <h2 className={`text-lg font-bold mb-4 ${isArabic ? 'font-arabic text-right' : ''}`} style={{ color: '#0ea5e9' }}>
-              {isArabic ? 'تابعنا على السوشيال ميديا' : 'Follow Us on Social Media'}
-            </h2>
-            <p className={`text-sm leading-relaxed mb-5 ${isArabic ? 'font-arabic text-right' : ''}`} style={{ color: 'rgba(192,192,192,0.6)' }}>
-              {isArabic
-                ? 'تابعنا على منصات التواصل الاجتماعي لتبقى على اطلاع بآخر التحديثات والمحتوى الحصري.'
-                : 'Follow us on social media to stay updated with the latest news and exclusive content.'}
-            </p>
-            <SocialLinks size="large" isArabic={isArabic} />
-          </div>
+
         </motion.div>
 
       </div>

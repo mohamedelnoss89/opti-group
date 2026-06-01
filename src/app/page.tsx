@@ -75,6 +75,44 @@ export default function HomePage() {
         <ContactSection />
       </main>
 
+      {/* Follow Us Section */}
+      <section className="relative py-16 px-4">
+        <div className="absolute inset-0 pointer-events-none" style={{
+          background: 'radial-gradient(ellipse 80% 50% at 50% 50%, rgba(14,165,233,0.03), transparent 70%)',
+        }} />
+        <div className="max-w-3xl mx-auto relative z-10 text-center">
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            transition={{ duration: 0.5 }}
+          >
+            <h2
+              className={`text-xl sm:text-2xl font-bold mb-3 ${locale === 'ar' ? 'font-arabic' : ''}`}
+              style={{
+                background: 'linear-gradient(135deg, #0ea5e9, #38bdf8)',
+                WebkitBackgroundClip: 'text',
+                WebkitTextFillColor: 'transparent',
+                backgroundClip: 'text',
+              }}
+            >
+              {locale === 'ar' ? 'تابعنا على السوشيال ميديا' : 'Follow Us on Social Media'}
+            </h2>
+            <p
+              className={`text-sm leading-relaxed mb-8 ${locale === 'ar' ? 'font-arabic' : ''}`}
+              style={{ color: 'rgba(192,192,192,0.5)' }}
+            >
+              {locale === 'ar'
+                ? 'تابعنا على منصات التواصل الاجتماعي لتبقى على اطلاع بآخر التحديثات والمحتوى الحصري.'
+                : 'Follow us on social media to stay updated with the latest news and exclusive content.'}
+            </p>
+            <div className="flex justify-center">
+              <SocialLinks size="large" isArabic={locale === 'ar'} />
+            </div>
+          </motion.div>
+        </div>
+      </section>
+
       {/* Footer */}
       <footer className="relative py-12 px-4" style={{ background: 'rgba(10, 14, 26, 0.9)', borderTop: '1px solid rgba(192,192,192,0.06)' }}>
         {/* Subtle glow */}
