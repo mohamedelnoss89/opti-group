@@ -6,12 +6,6 @@ import { motion } from 'framer-motion';
 export default function ContactSection() {
   const { t, locale } = useLanguage();
 
-  const handleEmailClick = () => {
-    const link = document.createElement('a');
-    link.href = 'mailto:mohamed10.mohamed10@gmail.com';
-    link.click();
-  };
-
   return (
     <section id="section-contact" className="relative py-20 px-4">
       {/* Background glow */}
@@ -62,15 +56,18 @@ export default function ContactSection() {
             transition={{ duration: 0.5 }}
             whileHover={{ y: -3 }}
           >
-            <button
-              onClick={handleEmailClick}
-              className="w-full p-5 sm:p-6 rounded-2xl cursor-pointer text-left"
+            <a
+              href="mailto:mohamed10.mohamed10@gmail.com"
+              className="block p-5 sm:p-6 rounded-2xl no-underline"
               style={{
                 background: 'rgba(26, 31, 54, 0.6)',
                 backdropFilter: 'blur(16px)',
                 border: '1px solid rgba(14,165,233,0.12)',
                 boxShadow: '0 4px 24px rgba(0,0,0,0.2)',
                 transition: 'all 0.3s ease',
+                cursor: 'pointer',
+                textDecoration: 'none',
+                color: 'inherit',
               }}
               onMouseEnter={(e) => {
                 e.currentTarget.style.borderColor = 'rgba(14,165,233,0.3)';
@@ -106,7 +103,7 @@ export default function ContactSection() {
                   </svg>
                 </div>
               </div>
-            </button>
+            </a>
           </motion.div>
         </div>
       </div>
