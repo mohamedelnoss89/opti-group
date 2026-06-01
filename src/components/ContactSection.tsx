@@ -6,6 +6,10 @@ import { motion } from 'framer-motion';
 export default function ContactSection() {
   const { t, locale } = useLanguage();
 
+  const handleEmailClick = () => {
+    window.open('mailto:mohamed10.mohamed10@gmail.com', '_self');
+  };
+
   return (
     <section id="section-contact" className="relative py-20 px-4">
       {/* Background glow */}
@@ -47,7 +51,7 @@ export default function ContactSection() {
           </div>
         </motion.div>
 
-        {/* Email button - using plain <a> for maximum mailto compatibility */}
+        {/* Email button */}
         <div className="max-w-lg mx-auto">
           <motion.div
             initial={{ opacity: 0, y: 20 }}
@@ -56,9 +60,9 @@ export default function ContactSection() {
             transition={{ duration: 0.5 }}
             whileHover={{ y: -3 }}
           >
-            <a
-              href="mailto:mohamed10.mohamed10@gmail.com"
-              className="block p-5 sm:p-6 rounded-2xl cursor-pointer no-underline"
+            <button
+              onClick={handleEmailClick}
+              className="w-full p-5 sm:p-6 rounded-2xl cursor-pointer text-left"
               style={{
                 background: 'rgba(26, 31, 54, 0.6)',
                 backdropFilter: 'blur(16px)',
@@ -100,7 +104,7 @@ export default function ContactSection() {
                   </svg>
                 </div>
               </div>
-            </a>
+            </button>
           </motion.div>
         </div>
       </div>
