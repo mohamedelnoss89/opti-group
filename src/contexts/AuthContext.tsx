@@ -69,10 +69,13 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   };
 
   const signInWithGoogle = async () => {
+    const redirectUrl = typeof window !== 'undefined' && window.location.hostname !== 'localhost'
+      ? 'https://opti-group-deploy.vercel.app/'
+      : `${window.location.origin}/`;
     const { error } = await supabase.auth.signInWithOAuth({
       provider: 'google',
       options: {
-        redirectTo: `${window.location.origin}/`,
+        redirectTo: redirectUrl,
       }
     });
     if (error) {
