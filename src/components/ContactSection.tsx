@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, FormEvent } from 'react';
+import { useState, FormEvent, useCallback } from 'react';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Send, CheckCircle, AlertCircle, Copy, Check, Mail, MessageSquare, User, AtSign, FileText } from 'lucide-react';
@@ -11,6 +11,99 @@ interface FormErrors {
   name?: string;
   email?: string;
   message?: string;
+}
+
+// InputField defined OUTSIDE the component to prevent re-creation on every render
+function InputField({
+  id,
+  label,
+  placeholder,
+  value,
+  onChange,
+  error,
+  onClearError,
+  icon: Icon,
+  type = 'text',
+  required = false,
+  isArabic,
+  isFocused,
+  onFocus,
+  onBlur,
+}: {
+  id: string;
+  label: string;
+  placeholder: string;
+  value: string;
+  onChange: (val: string) => void;
+  error?: string;
+  onClearError: () => void;
+  icon: React.ElementType;
+  type?: string;
+  required?: boolean;
+  isArabic: boolean;
+  isFocused: boolean;
+  onFocus: () => void;
+  onBlur: () => void;
+}) {
+  return (
+    <div className="relative">
+      <label
+        htmlFor={id}
+        className={`block text-xs font-medium mb-2 transition-colors duration-200 ${isArabic ? 'font-arabic text-right' : ''}`}
+        style={{ color: error ? '#ef4444' : isFocused ? '#0ea5e9' : 'rgba(192,192,192,0.5)' }}
+      >
+        {label}
+        {required && <span style={{ color: '#ef4444' }}> *</span>}
+      </label>
+      <div className="relative">
+        <div
+          className="absolute top-1/2 -translate-y-1/2 transition-colors duration-200 pointer-events-none"
+          style={{
+            [isArabic ? 'right' : 'left']: '14px',
+            color: error ? '#ef4444' : isFocused ? '#0ea5e9' : 'rgba(192,192,192,0.3)',
+          }}
+        >
+          <Icon className="w-4 h-4" />
+        </div>
+        <input
+          id={id}
+          type={type}
+          value={value}
+          onChange={(e) => {
+            onChange(e.target.value);
+            if (error) {
+              onClearError();
+            }
+          }}
+          onFocus={onFocus}
+          onBlur={onBlur}
+          placeholder={placeholder}
+          className={`w-full py-3 transition-all duration-200 outline-none text-sm ${isArabic ? 'pr-11 pl-4 text-right font-arabic' : 'pl-11 pr-4'}`}
+          style={{
+            background: 'rgba(10,14,26,0.6)',
+            border: `1px solid ${error ? 'rgba(239,68,68,0.4)' : isFocused ? 'rgba(14,165,233,0.35)' : 'rgba(192,192,192,0.08)'}`,
+            borderRadius: '12px',
+            color: 'rgba(232,232,232,0.9)',
+            boxShadow: isFocused ? '0 0 20px rgba(14,165,233,0.06)' : 'none',
+          }}
+          dir={isArabic ? 'rtl' : 'ltr'}
+        />
+      </div>
+      <AnimatePresence>
+        {error && (
+          <motion.p
+            initial={{ opacity: 0, y: -4, height: 0 }}
+            animate={{ opacity: 1, y: 0, height: 'auto' }}
+            exit={{ opacity: 0, y: -4, height: 0 }}
+            className={`text-xs mt-1.5 ${isArabic ? 'font-arabic text-right' : ''}`}
+            style={{ color: '#ef4444' }}
+          >
+            {error}
+          </motion.p>
+        )}
+      </AnimatePresence>
+    </div>
+  );
 }
 
 export default function ContactSection() {
@@ -107,90 +200,10 @@ export default function ContactSection() {
     }
   };
 
-  // Reusable input field component with animated icon
-  const InputField = ({
-    id,
-    label,
-    placeholder,
-    value,
-    onChange,
-    error,
-    icon: Icon,
-    type = 'text',
-    required = false,
-  }: {
-    id: string;
-    label: string;
-    placeholder: string;
-    value: string;
-    onChange: (val: string) => void;
-    error?: string;
-    icon: React.ElementType;
-    type?: string;
-    required?: boolean;
-  }) => {
-    const isFocused = focusedField === id;
-
-    return (
-      <div className="relative">
-        <label
-          htmlFor={id}
-          className={`block text-xs font-medium mb-2 transition-colors duration-200 ${isArabic ? 'font-arabic text-right' : ''}`}
-          style={{ color: error ? '#ef4444' : isFocused ? '#0ea5e9' : 'rgba(192,192,192,0.5)' }}
-        >
-          {label}
-          {required && <span style={{ color: '#ef4444' }}> *</span>}
-        </label>
-        <div className="relative">
-          <div
-            className="absolute top-1/2 -translate-y-1/2 transition-colors duration-200 pointer-events-none"
-            style={{
-              [isArabic ? 'right' : 'left']: '14px',
-              color: error ? '#ef4444' : isFocused ? '#0ea5e9' : 'rgba(192,192,192,0.3)',
-            }}
-          >
-            <Icon className="w-4 h-4" />
-          </div>
-          <input
-            id={id}
-            type={type}
-            value={value}
-            onChange={(e) => {
-              onChange(e.target.value);
-              if (error) {
-                setErrors((prev) => ({ ...prev, [id]: undefined }));
-              }
-            }}
-            onFocus={() => setFocusedField(id)}
-            onBlur={() => setFocusedField(null)}
-            placeholder={placeholder}
-            className={`w-full py-3 transition-all duration-200 outline-none text-sm ${isArabic ? 'pr-11 pl-4 text-right font-arabic' : 'pl-11 pr-4'}`}
-            style={{
-              background: 'rgba(10,14,26,0.6)',
-              border: `1px solid ${error ? 'rgba(239,68,68,0.4)' : isFocused ? 'rgba(14,165,233,0.35)' : 'rgba(192,192,192,0.08)'}`,
-              borderRadius: '12px',
-              color: 'rgba(232,232,232,0.9)',
-              boxShadow: isFocused ? '0 0 20px rgba(14,165,233,0.06)' : 'none',
-            }}
-            dir={isArabic ? 'rtl' : 'ltr'}
-          />
-        </div>
-        <AnimatePresence>
-          {error && (
-            <motion.p
-              initial={{ opacity: 0, y: -4, height: 0 }}
-              animate={{ opacity: 1, y: 0, height: 'auto' }}
-              exit={{ opacity: 0, y: -4, height: 0 }}
-              className={`text-xs mt-1.5 ${isArabic ? 'font-arabic text-right' : ''}`}
-              style={{ color: '#ef4444' }}
-            >
-              {error}
-            </motion.p>
-          )}
-        </AnimatePresence>
-      </div>
-    );
-  };
+  // Stable callbacks to prevent unnecessary re-renders
+  const clearNameError = useCallback(() => setErrors((prev) => ({ ...prev, name: undefined })), []);
+  const clearEmailError = useCallback(() => setErrors((prev) => ({ ...prev, email: undefined })), []);
+  const clearMessageError = useCallback(() => setErrors((prev) => ({ ...prev, message: undefined })), []);
 
   return (
     <section id="section-contact" className="relative py-20 px-4">
@@ -271,8 +284,13 @@ export default function ContactSection() {
                     value={name}
                     onChange={setName}
                     error={errors.name}
+                    onClearError={clearNameError}
                     icon={User}
                     required
+                    isArabic={isArabic}
+                    isFocused={focusedField === 'name'}
+                    onFocus={() => setFocusedField('name')}
+                    onBlur={() => setFocusedField(null)}
                   />
                   <InputField
                     id="email"
@@ -281,9 +299,14 @@ export default function ContactSection() {
                     value={email}
                     onChange={setEmail}
                     error={errors.email}
+                    onClearError={clearEmailError}
                     icon={AtSign}
                     type="email"
                     required
+                    isArabic={isArabic}
+                    isFocused={focusedField === 'email'}
+                    onFocus={() => setFocusedField('email')}
+                    onBlur={() => setFocusedField(null)}
                   />
                 </div>
 
@@ -294,7 +317,12 @@ export default function ContactSection() {
                   placeholder={t.contactSubjectPlaceholder}
                   value={subject}
                   onChange={setSubject}
+                  onClearError={() => {}}
                   icon={FileText}
+                  isArabic={isArabic}
+                  isFocused={focusedField === 'subject'}
+                  onFocus={() => setFocusedField('subject')}
+                  onBlur={() => setFocusedField(null)}
                 />
 
                 {/* Message textarea */}
@@ -320,7 +348,7 @@ export default function ContactSection() {
                       onChange={(e) => {
                         setMessage(e.target.value);
                         if (errors.message) {
-                          setErrors((prev) => ({ ...prev, message: undefined }));
+                          clearMessageError();
                         }
                       }}
                       onFocus={() => setFocusedField('message')}
