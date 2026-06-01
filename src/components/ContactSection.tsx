@@ -2,8 +2,10 @@
 
 import { useState, FormEvent, useCallback } from 'react';
 import { useLanguage } from '@/contexts/LanguageContext';
+import { useAuth } from '@/contexts/AuthContext';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Send, CheckCircle, AlertCircle, Copy, Check, Mail, MessageSquare, User, AtSign, FileText } from 'lucide-react';
+import { Send, CheckCircle, AlertCircle, Copy, Check, Mail, MessageSquare, User, AtSign, FileText, Lock } from 'lucide-react';
+import LoginPrompt from './LoginPrompt';
 
 type FormStatus = 'idle' | 'sending' | 'success' | 'error';
 
@@ -108,7 +110,11 @@ function InputField({
 
 export default function ContactSection() {
   const { t, locale } = useLanguage();
+  const { user } = useAuth();
   const isArabic = locale === 'ar';
+
+  // Login prompt state
+  const [showLoginPrompt, setShowLoginPrompt] = useState(false);
 
   // Form state
   const [name, setName] = useState('');
@@ -146,6 +152,11 @@ export default function ContactSection() {
 
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
+
+    if (!user) {
+      setShowLoginPrompt(true);
+      return;
+    }
 
     if (!validate()) return;
 
@@ -577,6 +588,34 @@ export default function ContactSection() {
           </motion.div>
         </div>
       </div>
+
+      {/* Login required notice - shown when not logged in */}
+      {!user && (
+        <div className="max-w-5xl mx-auto px-4 mt-6">
+          <motion.div
+            className="flex items-center justify-center gap-2 py-3 px-4 rounded-xl"
+            style={{
+              background: 'rgba(14,165,233,0.06)',
+              border: '1px solid rgba(14,165,233,0.12)',
+            }}
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+          >
+            <Lock className="w-4 h-4" style={{ color: '#0ea5e9' }} />
+            <span className={`text-xs ${isArabic ? 'font-arabic' : ''}`} style={{ color: 'rgba(14,165,233,0.8)' }}>
+              {isArabic ? 'يجب تسجيل الدخول لإرسال رسالة' : 'Sign in required to send a message'}
+            </span>
+          </motion.div>
+        </div>
+      )}
+
+      {/* Login Prompt Modal */}
+      <LoginPrompt
+        isOpen={showLoginPrompt}
+        onClose={() => setShowLoginPrompt(false)}
+        messageAr="سجّل دخولك لإرسال رسالة والتواصل معنا"
+        message="Sign in to send a message and contact us"
+      />
     </section>
   );
 }
