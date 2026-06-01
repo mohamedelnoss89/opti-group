@@ -1,7 +1,7 @@
 'use client';
 
 import React, { createContext, useContext, useState, useEffect } from 'react';
-import { supabase } from '@/lib/supabase';
+import { createClient } from '@/utils/supabase/browser';
 import type { User } from '@supabase/supabase-js';
 
 interface AuthContextType {
@@ -25,38 +25,9 @@ const AuthContext = createContext<AuthContextType>({
 export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
+  const supabase = createClient();
 
   useEffect(() => {
-    // Handle OAuth callback - exchange code for session
-    const handleAuthCallback = async () => {
-      const hashParams = new URLSearchParams(window.location.hash.substring(1));
-      const queryParams = new URLSearchParams(window.location.search);
-      
-      // Check if we have an auth code in the URL (from OAuth redirect)
-      const code = queryParams.get('code');
-      const errorParam = queryParams.get('error');
-      
-      if (code) {
-        try {
-          const { error } = await supabase.auth.exchangeCodeForSession(code);
-          if (error) {
-            console.error('Code exchange error:', error.message);
-          }
-          // Clean URL - remove code param
-          window.history.replaceState({}, document.title, window.location.pathname);
-        } catch (err) {
-          console.error('Code exchange failed:', err);
-        }
-      }
-      
-      if (errorParam) {
-        console.error('OAuth error:', errorParam);
-        window.history.replaceState({}, document.title, window.location.pathname);
-      }
-    };
-
-    handleAuthCallback();
-
     // Get initial session
     supabase.auth.getSession().then(({ data: { session } }) => {
       setUser(session?.user ?? null);
@@ -72,7 +43,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     );
 
     return () => subscription.unsubscribe();
-  }, []);
+  }, [supabase]);
 
   const signIn = async (email: string, password: string) => {
     const { error } = await supabase.auth.signInWithPassword({ email, password });
@@ -99,13 +70,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   };
 
   const signInWithGoogle = async () => {
-    const redirectUrl = typeof window !== 'undefined'
-      ? `${window.location.origin}/`
-      : 'https://opti-group-deploy.vercel.app/';
     const { error } = await supabase.auth.signInWithOAuth({
       provider: 'google',
       options: {
-        redirectTo: redirectUrl,
+        redirectTo: `${window.location.origin}/auth/callback`,
       }
     });
     if (error) {
