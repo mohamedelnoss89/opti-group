@@ -1,12 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
 
-const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || 'https://rebfcchrzpfteambeurb.supabase.co';
-const supabaseSecretKey = process.env.SUPABASE_SERVICE_ROLE_KEY || '';
-
-// Create admin client with secret key to bypass RLS
-const supabase = createClient(supabaseUrl, supabaseSecretKey);
-
 interface ContactFormData {
   name: string;
   email: string;
@@ -17,6 +11,17 @@ interface ContactFormData {
 function validateEmail(email: string): boolean {
   const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
   return emailRegex.test(email);
+}
+
+function getSupabaseAdmin() {
+  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || 'https://rebfcchrzpfteambeurb.supabase.co';
+  const supabaseSecretKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
+  
+  if (!supabaseSecretKey) {
+    throw new Error('SUPABASE_SERVICE_ROLE_KEY is not configured');
+  }
+  
+  return createClient(supabaseUrl, supabaseSecretKey);
 }
 
 export async function POST(request: NextRequest) {
@@ -61,6 +66,7 @@ export async function POST(request: NextRequest) {
     };
 
     // Insert into Supabase
+    const supabase = getSupabaseAdmin();
     const { error: insertError } = await supabase
       .from('contact_messages')
       .insert(sanitizedData);
