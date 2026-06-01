@@ -27,6 +27,36 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
+    // Handle OAuth callback - exchange code for session
+    const handleAuthCallback = async () => {
+      const hashParams = new URLSearchParams(window.location.hash.substring(1));
+      const queryParams = new URLSearchParams(window.location.search);
+      
+      // Check if we have an auth code in the URL (from OAuth redirect)
+      const code = queryParams.get('code');
+      const errorParam = queryParams.get('error');
+      
+      if (code) {
+        try {
+          const { error } = await supabase.auth.exchangeCodeForSession(code);
+          if (error) {
+            console.error('Code exchange error:', error.message);
+          }
+          // Clean URL - remove code param
+          window.history.replaceState({}, document.title, window.location.pathname);
+        } catch (err) {
+          console.error('Code exchange failed:', err);
+        }
+      }
+      
+      if (errorParam) {
+        console.error('OAuth error:', errorParam);
+        window.history.replaceState({}, document.title, window.location.pathname);
+      }
+    };
+
+    handleAuthCallback();
+
     // Get initial session
     supabase.auth.getSession().then(({ data: { session } }) => {
       setUser(session?.user ?? null);
@@ -69,9 +99,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   };
 
   const signInWithGoogle = async () => {
-    const redirectUrl = typeof window !== 'undefined' && window.location.hostname !== 'localhost'
-      ? 'https://opti-group-deploy.vercel.app/auth/callback'
-      : `${window.location.origin}/auth/callback`;
+    const redirectUrl = typeof window !== 'undefined'
+      ? `${window.location.origin}/`
+      : 'https://opti-group-deploy.vercel.app/';
     const { error } = await supabase.auth.signInWithOAuth({
       provider: 'google',
       options: {
