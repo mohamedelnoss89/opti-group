@@ -57,7 +57,9 @@ export default function ContactSection() {
             whileHover={{ y: -3 }}
           >
             <a
-              href="mailto:mohamed10.mohamed10@gmail.com"
+              href="https://mail.google.com/mail/?view=cm&fs=1&to=mohamed10.mohamed10@gmail.com"
+              target="_blank"
+              rel="noopener noreferrer"
               className="block p-5 sm:p-6 rounded-2xl no-underline"
               style={{
                 background: 'rgba(26, 31, 54, 0.6)',
