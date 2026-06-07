@@ -9,6 +9,7 @@ import {
   Brain, 
   Landmark, 
   Moon, 
+  Trophy, 
   Phone, 
   X,
   LogIn,
@@ -32,6 +33,7 @@ const categoryIcons: Record<string, React.ReactNode> = {
   ai: <Brain className="w-5 h-5" />,
   landmarks: <Landmark className="w-5 h-5" />,
   islamic: <Moon className="w-5 h-5" />,
+  sports: <Trophy className="w-5 h-5" />,
 };
 
 const categoryColors: Record<string, string> = {
@@ -40,6 +42,7 @@ const categoryColors: Record<string, string> = {
   ai: 'text-section-ai',
   landmarks: 'text-section-landmarks',
   islamic: 'text-section-islamic',
+  sports: 'text-section-sports',
 };
 
 const categoryBgColors: Record<string, string> = {
@@ -48,6 +51,7 @@ const categoryBgColors: Record<string, string> = {
   ai: 'bg-section-ai/10',
   landmarks: 'bg-section-landmarks/10',
   islamic: 'bg-section-islamic/10',
+  sports: 'bg-section-sports/10',
 };
 
 export default function SideMenu({ isOpen, onClose, onNavigate, onContactClick }: SideMenuProps) {
@@ -60,6 +64,7 @@ export default function SideMenu({ isOpen, onClose, onNavigate, onContactClick }
     { id: 'section-ai', category: 'ai' as const, label: t.aiSection },
     { id: 'section-landmarks', category: 'landmarks' as const, label: t.landmarksSection },
     { id: 'section-islamic', category: 'islamic' as const, label: t.islamicSection },
+    { id: 'section-sports', category: 'sports' as const, label: t.sportsSection },
   ];
 
   const handleNavigate = (sectionId: string) => {

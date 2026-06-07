@@ -16,7 +16,7 @@ interface StatItem {
 const stats: StatItem[] = [
   {
     icon: <Smartphone className="w-6 h-6" />,
-    targetValue: 12,
+    targetValue: 15,
     suffix: '+',
     labelAr: 'تطبيق',
     labelEn: 'Apps',
@@ -37,7 +37,7 @@ const stats: StatItem[] = [
   },
   {
     icon: <LayoutGrid className="w-6 h-6" />,
-    targetValue: 5,
+    targetValue: 6,
     suffix: '',
     labelAr: 'أقسام',
     labelEn: 'Sections',

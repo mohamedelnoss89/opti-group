@@ -51,6 +51,13 @@ const categoryAccentColors: Record<string, { border: string; glow: string; badge
     badgeText: '#059669',
     hoverBorder: 'rgba(5,150,105,0.3)',
   },
+  sports: {
+    border: 'rgba(239,68,68,0.12)',
+    glow: '0 8px 32px rgba(239,68,68,0.06)',
+    badge: 'rgba(239,68,68,0.1)',
+    badgeText: '#ef4444',
+    hoverBorder: 'rgba(239,68,68,0.3)',
+  },
 };
 
 export default function AppCard({ app, index }: AppCardProps) {

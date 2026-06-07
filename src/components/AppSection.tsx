@@ -4,10 +4,10 @@ import { useLanguage } from '@/contexts/LanguageContext';
 import { getAppsByCategory } from '@/lib/apps-data';
 import { motion } from 'framer-motion';
 import AppCard from './AppCard';
-import { Heart, MapPin, Brain, Landmark, Moon } from 'lucide-react';
+import { Heart, MapPin, Brain, Landmark, Moon, Trophy } from 'lucide-react';
 
 interface AppSectionProps {
-  category: 'health' | 'outings' | 'ai' | 'landmarks' | 'islamic';
+  category: 'health' | 'outings' | 'ai' | 'landmarks' | 'islamic' | 'sports';
   sectionId: string;
 }
 
@@ -37,6 +37,11 @@ const categoryConfig = {
     color: '#059669',
     bgGlow: 'rgba(5,150,105,0.03)',
   },
+  sports: {
+    icon: Trophy,
+    color: '#ef4444',
+    bgGlow: 'rgba(239,68,68,0.03)',
+  },
 };
 
 const categoryTitleKeys = {
@@ -45,6 +50,7 @@ const categoryTitleKeys = {
   ai: 'aiSection' as const,
   landmarks: 'landmarksSection' as const,
   islamic: 'islamicSection' as const,
+  sports: 'sportsSection' as const,
 };
 
 const categoryDescKeys = {
@@ -53,6 +59,7 @@ const categoryDescKeys = {
   ai: 'aiDesc' as const,
   landmarks: 'landmarksDesc' as const,
   islamic: 'islamicDesc' as const,
+  sports: 'sportsDesc' as const,
 };
 
 export default function AppSection({ category, sectionId }: AppSectionProps) {

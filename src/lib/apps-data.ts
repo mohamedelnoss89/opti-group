@@ -2,7 +2,7 @@ export interface App {
   id: string;
   name: { ar: string; en: string };
   description: { ar: string; en: string };
-  category: 'health' | 'outings' | 'ai' | 'landmarks' | 'islamic';
+  category: 'health' | 'outings' | 'ai' | 'landmarks' | 'islamic' | 'sports';
   icon: string;
   url: string;
   status: 'live' | 'coming_soon';
@@ -420,6 +420,108 @@ export const apps: App[] = [
       ]
     },
   },
+  {
+    id: 'optiscore',
+    name: { ar: 'أوبتي سكور', en: 'OptiScore' },
+    description: { 
+      ar: 'نتائج المباريات المباشرة وأخبار الرياضة', 
+      en: 'Live match scores & sports news' 
+    },
+    category: 'sports',
+    icon: '⚽',
+    url: '#',
+    status: 'coming_soon',
+    fullDescription: {
+      ar: 'أوبتي سكور تطبيقك الأول لمتابعة نتائج المباريات المباشرة لحظة بلحظة. يغطي جميع الرياضات من كرة القدم والكرة السلة إلى التنس والكريكت. إشعارات فورية للأهداف والبطاقات والتغييرات، مع تحليلات إحصائية شاملة وأخبار رياضية عاجلة من حول العالم.',
+      en: 'OptiScore is your go-to app for following live match scores moment by moment. It covers all sports from football and basketball to tennis and cricket. Instant notifications for goals, cards, and substitutions, with comprehensive statistical analysis and breaking sports news from around the world.'
+    },
+    features: {
+      ar: [
+        'نتائج مباشرة لأكثر من ٣٠ رياضة',
+        'إشعارات فورية للأهداف والأحداث',
+        'ترتيب الدوريات والبطولات',
+        'إحصائيات وتحليلات مفصلة',
+        'أخبار رياضية عاجلة ومقالات',
+        'تخصيص فرقك المفضلة للمتابعة'
+      ],
+      en: [
+        'Live scores for 30+ sports',
+        'Instant notifications for goals & events',
+        'League and tournament standings',
+        'Detailed statistics and analysis',
+        'Breaking sports news and articles',
+        'Customize favorite teams to follow'
+      ]
+    },
+  },
+  {
+    id: 'optileague',
+    name: { ar: 'أوبتي ليغ', en: 'OptiLeague' },
+    description: { 
+      ar: 'تتبع الدوريات والبطولات وتشكيلات الفرق', 
+      en: 'Track leagues, tournaments & team lineups' 
+    },
+    category: 'sports',
+    icon: '🏆',
+    url: '#',
+    status: 'coming_soon',
+    fullDescription: {
+      ar: 'أوبتي ليغ يمنحك تجربة شاملة لمتابعة الدوريات والبطولات العالمية والمحلية. جدول مباريات كامل مع تشكيلات الفرق قبل المباراة، تصريحات المدربين واللاعبين، وأداء الفرق التاريخي. تابع دوري أبطال أفريقيا والدوري المصري والدوريات الأوروبية الكبرى في مكان واحد.',
+      en: 'OptiLeague gives you a comprehensive experience for following global and local leagues and tournaments. Full match schedule with team lineups before the match, coach and player statements, and historical team performance. Follow the CAF Champions League, Egyptian Premier League, and major European leagues all in one place.'
+    },
+    features: {
+      ar: [
+        'جداول مباريات كاملة مع التوقيت',
+        'تشكيلات الفرق قبل بداية المباراة',
+        'ترتيب الهدافين وصناع الألعاب',
+        'مقارنة الأداء بين الفرق',
+        'تغطية الدوري المصري والأفريقي',
+        'تذكيرات بمواعيد المباريات'
+      ],
+      en: [
+        'Complete match schedules with timings',
+        'Team lineups before match kick-off',
+        'Top scorers and assist makers rankings',
+        'Performance comparison between teams',
+        'Egyptian & African league coverage',
+        'Match time reminders'
+      ]
+    },
+  },
+  {
+    id: 'optiplay',
+    name: { ar: 'أوبتي بلاي', en: 'OptiPlay' },
+    description: { 
+      ar: 'احجز ملاعب ومرافق رياضية بالقرب منك', 
+      en: 'Book sports courts & facilities near you' 
+    },
+    category: 'sports',
+    icon: '🏟️',
+    url: '#',
+    status: 'coming_soon',
+    fullDescription: {
+      ar: 'أوبتي بلاي يساعدك على العثور على ملاعب ومرافق رياضية قريبة وحجزها بسهولة. سواء كنت تبحث عن ملعب كرة قدم أو ملعب كرة سلة أو صالة جيم أو مسبح، ستجده مع إمكانية الحجز الفوري والدفع الإلكتروني. كما يتيح لك تنظيم مباريات مع أصدقائك أو الانضمام لمباريات جماعية قريبة.',
+      en: 'OptiPlay helps you find and book nearby sports courts and facilities with ease. Whether you are looking for a football pitch, basketball court, gym, or swimming pool, you will find it with instant booking and electronic payment. It also lets you organize matches with friends or join nearby group games.'
+    },
+    features: {
+      ar: [
+        'بحث عن ملاعب ومرافق رياضية قريبة',
+        'حجز فوري مع الدفع الإلكتروني',
+        'تنظيم مباريات مع الأصدقاء',
+        'الانضمام لمباريات جماعية مفتوحة',
+        'تقييمات ومراجعات للمرافق',
+        'عروض وخصومات على الحجوزات'
+      ],
+      en: [
+        'Find nearby sports courts & facilities',
+        'Instant booking with e-payment',
+        'Organize matches with friends',
+        'Join open group games',
+        'Facility ratings and reviews',
+        'Deals and discounts on bookings'
+      ]
+    },
+  },
 ];
 
 export const categories = [
@@ -428,6 +530,7 @@ export const categories = [
   { id: 'ai' as const, sectionId: 'section-ai' },
   { id: 'landmarks' as const, sectionId: 'section-landmarks' },
   { id: 'islamic' as const, sectionId: 'section-islamic' },
+  { id: 'sports' as const, sectionId: 'section-sports' },
 ];
 
 export function getAppsByCategory(category: App['category']): App[] {

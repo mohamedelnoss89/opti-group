@@ -16,6 +16,7 @@ export const translations = {
     aiSection: 'قسم الـ AI',
     landmarksSection: 'قسم المعالم السياحية المصرية',
     islamicSection: 'قسم الإسلاميات',
+    sportsSection: 'قسم الرياضة',
     contactUs: 'اتصل بنا',
     
     // Hero
@@ -102,6 +103,7 @@ export const translations = {
     aiDesc: 'تطبيقات الذكاء الاصطناعي',
     landmarksDesc: 'تطبيقات المعالم السياحية المصرية',
     islamicDesc: 'تطبيقات إسلامية للصلاة والقرآن والأذكار',
+    sportsDesc: 'تطبيقات رياضية للمباريات والدوريات والملاعب',
     
     // Cookie consent
     cookieTitle: 'نستخدم ملفات تعريف الارتباط',
@@ -204,6 +206,7 @@ export const translations = {
     aiSection: 'AI Section',
     landmarksSection: 'Egyptian Landmarks Section',
     islamicSection: 'Islamic Section',
+    sportsSection: 'Sports Section',
     contactUs: 'Contact Us',
     
     // Hero
@@ -290,6 +293,7 @@ export const translations = {
     aiDesc: 'AI-Powered Apps',
     landmarksDesc: 'Egyptian Landmarks & Tourism Apps',
     islamicDesc: 'Islamic Apps for Prayer, Quran & Azkar',
+    sportsDesc: 'Sports Apps for Scores, Leagues & Facilities',
     
     // Cookie consent
     cookieTitle: 'We use cookies',
