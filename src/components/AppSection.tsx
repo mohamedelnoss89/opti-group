@@ -4,7 +4,7 @@ import { useLanguage } from '@/contexts/LanguageContext';
 import { getAppsByCategory } from '@/lib/apps-data';
 import { motion } from 'framer-motion';
 import AppCard from './AppCard';
-import { Heart, MapPin, Brain, Landmark, Moon, Trophy } from 'lucide-react';
+import { Heart, MapPin, Brain, Landmark, Moon, Trophy, AlertTriangle } from 'lucide-react';
 
 interface AppSectionProps {
   category: 'health' | 'outings' | 'ai' | 'landmarks' | 'islamic' | 'sports';
@@ -111,6 +111,35 @@ export default function AppSection({ category, sectionId }: AppSectionProps) {
             </p>
           </div>
         </motion.div>
+
+        {/* Medical Disclaimer - Health section only */}
+        {category === 'health' && (
+          <motion.div
+            className={`mb-6 p-5 rounded-xl text-center ${locale === 'ar' ? 'font-arabic' : ''}`}
+            style={{
+              background: 'rgba(245, 158, 11, 0.06)',
+              border: '1px solid rgba(245, 158, 11, 0.15)',
+            }}
+            initial={{ opacity: 0, y: 10 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            transition={{ duration: 0.4, delay: 0.1 }}
+          >
+            <div className="flex items-center justify-center gap-2 mb-2">
+              <AlertTriangle className="w-4 h-4" style={{ color: '#f59e0b' }} />
+              <p className="text-xs font-bold" style={{ color: '#f59e0b' }}>
+                {locale === 'ar' ? 'تنبيه طبي هام' : 'Important Medical Disclaimer'}
+              </p>
+              <AlertTriangle className="w-4 h-4" style={{ color: '#f59e0b' }} />
+            </div>
+            <p className="text-xs leading-relaxed max-w-2xl mx-auto" style={{ color: 'rgba(192,192,192,0.6)' }}>
+              {locale === 'ar'
+                ? 'المحتوى المقدم في هذا القسم هو لأغراض المعلومات والتوعية فقط ولا يُغني عن استشارة الطبيب المختص. لا تُعتبر المعلومات بديلاً عن التشخيص أو العلاج الطبي المهني. يُرجى استشارة طبيبك قبل اتخاذ أي قرار طبي.'
+                : 'The content provided in this section is for informational and educational purposes only and does not replace professional medical advice. This information is not a substitute for professional diagnosis or treatment. Please consult your doctor before making any medical decisions.'
+              }
+            </p>
+          </motion.div>
+        )}
 
         {/* Apps grid */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">

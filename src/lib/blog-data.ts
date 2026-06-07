@@ -72,8 +72,8 @@ Upcoming apps like OptiFit and OptiNutrition will also benefit from AI technolog
     date: '2026-02-01',
     category: 'ai',
     readTime: 6,
-    author: { ar: 'د. رامي السيد', en: 'Dr. Rami El-Sayed' },
-    authorRole: { ar: 'خبير الذكاء الاصطناعي', en: 'AI Specialist' },
+    author: { ar: 'فريق مجموعة أوبتي', en: 'Opti Group Team' },
+    authorRole: { ar: 'فريق التحرير', en: 'Editorial Team' },
   },
   {
     slug: 'egyptian-tourism-technology',
@@ -104,8 +104,8 @@ These applications aim not only to provide an entertaining experience but also t
     date: '2026-02-15',
     category: 'tourism',
     readTime: 7,
-    author: { ar: 'مريم عبد الرحمن', en: 'Mariam Abdelrahman' },
-    authorRole: { ar: 'مديرة المحتوى السياحي', en: 'Tourism Content Director' },
+    author: { ar: 'فريق مجموعة أوبتي', en: 'Opti Group Team' },
+    authorRole: { ar: 'فريق التحرير', en: 'Editorial Team' },
   },
   {
     slug: 'future-of-opti-group',
@@ -140,8 +140,8 @@ Our vision goes beyond just developing apps. We seek to build a strong Arab digi
     date: '2026-03-01',
     category: 'updates',
     readTime: 6,
-    author: { ar: 'إدارة مجموعة أوبتي', en: 'Opti Group Management' },
-    authorRole: { ar: 'الإدارة العليا', en: 'Executive Management' },
+    author: { ar: 'فريق مجموعة أوبتي', en: 'Opti Group Team' },
+    authorRole: { ar: 'فريق التحرير', en: 'Editorial Team' },
   },
   {
     slug: 'digital-eye-strain-prevention',
@@ -176,8 +176,8 @@ Fifth, use moisturizing eye drops if you suffer from chronic dryness. Sixth, mak
     date: '2026-03-15',
     category: 'health',
     readTime: 7,
-    author: { ar: 'د. سارة أحمد', en: 'Dr. Sarah Ahmed' },
-    authorRole: { ar: 'طبيبة عيون متخصصة', en: 'Ophthalmologist' },
+    author: { ar: 'فريق مجموعة أوبتي', en: 'Opti Group Team' },
+    authorRole: { ar: 'فريق التحرير', en: 'Editorial Team' },
   },
   {
     slug: 'sports-technology-fitness',
@@ -208,8 +208,8 @@ Nutrition tracking apps have also become an essential part of the digital fitnes
     date: '2026-03-20',
     category: 'sports',
     readTime: 6,
-    author: { ar: 'أحمد حسن', en: 'Ahmed Hassan' },
-    authorRole: { ar: 'مدرب لياقة بدنية معتمد', en: 'Certified Fitness Trainer' },
+    author: { ar: 'فريق مجموعة أوبتي', en: 'Opti Group Team' },
+    authorRole: { ar: 'فريق التحرير', en: 'Editorial Team' },
   },
   {
     slug: 'prayer-times-technology',
@@ -240,8 +240,8 @@ The spiritual aspect is no less important than the technical one. The OptiQuran 
     date: '2026-04-01',
     category: 'islamic',
     readTime: 6,
-    author: { ar: 'الشيخ محمد عبد الله', en: 'Sheikh Mohammed Abdullah' },
-    authorRole: { ar: 'باحث في الدراسات الإسلامية', en: 'Islamic Studies Researcher' },
+    author: { ar: 'فريق مجموعة أوبتي', en: 'Opti Group Team' },
+    authorRole: { ar: 'فريق التحرير', en: 'Editorial Team' },
   },
   {
     slug: 'smart-apps-daily-life',
@@ -308,8 +308,8 @@ Fourth, adjust screen settings to protect your child's eyes. Enable the blue fil
     date: '2026-04-25',
     category: 'health',
     readTime: 7,
-    author: { ar: 'د. منى الحسيني', en: 'Dr. Mona El-Husseini' },
-    authorRole: { ar: 'طبيبة طب أطفال', en: 'Pediatrician' },
+    author: { ar: 'فريق مجموعة أوبتي', en: 'Opti Group Team' },
+    authorRole: { ar: 'فريق التحرير', en: 'Editorial Team' },
   },
   {
     slug: 'virtual-tourism-egypt',
@@ -340,8 +340,8 @@ The Valley of the Kings in Luxor reveals the secrets of royal tombs. You can exp
     date: '2026-05-05',
     category: 'tourism',
     readTime: 7,
-    author: { ar: 'د. خالد العناني', en: 'Dr. Khaled El-Anany' },
-    authorRole: { ar: 'عالم مصريات', en: 'Egyptologist' },
+    author: { ar: 'فريق مجموعة أوبتي', en: 'Opti Group Team' },
+    authorRole: { ar: 'فريق التحرير', en: 'Editorial Team' },
   },
 ];
 

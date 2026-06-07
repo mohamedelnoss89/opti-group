@@ -86,6 +86,9 @@ export default function RootLayout({
   return (
     <html lang="ar" className="antialiased" suppressHydrationWarning>
       <head>
+        {/* Google Search Console Verification */}
+        <meta name="google-site-verification" content="iDfGIkUmx5IS34mZFNLeinnk6AmyjZnXJzwumZGo5sU" />
+
         {/* Google AdSense - Auto Ads */}
         <meta name="google-adsense-account" content="ca-pub-2715535111154362" />
         <script

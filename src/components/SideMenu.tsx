@@ -15,6 +15,7 @@ import {
   LogIn,
   LogOut,
   Home,
+  BookOpen,
 } from 'lucide-react';
 import { getAppCountByCategory } from '@/lib/apps-data';
 import Logo from './Logo';
@@ -176,6 +177,29 @@ export default function SideMenu({ isOpen, onClose, onNavigate, onContactClick }
                 </motion.button>
               ))}
 
+              {/* Blog Link */}
+              <motion.a
+                href="/blog"
+                className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl transition-all duration-200 group no-underline ${locale === 'ar' ? 'flex-row-reverse text-right' : 'flex-row text-left'}`}
+                style={{
+                  background: 'rgba(255,255,255,0.03)',
+                }}
+                initial={{ opacity: 0, x: locale === 'ar' ? 20 : -20 }}
+                animate={{ opacity: 1, x: 0 }}
+                transition={{ delay: 0.3 }}
+                whileHover={{ 
+                  background: 'rgba(14,165,233,0.1)',
+                  scale: 1.02,
+                }}
+              >
+                <span className="p-2 rounded-lg bg-accent-cyan/10 text-accent-cyan">
+                  <BookOpen className="w-5 h-5" />
+                </span>
+                <span className="flex-1 text-sm font-medium text-accent-silver/80 group-hover:text-accent-cyan transition-colors">
+                  {t.blog}
+                </span>
+              </motion.a>
+
               {/* Contact Us */}
               <motion.button
                 onClick={handleContact}
@@ -185,7 +209,7 @@ export default function SideMenu({ isOpen, onClose, onNavigate, onContactClick }
                 }}
                 initial={{ opacity: 0, x: locale === 'ar' ? 20 : -20 }}
                 animate={{ opacity: 1, x: 0 }}
-                transition={{ delay: 0.3 }}
+                transition={{ delay: 0.35 }}
                 whileHover={{ 
                   background: 'rgba(255,255,255,0.08)',
                   scale: 1.02,

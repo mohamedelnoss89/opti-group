@@ -6,7 +6,7 @@ import Header from '@/components/Header';
 import SideMenu from '@/components/SideMenu';
 import BackToTop from '@/components/BackToTop';
 import { motion } from 'framer-motion';
-import { Calendar, Clock, ArrowRight, ArrowLeft, User, Share2, Tag, Copy, Check } from 'lucide-react';
+import { Calendar, Clock, ArrowRight, ArrowLeft, User, Share2, Tag, Copy, Check, AlertTriangle } from 'lucide-react';
 import Link from 'next/link';
 import { getBlogPostBySlug, type BlogPost } from '@/lib/blog-data';
 import { useParams } from 'next/navigation';
@@ -16,6 +16,8 @@ const categoryColors: Record<BlogPost['category'], string> = {
   ai: '#8b5cf6',
   tourism: '#f59e0b',
   updates: '#ec4899',
+  sports: '#ef4444',
+  islamic: '#06b6d4',
 };
 
 const categoryNames: Record<BlogPost['category'], { ar: string; en: string }> = {
@@ -23,6 +25,8 @@ const categoryNames: Record<BlogPost['category'], { ar: string; en: string }> = 
   ai: { ar: 'الذكاء الاصطناعي', en: 'AI' },
   tourism: { ar: 'السياحة', en: 'Tourism' },
   updates: { ar: 'التحديثات', en: 'Updates' },
+  sports: { ar: 'الرياضة', en: 'Sports' },
+  islamic: { ar: 'إسلاميات', en: 'Islamic' },
 };
 
 export default function BlogPostPage() {
@@ -202,6 +206,34 @@ export default function BlogPostPage() {
 
           {/* Divider */}
           <div className="h-px mb-8" style={{ background: 'rgba(14,165,233,0.08)' }} />
+
+          {/* Medical Disclaimer for health articles */}
+          {post.category === 'health' && (
+            <motion.div
+              className={`mb-6 p-5 rounded-xl text-center ${isArabic ? 'font-arabic' : ''}`}
+              style={{
+                background: 'rgba(245, 158, 11, 0.06)',
+                border: '1px solid rgba(245, 158, 11, 0.15)',
+              }}
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.4, delay: 0.3 }}
+            >
+              <div className="flex items-center justify-center gap-2 mb-2">
+                <AlertTriangle className="w-4 h-4" style={{ color: '#f59e0b' }} />
+                <p className="text-xs font-bold" style={{ color: '#f59e0b' }}>
+                  {isArabic ? 'تنبيه طبي هام' : 'Important Medical Disclaimer'}
+                </p>
+                <AlertTriangle className="w-4 h-4" style={{ color: '#f59e0b' }} />
+              </div>
+              <p className="text-xs leading-relaxed max-w-2xl mx-auto" style={{ color: 'rgba(192,192,192,0.6)' }}>
+                {isArabic
+                  ? 'هذا المقال لأغراض المعلومات والتوعية فقط ولا يُغني عن استشارة الطبيب المختص. لا تُعتبر المعلومات بديلاً عن التشخيص أو العلاج الطبي المهني. يُرجى استشارة طبيبك قبل اتخاذ أي قرار طبي.'
+                  : 'This article is for informational and educational purposes only and does not replace professional medical advice. This information is not a substitute for professional diagnosis or treatment. Please consult your doctor before making any medical decisions.'
+                }
+              </p>
+            </motion.div>
+          )}
 
           {/* Article content */}
           <motion.div

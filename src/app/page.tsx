@@ -11,6 +11,7 @@ import AppSection from '@/components/AppSection';
 import ContactSection from '@/components/ContactSection';
 import FAQSection from '@/components/FAQSection';
 import NewsletterSection from '@/components/NewsletterSection';
+import BlogPreviewSection from '@/components/BlogPreviewSection';
 import BackToTop from '@/components/BackToTop';
 import { categories } from '@/lib/apps-data';
 import SocialLinks from '@/components/SocialLinks';
@@ -99,6 +100,12 @@ export default function HomePage() {
           <div className="h-px bg-gradient-to-r from-transparent via-accent-silver/10 to-transparent" />
         </div>
         <NewsletterSection />
+
+        {/* Blog Preview Section */}
+        <div className="max-w-7xl mx-auto px-4">
+          <div className="h-px bg-gradient-to-r from-transparent via-accent-silver/10 to-transparent" />
+        </div>
+        <BlogPreviewSection />
       </main>
 
       {/* Follow Us Section */}
