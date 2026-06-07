@@ -2,7 +2,7 @@ import { MetadataRoute } from 'next';
 import { blogPosts } from '@/lib/blog-data';
 
 export default function sitemap(): MetadataRoute.Sitemap {
-  const baseUrl = 'https://opti-group-deploy.vercel.app';
+  const baseUrl = 'https://opti-group.vercel.app';
 
   const staticPages = [
     {

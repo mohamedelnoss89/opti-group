@@ -10,7 +10,7 @@ import { Calendar, Clock, ArrowRight, ArrowLeft, Tag, Rss } from 'lucide-react';
 import Link from 'next/link';
 import { blogPosts, getBlogPostsByCategory, type BlogPost } from '@/lib/blog-data';
 
-type CategoryFilter = 'all' | 'health' | 'ai' | 'tourism' | 'updates';
+type CategoryFilter = 'all' | 'health' | 'ai' | 'tourism' | 'updates' | 'sports' | 'islamic';
 
 const categoryConfig: Record<CategoryFilter, { ar: string; en: string; color: string }> = {
   all: { ar: 'الكل', en: 'All', color: '#0ea5e9' },
@@ -18,6 +18,8 @@ const categoryConfig: Record<CategoryFilter, { ar: string; en: string; color: st
   ai: { ar: 'الذكاء الاصطناعي', en: 'AI', color: '#8b5cf6' },
   tourism: { ar: 'السياحة', en: 'Tourism', color: '#f59e0b' },
   updates: { ar: 'التحديثات', en: 'Updates', color: '#ec4899' },
+  sports: { ar: 'الرياضة', en: 'Sports', color: '#ef4444' },
+  islamic: { ar: 'إسلاميات', en: 'Islamic', color: '#06b6d4' },
 };
 
 const categoryColors: Record<BlogPost['category'], string> = {
@@ -25,6 +27,8 @@ const categoryColors: Record<BlogPost['category'], string> = {
   ai: '#8b5cf6',
   tourism: '#f59e0b',
   updates: '#ec4899',
+  sports: '#ef4444',
+  islamic: '#06b6d4',
 };
 
 export default function BlogPage() {

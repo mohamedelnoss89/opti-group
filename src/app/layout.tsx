@@ -27,7 +27,7 @@ export const metadata: Metadata = {
   },
   description: "مجموعة أوبتي - تطبيقات ذكية لحياة أفضل. اكتشف تطبيقات الصحة والذكاء الاصطناعي والسياحة والترفيه. Opti Group - Smart Apps for a Better Life.",
   keywords: ["مجموعة أوبتي", "Opti Group", "تطبيقات ذكية", "تطبيقات صحة", "تطبيقات AI", "ذكاء اصطناعي", "سياحة مصر", "OptiSize", "smart apps", "eye health", "Egyptian landmarks"],
-  authors: [{ name: "Opti Group", url: "https://opti-group-deploy.vercel.app" }],
+  authors: [{ name: "Opti Group", url: "https://opti-group.vercel.app" }],
   creator: "Opti Group",
   publisher: "Opti Group",
   robots: {
@@ -45,7 +45,7 @@ export const metadata: Metadata = {
     type: "website",
     locale: "ar_EG",
     alternateLocale: "en_US",
-    url: "https://opti-group-deploy.vercel.app",
+    url: "https://opti-group.vercel.app",
     siteName: "Opti Group | مجموعة أوبتي",
     title: "Opti Group | مجموعة أوبتي - تطبيقات ذكية لحياة أفضل",
     description: "مجموعة أوبتي - تطبيقات ذكية لحياة أفضل. اكتشف تطبيقات الصحة والذكاء الاصطناعي والسياحة والترفيه.",
@@ -65,9 +65,9 @@ export const metadata: Metadata = {
     images: ["/og-image.png"],
   },
   alternates: {
-    canonical: "https://opti-group-deploy.vercel.app",
+    canonical: "https://opti-group.vercel.app",
     types: {
-      "application/rss+xml": "https://opti-group-deploy.vercel.app/feed.xml",
+      "application/rss+xml": "https://opti-group.vercel.app/feed.xml",
     },
   },
   icons: {
@@ -115,8 +115,8 @@ export default function RootLayout({
               "@type": "Organization",
               "name": "Opti Group",
               "alternateName": "مجموعة أوبتي",
-              "url": "https://opti-group-deploy.vercel.app",
-              "logo": "https://opti-group-deploy.vercel.app/favicon.ico",
+              "url": "https://opti-group.vercel.app",
+              "logo": "https://opti-group.vercel.app/favicon.ico",
               "description": "مجموعة أوبتي - تطبيقات ذكية لحياة أفضل. Opti Group - Smart Apps for a Better Life.",
               "sameAs": [
                 "https://www.facebook.com/profile.php?id=61575021874974",
@@ -142,10 +142,10 @@ export default function RootLayout({
               "@type": "WebSite",
               "name": "Opti Group",
               "alternateName": "مجموعة أوبتي",
-              "url": "https://opti-group-deploy.vercel.app",
+              "url": "https://opti-group.vercel.app",
               "potentialAction": {
                 "@type": "SearchAction",
-                "target": "https://opti-group-deploy.vercel.app/?q={search_term_string}",
+                "target": "https://opti-group.vercel.app/?q={search_term_string}",
                 "query-input": "required name=search_term_string",
               },
             }),

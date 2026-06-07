@@ -76,7 +76,7 @@ export default function PrivacyPage() {
             {isArabic ? (
               <>
                 <Section title="مقدمة">
-                  مرحبًا بكم في مجموعة أوبتي (&quot;نحن&quot;، &quot;لنا&quot;، أو &quot;مجموعتنا&quot;). نحن نقدر خصوصيتكم ونلتزم بحماية بياناتكم الشخصية. توضح سياسة الخصوصية هذه كيفية جمع واستخدام وحماية المعلومات التي نحصل عليها عند استخدامكم لمواقعنا وتطبيقاتنا، بما في ذلك ولكن لا يقتصر على opti-group-deploy.vercel.app والتطبيقات المرتبطة بها مثل OptiSize.
+                  مرحبًا بكم في مجموعة أوبتي (&quot;نحن&quot;، &quot;لنا&quot;، أو &quot;مجموعتنا&quot;). نحن نقدر خصوصيتكم ونلتزم بحماية بياناتكم الشخصية. توضح سياسة الخصوصية هذه كيفية جمع واستخدام وحماية المعلومات التي نحصل عليها عند استخدامكم لمواقعنا وتطبيقاتنا، بما في ذلك ولكن لا يقتصر على opti-group.vercel.app والتطبيقات المرتبطة بها مثل OptiSize.
                 </Section>
 
                 <Section title="المعلومات التي نجمعها">
@@ -107,8 +107,27 @@ export default function PrivacyPage() {
                   </SubSection>
                 </Section>
 
-                <Section title="Google AdSense">
-                  نستخدم Google AdSense لعرض الإعلانات على مواقعنا. قد يستخدم Google ملفات تعريف الارتباط لعرض الإعلانات بناءً على زياراتكم السابقة لمواقعنا أو مواقع أخرى. يمكنك تعطيل الإعلانات المخصصة من خلال زيارة إعدادات إعلانات Google. استخدام Google لملفات تعريف الارتباط لخدمة الإعلانات يعتمد على موافقة المستخدم وفقًا لسياسة الخصوصية هذه.
+                <Section title="Google AdSense والإعلانات">
+                  نستخدم Google AdSense لعرض الإعلانات على مواقعنا. قد يستخدم Google ملفات تعريف الارتباط لعرض الإعلانات بناءً على زياراتكم السابقة لمواقعنا أو مواقع أخرى. يمكنك تعطيل الإعلانات المخصصة من خلال زيارة إعدادات إعلانات Google. استخدام Google لملفات تعريف الارتباط لخدمة الإعلانات يعتمد على موافقة المستخدم وفقًا لسياسة الخصوصية هذه. تستخدم Google أيضًا بكسل المراقبة ونصوص التتبع لجمع معلومات حول تفاعلكم مع الإعلانات، بما في ذلك النقرات والمشاهدات والتحويلات.
+                </Section>
+
+                <Section title="سياسة ملفات تعريف الارتباط (الكوكيز)">
+                  <SubSection title="ما هي ملفات تعريف الارتباط؟">
+                    ملفات تعريف الارتباط هي ملفات نصية صغيرة يتم تخزينها على جهازكم عند زيارة مواقعنا. تُستخدم لتخزين تفضيلاتكم وتحسين تجربة التصفح وتمكين وظائف معينة في الموقع.
+                  </SubSection>
+                  <SubSection title="أنواع ملفات تعريف الارتباط التي نستخدمها:">
+                    ملفات تعريف الارتباط الأساسية: ضرورية لتشغيل الموقع والمصادقة وتسجيل الدخول. ملفات تعريف الارتباط الوظيفية: تتذكر تفضيلاتكم مثل اللغة والمنطقة. ملفات تعريف الارتباط التحليلية: تساعدنا في فهم كيفية استخدام الموقع وتحسينه. ملفات تعريف الارتباط الإعلانية: تُستخدم من قبل Google AdSense وشركاء الإعلانات لعرض إعلانات ذات صلة بكم.
+                  </SubSection>
+                  <SubSection title="إدارة ملفات تعريف الارتباط:">
+                    يمكنك التحكم في ملفات تعريف الارتباط من خلال إعدادات المتصفح الخاص بكم. يمكنك حظر ملفات تعريف الارتباط أو حذفها، لكن قد يؤثر ذلك على وظائف معينة في الموقع. يمكنك أيضًا إدارة تفضيلات الإعلانات من خلال إعدادات إعلانات Google أو عبر Network Advertising Initiative أو Digital Advertising Alliance.
+                  </SubSection>
+                  <SubSection title="ملفات تعريف الارتباط الخاصة بطرف ثالث:">
+                    قد يتم تعيين ملفات تعريف الارتباط من قبل أطراف ثالثة مثل Google وSupabue وVercel لأغراض المصادقة والتحليل والإعلانات. لا نتحكم في ملفات تعريف الارتباط الخاصة بطرف ثالث وننصح بمراجعة سياسات الخصوصية الخاصة بهم.
+                  </SubSection>
+                </Section>
+
+                <Section title="إعلانات الطرف الثالث">
+                  قد نعرض إعلانات من شبكات إعلانية تابعة لطرف ثالث على مواقعنا. قد تستخدم هذه الشبكات ملفات تعريف الارتباط وبيانات الاستخدام لعرض إعلانات مخصصة. لا نتحكم في محتوى أو سياسات الخصوصية لهذه الشبكات الإعلانية. نشجعكم على مراجعة سياسات الخصوصية الخاصة بهم قبل التفاعل مع إعلاناتهم. يمكنك اختيار عدم تلقي إعلانات مخصصة من خلال زيارة About Ads أو Network Advertising Initiative.
                 </Section>
 
                 <Section title="أمن البيانات">
@@ -134,7 +153,7 @@ export default function PrivacyPage() {
             ) : (
               <>
                 <Section title="Introduction">
-                  Welcome to Opti Group (&quot;we,&quot; &quot;us,&quot; or &quot;our&quot;). We value your privacy and are committed to protecting your personal data. This Privacy Policy explains how we collect, use, and safeguard information we obtain when you use our websites and applications, including but not limited to opti-group-deploy.vercel.app and associated applications such as OptiSize.
+                  Welcome to Opti Group (&quot;we,&quot; &quot;us,&quot; or &quot;our&quot;). We value your privacy and are committed to protecting your personal data. This Privacy Policy explains how we collect, use, and safeguard information we obtain when you use our websites and applications, including but not limited to opti-group.vercel.app and associated applications such as OptiSize.
                 </Section>
 
                 <Section title="Information We Collect">
@@ -165,8 +184,27 @@ export default function PrivacyPage() {
                   </SubSection>
                 </Section>
 
-                <Section title="Google AdSense">
-                  We use Google AdSense to display advertisements on our websites. Google may use cookies to serve ads based on your prior visits to our website or other websites. You can opt out of personalized advertising by visiting Google Ads Settings. Google&apos;s use of advertising cookies is based on user consent as outlined in this privacy policy.
+                <Section title="Google AdSense and Advertising">
+                  We use Google AdSense to display advertisements on our websites. Google may use cookies to serve ads based on your prior visits to our website or other websites. You can opt out of personalized advertising by visiting Google Ads Settings. Google&apos;s use of advertising cookies is based on user consent as outlined in this privacy policy. Google also uses tracking pixels and scripts to collect information about your interaction with ads, including clicks, impressions, and conversions.
+                </Section>
+
+                <Section title="Cookie Policy">
+                  <SubSection title="What Are Cookies?">
+                    Cookies are small text files that are stored on your device when you visit our websites. They are used to store your preferences, improve your browsing experience, and enable certain website functions.
+                  </SubSection>
+                  <SubSection title="Types of Cookies We Use:">
+                    Essential cookies: Necessary for the website to function, including authentication and login. Functional cookies: Remember your preferences such as language and region. Analytical cookies: Help us understand how the website is being used and improve it. Advertising cookies: Used by Google AdSense and advertising partners to display relevant ads to you.
+                  </SubSection>
+                  <SubSection title="Managing Cookies:">
+                    You can control cookies through your browser settings. You can block or delete cookies, but this may affect certain website functions. You can also manage your advertising preferences through Google Ads Settings or via the Network Advertising Initiative or Digital Advertising Alliance.
+                  </SubSection>
+                  <SubSection title="Third-Party Cookies:">
+                    Cookies may be set by third parties such as Google, Supabase, and Vercel for authentication, analytics, and advertising purposes. We do not control third-party cookies and recommend reviewing their respective privacy policies.
+                  </SubSection>
+                </Section>
+
+                <Section title="Third-Party Advertising">
+                  We may display advertisements from third-party advertising networks on our websites. These networks may use cookies and usage data to serve personalized advertisements. We do not control the content or privacy policies of these advertising networks. We encourage you to review their privacy policies before interacting with their advertisements. You can opt out of receiving personalized ads by visiting About Ads or the Network Advertising Initiative.
                 </Section>
 
                 <Section title="Data Security">

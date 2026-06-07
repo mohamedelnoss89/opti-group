@@ -5,7 +5,7 @@ Disallow: /setup
 Disallow: /api/
 
 # Sitemap
-Sitemap: https://opti-group-deploy.vercel.app/sitemap.xml
+Sitemap: https://opti-group.vercel.app/sitemap.xml
 
 # AdSense crawler
 User-agent: Mediapartners-Google
