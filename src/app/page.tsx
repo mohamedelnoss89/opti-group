@@ -168,6 +168,8 @@ export default function HomePage() {
               <span className="hover:text-section-ai transition-colors cursor-pointer" onClick={() => handleNavigate('section-ai')}>{t.aiSection}</span>
               <span className="text-accent-silver/10">•</span>
               <span className="hover:text-section-landmarks transition-colors cursor-pointer" onClick={() => handleNavigate('section-landmarks')}>{t.landmarksSection}</span>
+              <span className="text-accent-silver/10">•</span>
+              <span className="hover:text-section-islamic transition-colors cursor-pointer" onClick={() => handleNavigate('section-islamic')}>{t.islamicSection}</span>
             </div>
 
             {/* Legal links */}

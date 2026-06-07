@@ -2,7 +2,7 @@ export interface App {
   id: string;
   name: { ar: string; en: string };
   description: { ar: string; en: string };
-  category: 'health' | 'outings' | 'ai' | 'landmarks';
+  category: 'health' | 'outings' | 'ai' | 'landmarks' | 'islamic';
   icon: string;
   url: string;
   status: 'live' | 'coming_soon';
@@ -318,6 +318,108 @@ export const apps: App[] = [
       ]
     },
   },
+  {
+    id: 'optipray',
+    name: { ar: 'أوبتي صلاة', en: 'OptiPray' },
+    description: { 
+      ar: 'مواقيت الصلاة واتجاه القبلة بدقة عالية', 
+      en: 'Accurate prayer times & Qibla direction' 
+    },
+    category: 'islamic',
+    icon: '🕌',
+    url: '#',
+    status: 'coming_soon',
+    fullDescription: {
+      ar: 'أوبتي صلاة هو تطبيق مواقيت الصلاة الأكثر دقة، يحدد أوقات الصلوات الخمس بناءً على موقعك الجغرافي بدقة عالية. يضم بوصلة قبلة ذكية تساعدك على تحديد اتجاه الكعبة المشرفة من أي مكان في العالم، مع تنبيهات ذكية قبل الأذان وإشعارات لأوقات الصلاة والسحر. يدعم عدة طرق حسابية لمواقيت الصلاة ليناسب جميع البلدان.',
+      en: 'OptiPray is the most accurate prayer times app, determining the five daily prayer times based on your geographic location with high precision. It features a smart Qibla compass that helps you find the direction of the Holy Kaaba from anywhere in the world, with smart alerts before Adhan and notifications for prayer and Suhoor times. It supports multiple calculation methods to suit all countries.'
+    },
+    features: {
+      ar: [
+        'مواقيت الصلاة بدقة عالية حسب الموقع',
+        'بوصلة قبلة ذكية ثلاثية الأبعاد',
+        'تنبيهات قبل الأذان وبعده',
+        'إشعارات أوقات السحر والإمساك',
+        'دعم طرق حسابية متعددة للمواقيت',
+        'وضع صامت تلقائي أثناء الصلاة'
+      ],
+      en: [
+        'High-accuracy prayer times based on location',
+        'Smart 3D Qibla compass',
+        'Alerts before and after Adhan',
+        'Suhoor and Imsak time notifications',
+        'Multiple prayer time calculation methods',
+        'Automatic silent mode during prayer'
+      ]
+    },
+  },
+  {
+    id: 'optiquran',
+    name: { ar: 'أوبتي قرآن', en: 'OptiQuran' },
+    description: { 
+      ar: 'القرآن الكريم مع تلاوات وتفسير وترجمة', 
+      en: 'Holy Quran with recitations, tafseer & translation' 
+    },
+    category: 'islamic',
+    icon: '📖',
+    url: '#',
+    status: 'coming_soon',
+    fullDescription: {
+      ar: 'أوبتي قرآن يقدم لك القرآن الكريم كاملاً بخط واضح وجميل مع إمكانية الاستماع لتلاوات أشهر القراء من حول العالم. يضم تفسير ابن كثير وترجمة معاني القرآن لعدة لغات، مع خاصية البحث السريع في الآيات والسور وميزة حفظ العلامات والمراجعات لمتابعة خطة الحفظ.',
+      en: 'OptiQuran offers the complete Holy Quran in clear and beautiful font with the ability to listen to recitations by the most famous reciters worldwide. It includes Ibn Kathir tafseer and Quran translations in multiple languages, with fast search in verses and surahs, and bookmark and review features to track your memorization plan.'
+    },
+    features: {
+      ar: [
+        'القرآن الكريم كاملاً بخط عثماني واضح',
+        'تلاوات صوتية لأشهر القراء',
+        'تفسير ابن كثير وترجمة معاني متعددة',
+        'بحث سريع في الآيات والسور',
+        'خطة حفظ ومتابعة المراجعات',
+        'وضع القراءة الليلية المريحة للعين'
+      ],
+      en: [
+        'Complete Holy Quran in clear Uthmani script',
+        'Audio recitations by famous reciters',
+        'Ibn Kathir tafseer & multiple translations',
+        'Fast search in verses and surahs',
+        'Memorization plan & review tracking',
+        'Comfortable night reading mode'
+      ]
+    },
+  },
+  {
+    id: 'optiazkar',
+    name: { ar: 'أوبتي أذكار', en: 'OptiAzkar' },
+    description: { 
+      ar: 'أذكار الصباح والمساء وأدعية يومية ميسرة', 
+      en: 'Morning & evening azkar and daily duas' 
+    },
+    category: 'islamic',
+    icon: '🤲',
+    url: '#',
+    status: 'coming_soon',
+    fullDescription: {
+      ar: 'أوبتي أذكار رفيقك اليومي للأذكار والأدعية الشرعية. يقدم أذكار الصباح والمساء كاملة مع العد والتتبع، وأدعية يومية لكل مناسبة من النوم والأكل والسفر والصلاة على النبي. يتميز بتصميم بسيط ومريح مع تذكيرات ذكية في الأوقات المناسبة وخاصية المشاركة.',
+      en: 'OptiAzkar is your daily companion for authentic azkar and duas. It offers complete morning and evening azkar with counting and tracking, and daily duas for every occasion including sleep, eating, travel, and Salawat. It features a simple and comfortable design with smart reminders at the right times and sharing capability.'
+    },
+    features: {
+      ar: [
+        'أذكار الصباح والمساء مع عدّ التكرار',
+        'أدعية يومية لكل مناسبة',
+        'تذكيرات ذكية في الأوقات المناسبة',
+        'تتبع ورد الأذكار اليومي',
+        'تصميم بسيط ومريح للقراءة',
+        'مشاركة الأذكار والأدعية بسهولة'
+      ],
+      en: [
+        'Morning & evening azkar with repetition counter',
+        'Daily duas for every occasion',
+        'Smart reminders at the right times',
+        'Daily azkar tracker and progress',
+        'Simple and comfortable reading design',
+        'Easy sharing of azkar and duas'
+      ]
+    },
+  },
 ];
 
 export const categories = [
@@ -325,6 +427,7 @@ export const categories = [
   { id: 'outings' as const, sectionId: 'section-outings' },
   { id: 'ai' as const, sectionId: 'section-ai' },
   { id: 'landmarks' as const, sectionId: 'section-landmarks' },
+  { id: 'islamic' as const, sectionId: 'section-islamic' },
 ];
 
 export function getAppsByCategory(category: App['category']): App[] {

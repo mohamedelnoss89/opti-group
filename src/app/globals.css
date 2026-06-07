@@ -41,6 +41,15 @@
   --radius-md: calc(var(--radius) - 2px);
   --radius-lg: var(--radius);
   --radius-xl: calc(var(--radius) + 4px);
+
+  /* Section colors */
+  --color-section-health: #10b981;
+  --color-section-outings: #f59e0b;
+  --color-section-ai: #8b5cf6;
+  --color-section-landmarks: #f97316;
+  --color-section-islamic: #059669;
+  --color-accent-silver: #c0c0c0;
+  --color-accent-cyan: #0ea5e9;
 }
 
 :root {

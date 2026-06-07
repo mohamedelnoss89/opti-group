@@ -44,6 +44,13 @@ const categoryAccentColors: Record<string, { border: string; glow: string; badge
     badgeText: '#f97316',
     hoverBorder: 'rgba(249,115,22,0.3)',
   },
+  islamic: {
+    border: 'rgba(5,150,105,0.12)',
+    glow: '0 8px 32px rgba(5,150,105,0.06)',
+    badge: 'rgba(5,150,105,0.1)',
+    badgeText: '#059669',
+    hoverBorder: 'rgba(5,150,105,0.3)',
+  },
 };
 
 export default function AppCard({ app, index }: AppCardProps) {

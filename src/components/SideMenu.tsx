@@ -8,6 +8,7 @@ import {
   MapPin, 
   Brain, 
   Landmark, 
+  Moon, 
   Phone, 
   X,
   LogIn,
@@ -30,6 +31,7 @@ const categoryIcons: Record<string, React.ReactNode> = {
   outings: <MapPin className="w-5 h-5" />,
   ai: <Brain className="w-5 h-5" />,
   landmarks: <Landmark className="w-5 h-5" />,
+  islamic: <Moon className="w-5 h-5" />,
 };
 
 const categoryColors: Record<string, string> = {
@@ -37,6 +39,7 @@ const categoryColors: Record<string, string> = {
   outings: 'text-section-outings',
   ai: 'text-section-ai',
   landmarks: 'text-section-landmarks',
+  islamic: 'text-section-islamic',
 };
 
 const categoryBgColors: Record<string, string> = {
@@ -44,6 +47,7 @@ const categoryBgColors: Record<string, string> = {
   outings: 'bg-section-outings/10',
   ai: 'bg-section-ai/10',
   landmarks: 'bg-section-landmarks/10',
+  islamic: 'bg-section-islamic/10',
 };
 
 export default function SideMenu({ isOpen, onClose, onNavigate, onContactClick }: SideMenuProps) {
@@ -55,6 +59,7 @@ export default function SideMenu({ isOpen, onClose, onNavigate, onContactClick }
     { id: 'section-outings', category: 'outings' as const, label: t.outingsSection },
     { id: 'section-ai', category: 'ai' as const, label: t.aiSection },
     { id: 'section-landmarks', category: 'landmarks' as const, label: t.landmarksSection },
+    { id: 'section-islamic', category: 'islamic' as const, label: t.islamicSection },
   ];
 
   const handleNavigate = (sectionId: string) => {
