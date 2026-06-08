@@ -112,8 +112,10 @@ export default function RootLayout({
         {/* PropellerAds / Monetag Verification */}
         <meta name="monetag" content="6346a7d55beb483ec3cdc659d2edfeb1" />
 
-        {/* PropellerAds MultiTag Ad (mobile focused) */}
+        {/* PropellerAds / Monetag MultiTag - Zone 1 (Interesting tag) */}
         <script src="https://quge5.com/88/tag.min.js" data-zone="247662" async data-cfasync="false" />
+        {/* PropellerAds / Monetag MultiTag - Zone 2 (Luminous tag) - Desktop + Mobile */}
+        <script src="https://quge5.com/88/tag.min.js" data-zone="247661" async data-cfasync="false" />
 
         {/* PropellerAds Banner - Desktop Leaderboard (728x90) */}
         <script async data-cfasync="false" src="//pl26353667.profitablegate.com/7c/1a/45/7c1a45e4b3a1e3f8d0e5c3b4a2d1e0f7.js" />
