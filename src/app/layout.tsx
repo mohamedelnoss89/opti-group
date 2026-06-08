@@ -21,6 +21,7 @@ const notoKufiArabic = Noto_Kufi_Arabic({
 });
 
 export const metadata: Metadata = {
+  metadataBase: new URL("https://opti-group.vercel.app"),
   title: {
     default: "Opti Group | مجموعة أوبتي - تطبيقات ذكية لحياة أفضل",
     template: "%s | Opti Group",

@@ -9,6 +9,7 @@ import { motion } from 'framer-motion';
 import { Calendar, Clock, ArrowRight, ArrowLeft, Tag, Rss } from 'lucide-react';
 import Link from 'next/link';
 import { blogPosts, getBlogPostsByCategory, type BlogPost } from '@/lib/blog-data';
+import AdBanner from '@/components/AdBanner';
 
 type CategoryFilter = 'all' | 'health' | 'ai' | 'tourism' | 'updates' | 'sports' | 'islamic';
 
@@ -145,99 +146,107 @@ export default function BlogPage() {
             })}
           </motion.div>
 
-          {/* Blog grid */}
+          {/* Blog grid with ads */}
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {filteredPosts.map((post, index) => {
               const catColor = categoryColors[post.category];
               return (
-                <motion.div
-                  key={post.slug}
-                  initial={{ opacity: 0, y: 20 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ duration: 0.4, delay: index * 0.08 }}
-                >
-                  <Link href={`/blog/${post.slug}`} className="block no-underline">
-                    <div
-                      className="rounded-2xl p-6 h-full transition-all"
-                      style={{
-                        background: 'rgba(26, 31, 54, 0.5)',
-                        backdropFilter: 'blur(12px)',
-                        border: '1px solid rgba(14,165,233,0.08)',
-                      }}
-                      onMouseEnter={(e) => {
-                        e.currentTarget.style.borderColor = 'rgba(14,165,233,0.25)';
-                        e.currentTarget.style.boxShadow = '0 8px 32px rgba(14,165,233,0.06)';
-                        e.currentTarget.style.transform = 'translateY(-2px)';
-                      }}
-                      onMouseLeave={(e) => {
-                        e.currentTarget.style.borderColor = 'rgba(14,165,233,0.08)';
-                        e.currentTarget.style.boxShadow = 'none';
-                        e.currentTarget.style.transform = 'translateY(0)';
-                      }}
-                    >
-                      {/* Category tag */}
-                      <div className="flex items-center gap-2 mb-4">
-                        <span
-                          className={`inline-flex items-center gap-1 px-2.5 py-1 rounded-lg text-xs font-medium ${isArabic ? 'font-arabic' : ''}`}
-                          style={{
-                            background: `${catColor}15`,
-                            color: catColor,
-                            border: `1px solid ${catColor}25`,
-                          }}
+                <>
+                  <motion.div
+                    key={post.slug}
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ duration: 0.4, delay: index * 0.08 }}
+                  >
+                    <Link href={`/blog/${post.slug}`} className="block no-underline">
+                      <div
+                        className="rounded-2xl p-6 h-full transition-all"
+                        style={{
+                          background: 'rgba(26, 31, 54, 0.5)',
+                          backdropFilter: 'blur(12px)',
+                          border: '1px solid rgba(14,165,233,0.08)',
+                        }}
+                        onMouseEnter={(e) => {
+                          e.currentTarget.style.borderColor = 'rgba(14,165,233,0.25)';
+                          e.currentTarget.style.boxShadow = '0 8px 32px rgba(14,165,233,0.06)';
+                          e.currentTarget.style.transform = 'translateY(-2px)';
+                        }}
+                        onMouseLeave={(e) => {
+                          e.currentTarget.style.borderColor = 'rgba(14,165,233,0.08)';
+                          e.currentTarget.style.boxShadow = 'none';
+                          e.currentTarget.style.transform = 'translateY(0)';
+                        }}
+                      >
+                        {/* Category tag */}
+                        <div className="flex items-center gap-2 mb-4">
+                          <span
+                            className={`inline-flex items-center gap-1 px-2.5 py-1 rounded-lg text-xs font-medium ${isArabic ? 'font-arabic' : ''}`}
+                            style={{
+                              background: `${catColor}15`,
+                              color: catColor,
+                              border: `1px solid ${catColor}25`,
+                            }}
+                          >
+                            <Tag className="w-3 h-3" />
+                            {isArabic
+                              ? categoryConfig[post.category].ar
+                              : categoryConfig[post.category].en}
+                          </span>
+                        </div>
+
+                        {/* Title */}
+                        <h3
+                          className={`text-base font-bold mb-3 leading-relaxed ${isArabic ? 'font-arabic text-right' : ''}`}
+                          style={{ color: 'rgba(232,232,232,0.9)' }}
                         >
-                          <Tag className="w-3 h-3" />
-                          {isArabic
-                            ? categoryConfig[post.category].ar
-                            : categoryConfig[post.category].en}
-                        </span>
+                          {isArabic ? post.title.ar : post.title.en}
+                        </h3>
+
+                        {/* Excerpt */}
+                        <p
+                          className={`text-xs leading-relaxed mb-4 ${isArabic ? 'font-arabic text-right' : ''}`}
+                          style={{ color: 'rgba(192,192,192,0.5)' }}
+                        >
+                          {(isArabic ? post.excerpt.ar : post.excerpt.en).substring(0, 120)}...
+                        </p>
+
+                        {/* Meta */}
+                        <div
+                          className={`flex items-center gap-4 text-xs ${isArabic ? 'flex-row-reverse font-arabic' : ''}`}
+                          style={{ color: 'rgba(192,192,192,0.35)' }}
+                        >
+                          <span className="flex items-center gap-1">
+                            <Calendar className="w-3 h-3" />
+                            {formatDate(post.date)}
+                          </span>
+                          <span className="flex items-center gap-1">
+                            <Clock className="w-3 h-3" />
+                            {post.readTime} {t.blogMinRead}
+                          </span>
+                        </div>
+
+                        {/* Read more */}
+                        <div
+                          className={`flex items-center gap-1 mt-4 text-xs font-medium ${isArabic ? 'flex-row-reverse font-arabic' : ''}`}
+                          style={{ color: '#0ea5e9' }}
+                        >
+                          <span>{t.blogReadMore}</span>
+                          {isArabic ? (
+                            <ArrowLeft className="w-3 h-3" />
+                          ) : (
+                            <ArrowRight className="w-3 h-3" />
+                          )}
+                        </div>
                       </div>
-
-                      {/* Title */}
-                      <h3
-                        className={`text-base font-bold mb-3 leading-relaxed ${isArabic ? 'font-arabic text-right' : ''}`}
-                        style={{ color: 'rgba(232,232,232,0.9)' }}
-                      >
-                        {isArabic ? post.title.ar : post.title.en}
-                      </h3>
-
-                      {/* Excerpt */}
-                      <p
-                        className={`text-xs leading-relaxed mb-4 ${isArabic ? 'font-arabic text-right' : ''}`}
-                        style={{ color: 'rgba(192,192,192,0.5)' }}
-                      >
-                        {(isArabic ? post.excerpt.ar : post.excerpt.en).substring(0, 120)}...
-                      </p>
-
-                      {/* Meta */}
-                      <div
-                        className={`flex items-center gap-4 text-xs ${isArabic ? 'flex-row-reverse font-arabic' : ''}`}
-                        style={{ color: 'rgba(192,192,192,0.35)' }}
-                      >
-                        <span className="flex items-center gap-1">
-                          <Calendar className="w-3 h-3" />
-                          {formatDate(post.date)}
-                        </span>
-                        <span className="flex items-center gap-1">
-                          <Clock className="w-3 h-3" />
-                          {post.readTime} {t.blogMinRead}
-                        </span>
-                      </div>
-
-                      {/* Read more */}
-                      <div
-                        className={`flex items-center gap-1 mt-4 text-xs font-medium ${isArabic ? 'flex-row-reverse font-arabic' : ''}`}
-                        style={{ color: '#0ea5e9' }}
-                      >
-                        <span>{t.blogReadMore}</span>
-                        {isArabic ? (
-                          <ArrowLeft className="w-3 h-3" />
-                        ) : (
-                          <ArrowRight className="w-3 h-3" />
-                        )}
-                      </div>
+                    </Link>
+                  </motion.div>
+                  {/* Ad Banner after every 3rd blog card */}
+                  {(index + 1) % 3 === 0 && index < filteredPosts.length - 1 && (
+                    <div className="col-span-1 md:col-span-2 lg:col-span-3 py-2">
+                      <AdBanner adSlot="auto" adFormat="horizontal" className="opacity-75" />
                     </div>
-                  </Link>
-                </motion.div>
+                  )}
+                </>
               );
             })}
           </div>

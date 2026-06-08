@@ -15,6 +15,7 @@ import BlogPreviewSection from '@/components/BlogPreviewSection';
 import BackToTop from '@/components/BackToTop';
 import { categories } from '@/lib/apps-data';
 import SocialLinks from '@/components/SocialLinks';
+import AdBanner from '@/components/AdBanner';
 import { motion } from 'framer-motion';
 
 export default function HomePage() {
@@ -64,13 +65,18 @@ export default function HomePage() {
         {/* Stats Section */}
         <StatsSection />
 
+        {/* Ad Banner - After Hero/Stats */}
+        <div className="max-w-7xl mx-auto px-4 py-4">
+          <AdBanner adSlot="auto" adFormat="horizontal" className="opacity-80" />
+        </div>
+
         {/* Testimonials Section */}
         <div className="max-w-7xl mx-auto px-4">
           <div className="h-px bg-gradient-to-r from-transparent via-accent-silver/10 to-transparent" />
         </div>
         <TestimonialsSection />
 
-        {/* App sections */}
+        {/* App sections with ad between categories */}
         {categories.map((cat, index) => (
           <div key={cat.id}>
             {/* Divider between sections */}
@@ -80,8 +86,19 @@ export default function HomePage() {
               </div>
             )}
             <AppSection category={cat.id} sectionId={cat.sectionId} />
+            {/* Ad Banner - After every 2nd category section */}
+            {(index + 1) % 2 === 0 && index < categories.length - 1 && (
+              <div className="max-w-7xl mx-auto px-4 py-3">
+                <AdBanner adSlot="auto" adFormat="horizontal" className="opacity-75" />
+              </div>
+            )}
           </div>
         ))}
+
+        {/* Ad Banner - Before Contact Section */}
+        <div className="max-w-7xl mx-auto px-4 py-4">
+          <AdBanner adSlot="auto" adFormat="horizontal" className="opacity-80" />
+        </div>
 
         {/* Contact section */}
         <div className="max-w-7xl mx-auto px-4">

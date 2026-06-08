@@ -10,6 +10,8 @@ import { Calendar, Clock, ArrowRight, ArrowLeft, User, Share2, Tag, Copy, Check,
 import Link from 'next/link';
 import { getBlogPostBySlug, type BlogPost } from '@/lib/blog-data';
 import { useParams } from 'next/navigation';
+import InArticleAd from '@/components/InArticleAd';
+import AdBanner from '@/components/AdBanner';
 
 const categoryColors: Record<BlogPost['category'], string> = {
   health: '#22c55e',
@@ -235,7 +237,7 @@ export default function BlogPostPage() {
             </motion.div>
           )}
 
-          {/* Article content */}
+          {/* Article content with in-article ads */}
           <motion.div
             className={`space-y-5 ${isArabic ? 'font-arabic text-right' : ''}`}
             initial={{ opacity: 0, y: 15 }}
@@ -243,15 +245,27 @@ export default function BlogPostPage() {
             transition={{ duration: 0.5, delay: 0.2 }}
           >
             {paragraphs.map((paragraph, idx) => (
-              <p
-                key={idx}
-                className="text-sm sm:text-base leading-[1.9]"
-                style={{ color: 'rgba(192,192,192,0.65)' }}
-              >
-                {paragraph.trim()}
-              </p>
+              <div key={idx}>
+                <p
+                  className="text-sm sm:text-base leading-[1.9]"
+                  style={{ color: 'rgba(192,192,192,0.65)' }}
+                >
+                  {paragraph.trim()}
+                </p>
+                {/* In-article ad after every 3rd paragraph */}
+                {(idx + 1) % 3 === 0 && idx < paragraphs.length - 1 && (
+                  <div className="my-6">
+                    <InArticleAd adSlot="auto" />
+                  </div>
+                )}
+              </div>
             ))}
           </motion.div>
+
+          {/* Ad Banner after article content */}
+          <div className="mt-10">
+            <AdBanner adSlot="auto" adFormat="horizontal" className="opacity-75" />
+          </div>
 
           {/* Author card */}
           <motion.div
