@@ -107,6 +107,17 @@ export default function RootLayout({
             `,
           }}
         />
+
+        {/* PropellerAds / Monetag Verification */}
+        <meta name="monetag" content="6346a7d55beb483ec3cdc659d2edfeb1" />
+
+        {/* PropellerAds MultiTag Ad */}
+        <script src="https://quge5.com/88/tag.min.js" data-zone="247662" async data-cfasync="false" />
+
+        {/* Ad Safety Tags - Family Safe Content */}
+        <meta name="rating" content="safe for kids" />
+        <meta name="audience" content="all" />
+        <meta name="content-rating" content="general" />
         {/* RSS Auto-Discovery */}
         <link rel="alternate" type="application/rss+xml" title="Opti Group Blog" href="/feed.xml" />
         {/* Structured Data - JSON-LD */}
