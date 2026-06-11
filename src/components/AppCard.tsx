@@ -6,7 +6,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import { useFavorites } from '@/contexts/FavoritesContext';
 import { App } from '@/lib/apps-data';
 import { motion } from 'framer-motion';
-import { ExternalLink, Lock, Heart } from 'lucide-react';
+import { Download, Lock, Heart } from 'lucide-react';
 import LoginPrompt from './LoginPrompt';
 import AppDetailModal from './AppDetailModal';
 
@@ -191,8 +191,8 @@ export default function AppCard({ app, index }: AppCardProps) {
               whileHover={{ scale: 1.03 }}
               whileTap={{ scale: 0.97 }}
             >
-              {user ? t.visit : (locale === 'ar' ? 'سجّل للوصول' : 'Sign in to access')}
-              {user ? <ExternalLink className="w-3 h-3" /> : <Lock className="w-3 h-3" />}
+              {user ? (isArabic ? 'تحميل' : 'Download') : (locale === 'ar' ? 'سجّل للوصول' : 'Sign in to access')}
+              {user ? <Download className="w-3 h-3" /> : <Lock className="w-3 h-3" />}
             </motion.a>
           ) : (
             <div

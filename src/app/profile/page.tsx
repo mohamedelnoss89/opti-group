@@ -9,7 +9,7 @@ import SideMenu from '@/components/SideMenu';
 import BackToTop from '@/components/BackToTop';
 import { apps } from '@/lib/apps-data';
 import { motion } from 'framer-motion';
-import { Heart, Mail, Calendar, Shield, ExternalLink, Lock, Trash2 } from 'lucide-react';
+import { Heart, Mail, Calendar, Shield, Download, Lock, Trash2 } from 'lucide-react';
 import Link from 'next/link';
 
 export default function ProfilePage() {
@@ -257,7 +257,7 @@ export default function ProfilePage() {
                           }}
                         >
                           {t.visit}
-                          <ExternalLink className="w-3 h-3" />
+                          <Download className="w-3 h-3" />
                         </Link>
                       ) : (
                         <div

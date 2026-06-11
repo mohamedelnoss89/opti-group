@@ -28,7 +28,7 @@ export const translations = {
     // App statuses
     live: 'متاح الآن',
     comingSoon: 'قريباً',
-    visit: 'زيارة',
+    visit: 'تحميل',
     
     // Auth
     login: 'تسجيل الدخول',
@@ -218,7 +218,7 @@ export const translations = {
     // App statuses
     live: 'Live Now',
     comingSoon: 'Coming Soon',
-    visit: 'Visit',
+    visit: 'Download',
     
     // Auth
     login: 'Login',

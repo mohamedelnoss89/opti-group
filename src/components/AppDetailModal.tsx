@@ -6,7 +6,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import { useFavorites } from '@/contexts/FavoritesContext';
 import { App } from '@/lib/apps-data';
 import { motion, AnimatePresence } from 'framer-motion';
-import { X, ExternalLink, Lock, CheckCircle2, Heart } from 'lucide-react';
+import { X, Download, Lock, CheckCircle2, Heart } from 'lucide-react';
 import LoginPrompt from './LoginPrompt';
 
 interface AppDetailModalProps {
@@ -290,8 +290,8 @@ export default function AppDetailModal({ app, isOpen, onClose }: AppDetailModalP
                           whileHover={{ scale: 1.02, boxShadow: colors.glow }}
                           whileTap={{ scale: 0.98 }}
                         >
-                          {isArabic ? 'زيارة التطبيق' : 'Visit App'}
-                          <ExternalLink className="w-4 h-4" />
+                          {isArabic ? 'تحميل التطبيق' : 'Download App'}
+                          <Download className="w-4 h-4" />
                         </motion.a>
                       ) : (
                         <div
@@ -306,8 +306,8 @@ export default function AppDetailModal({ app, isOpen, onClose }: AppDetailModalP
                             style={{ color: 'rgba(192,192,192,0.5)' }}
                           >
                             {isArabic
-                              ? 'سجّل دخولك لزيارة التطبيق والاستفادة من جميع الميزات'
-                              : 'Sign in to visit the app and enjoy all features'}
+                              ? 'سجّل دخولك لتحميل التطبيق والاستفادة من جميع الميزات'
+                              : 'Sign in to download the app and enjoy all features'}
                           </p>
                           <motion.a
                             href="/login"
