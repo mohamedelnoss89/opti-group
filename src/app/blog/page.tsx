@@ -10,6 +10,7 @@ import { Calendar, Clock, ArrowRight, ArrowLeft, Tag, Rss } from 'lucide-react';
 import Link from 'next/link';
 import { blogPosts, getBlogPostsByCategory, type BlogPost } from '@/lib/blog-data';
 import AdBanner from '@/components/AdBanner';
+import PropellerAdsBanner from '@/components/PropellerAdsBanner';
 
 type CategoryFilter = 'all' | 'health' | 'ai' | 'tourism' | 'updates' | 'sports' | 'islamic';
 
@@ -145,6 +146,14 @@ export default function BlogPage() {
               );
             })}
           </motion.div>
+
+          {/* PropellerAds Desktop Banner - Before Blog Grid */}
+          <div className="hidden md:flex justify-center mb-8">
+            <PropellerAdsBanner
+              src="//pl26353667.profitablegate.com/7c/1a/45/7c1a45e4b3a1e3f8d0e5c3b4a2d1e0f7.js"
+              minHeight="90px"
+            />
+          </div>
 
           {/* Blog grid with ads */}
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">

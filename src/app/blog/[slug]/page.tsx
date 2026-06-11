@@ -12,6 +12,7 @@ import { getBlogPostBySlug, type BlogPost } from '@/lib/blog-data';
 import { useParams } from 'next/navigation';
 import InArticleAd from '@/components/InArticleAd';
 import AdBanner from '@/components/AdBanner';
+import PropellerAdsBanner from '@/components/PropellerAdsBanner';
 
 const categoryColors: Record<BlogPost['category'], string> = {
   health: '#22c55e',
@@ -264,6 +265,13 @@ export default function BlogPostPage() {
 
           {/* Ad Banner after article content */}
           <div className="mt-10">
+            {/* PropellerAds Desktop Banner */}
+            <div className="hidden md:flex justify-center mb-4">
+              <PropellerAdsBanner
+                src="//pl26353667.profitablegate.com/7c/1a/45/7c1a45e4b3a1e3f8d0e5c3b4a2d1e0f7.js"
+                minHeight="90px"
+              />
+            </div>
             <AdBanner adSlot="auto" adFormat="horizontal" className="opacity-75" />
           </div>
 

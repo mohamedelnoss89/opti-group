@@ -121,9 +121,6 @@ export default function RootLayout({
           }}
         />
 
-        {/* PropellerAds Banner - Desktop Leaderboard (728x90) */}
-        <script async data-cfasync="false" src="//pl26353667.profitablegate.com/7c/1a/45/7c1a45e4b3a1e3f8d0e5c3b4a2d1e0f7.js" />
-
         {/* Ad Safety Tags - Family Safe Content */}
         <meta name="rating" content="safe for kids" />
         <meta name="audience" content="all" />

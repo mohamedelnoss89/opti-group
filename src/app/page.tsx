@@ -16,6 +16,7 @@ import BackToTop from '@/components/BackToTop';
 import { categories } from '@/lib/apps-data';
 import SocialLinks from '@/components/SocialLinks';
 import AdBanner from '@/components/AdBanner';
+import PropellerAdsBanner from '@/components/PropellerAdsBanner';
 import { motion } from 'framer-motion';
 
 export default function HomePage() {
@@ -67,6 +68,14 @@ export default function HomePage() {
 
         {/* Ad Banner - After Hero/Stats */}
         <div className="max-w-7xl mx-auto px-4 py-4">
+          {/* PropellerAds Desktop Banner - 728x90 */}
+          <div className="hidden md:flex justify-center">
+            <PropellerAdsBanner
+              src="//pl26353667.profitablegate.com/7c/1a/45/7c1a45e4b3a1e3f8d0e5c3b4a2d1e0f7.js"
+              minHeight="90px"
+            />
+          </div>
+          {/* AdSense Banner (shows when AdSense is approved) */}
           <AdBanner adSlot="auto" adFormat="horizontal" className="opacity-80" />
         </div>
 
@@ -89,6 +98,13 @@ export default function HomePage() {
             {/* Ad Banner - After every 2nd category section */}
             {(index + 1) % 2 === 0 && index < categories.length - 1 && (
               <div className="max-w-7xl mx-auto px-4 py-3">
+                {/* PropellerAds Desktop Banner */}
+                <div className="hidden md:flex justify-center">
+                  <PropellerAdsBanner
+                    src="//pl26353667.profitablegate.com/7c/1a/45/7c1a45e4b3a1e3f8d0e5c3b4a2d1e0f7.js"
+                    minHeight="90px"
+                  />
+                </div>
                 <AdBanner adSlot="auto" adFormat="horizontal" className="opacity-75" />
               </div>
             )}
@@ -97,6 +113,13 @@ export default function HomePage() {
 
         {/* Ad Banner - Before Contact Section */}
         <div className="max-w-7xl mx-auto px-4 py-4">
+          {/* PropellerAds Desktop Banner - 728x90 */}
+          <div className="hidden md:flex justify-center">
+            <PropellerAdsBanner
+              src="//pl26353667.profitablegate.com/7c/1a/45/7c1a45e4b3a1e3f8d0e5c3b4a2d1e0f7.js"
+              minHeight="90px"
+            />
+          </div>
           <AdBanner adSlot="auto" adFormat="horizontal" className="opacity-80" />
         </div>
 
