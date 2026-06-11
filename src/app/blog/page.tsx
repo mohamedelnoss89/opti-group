@@ -147,12 +147,9 @@ export default function BlogPage() {
             })}
           </motion.div>
 
-          {/* PropellerAds Desktop Banner - Before Blog Grid */}
-          <div className="hidden md:flex justify-center mb-8">
-            <PropellerAdsBanner
-              src="//pl26353667.profitablegate.com/7c/1a/45/7c1a45e4b3a1e3f8d0e5c3b4a2d1e0f7.js"
-              minHeight="90px"
-            />
+          {/* PropellerAds In-Page Push Banner - Before Blog Grid */}
+          <div className="flex justify-center mb-8">
+            <PropellerAdsBanner zoneId="11133741" />
           </div>
 
           {/* Blog grid with ads */}

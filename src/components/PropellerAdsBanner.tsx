@@ -3,8 +3,10 @@
 import { useEffect, useRef } from 'react';
 
 interface PropellerAdsBannerProps {
-  /** The profitablegate script URL, e.g. //pl26353667.profitablegate.com/7c/1a/45/7c1a45e4b3a1e3f8d0e5c3b4a2d1e0f7.js */
-  src: string;
+  /** Zone ID from PropellerAds dashboard, e.g. '11133741' */
+  zoneId: string;
+  /** Script URL, e.g. 'https://nap5k.com/tag.min.js' */
+  src?: string;
   /** Optional CSS class */
   className?: string;
   /** Optional min-height for the container */
@@ -12,14 +14,15 @@ interface PropellerAdsBannerProps {
 }
 
 /**
- * PropellerAds / Monetag Banner component for desktop.
- * Renders the profitablegate script inside a div in the page body
- * (not in <head>) so the banner ad actually appears on screen.
+ * PropellerAds / Monetag In-Page Push (Banner) component.
+ * Renders the ad tag script inside a div in the page body
+ * so the banner ad actually appears on screen on both desktop and mobile.
  */
 export default function PropellerAdsBanner({
-  src,
+  zoneId,
+  src = 'https://nap5k.com/tag.min.js',
   className = '',
-  minHeight = '90px',
+  minHeight = '120px',
 }: PropellerAdsBannerProps) {
   const containerRef = useRef<HTMLDivElement>(null);
   const loaded = useRef(false);
@@ -31,9 +34,10 @@ export default function PropellerAdsBanner({
     const script = document.createElement('script');
     script.async = true;
     script.setAttribute('data-cfasync', 'false');
+    script.setAttribute('data-zone', zoneId);
     script.src = src;
     containerRef.current.appendChild(script);
-  }, [src]);
+  }, [zoneId, src]);
 
   return (
     <div
