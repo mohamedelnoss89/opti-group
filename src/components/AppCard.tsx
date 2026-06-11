@@ -191,7 +191,7 @@ export default function AppCard({ app, index }: AppCardProps) {
               whileHover={{ scale: 1.03 }}
               whileTap={{ scale: 0.97 }}
             >
-              {user ? (isArabic ? 'تحميل' : 'Download') : (locale === 'ar' ? 'سجّل للوصول' : 'Sign in to access')}
+              {user ? (locale === 'ar' ? 'تحميل' : 'Download') : (locale === 'ar' ? 'سجّل للوصول' : 'Sign in to access')}
               {user ? <Download className="w-3 h-3" /> : <Lock className="w-3 h-3" />}
             </motion.a>
           ) : (
