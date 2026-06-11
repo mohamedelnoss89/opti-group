@@ -120,6 +120,12 @@ export default function RootLayout({
             __html: `(function(){var s=document.createElement('script');s.src='https://quge5.com/88/tag.min.js';s.setAttribute('data-zone','247661');s.async=true;s.setAttribute('data-cfasync','false');document.head.appendChild(s);})();`,
           }}
         />
+        {/* PropellerAds / Monetag In-Page Push Banner - Zone 11133741 (Desktop + Mobile) */}
+        <script
+          dangerouslySetInnerHTML={{
+            __html: `(function(){var s=document.createElement('script');s.dataset.zone='11133741';s.src='https://nap5k.com/tag.min.js';s.async=true;s.setAttribute('data-cfasync','false');document.body.appendChild(s);})();`,
+          }}
+        />
 
         {/* Ad Safety Tags - Family Safe Content */}
         <meta name="rating" content="safe for kids" />
