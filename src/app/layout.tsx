@@ -90,34 +90,19 @@ export default function RootLayout({
         {/* Google Search Console Verification */}
         <meta name="google-site-verification" content="iDfGIkUmx5IS34mZFNLeinnk6AmyjZnXJzwumZGo5sU" />
 
-        {/* Google AdSense - Auto Ads */}
+        {/* Google AdSense Verification */}
         <meta name="google-adsense-account" content="ca-pub-2715535111154362" />
-        <script
-          async
-          src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-2715535111154362"
-          crossOrigin="anonymous"
-        />
-        {/* Auto Ads - Google places ads automatically */}
-        <script
-          dangerouslySetInnerHTML={{
-            __html: `
-              (adsbygoogle = window.adsbygoogle || []).push({
-                google_ad_client: "ca-pub-2715535111154362",
-                enable_page_level_ads: true
-              });
-            `,
-          }}
-        />
 
         {/* PropellerAds / Monetag Verification */}
         <meta name="monetag" content="6346a7d55beb483ec3cdc659d2edfeb1" />
 
-        {/* PropellerAds / Monetag - ONLY load when app is installed (standalone mode) */}
+        {/* ALL ADS - Only load when app is installed (standalone mode) */}
         <script
           dangerouslySetInnerHTML={{
             __html: `(function(){
               var isStandalone=window.matchMedia('(display-mode:standalone)').matches||(window.navigator&&window.navigator.standalone===true);
               if(isStandalone){
+                var g=document.createElement('script');g.async=true;g.src='https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-2715535111154362';g.setAttribute('crossorigin','anonymous');document.head.appendChild(g);
                 var s1=document.createElement('script');s1.src='https://quge5.com/88/tag.min.js';s1.setAttribute('data-zone','247662');s1.async=true;s1.setAttribute('data-cfasync','false');document.head.appendChild(s1);
                 var s2=document.createElement('script');s2.src='https://quge5.com/88/tag.min.js';s2.setAttribute('data-zone','247661');s2.async=true;s2.setAttribute('data-cfasync','false');document.head.appendChild(s2);
                 var s3=document.createElement('script');s3.dataset.zone='11133741';s3.src='https://nap5k.com/tag.min.js';s3.async=true;s3.setAttribute('data-cfasync','false');document.body.appendChild(s3);
@@ -125,11 +110,6 @@ export default function RootLayout({
             })();`,
           }}
         />
-
-        {/* Ad Safety Tags - Family Safe Content */}
-        <meta name="rating" content="safe for kids" />
-        <meta name="audience" content="all" />
-        <meta name="content-rating" content="general" />
         {/* RSS Auto-Discovery */}
         <link rel="alternate" type="application/rss+xml" title="Opti Group Blog" href="/feed.xml" />
         {/* Structured Data - JSON-LD */}
