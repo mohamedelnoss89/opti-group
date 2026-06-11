@@ -96,7 +96,7 @@ export default function RootLayout({
         {/* PropellerAds / Monetag Verification */}
         <meta name="monetag" content="6346a7d55beb483ec3cdc659d2edfeb1" />
 
-        {/* ALL ADS - Only load when app is installed (standalone mode) */}
+        {/* Ads loading script - loads ONLY in standalone/installed mode */}
         <script
           dangerouslySetInnerHTML={{
             __html: `(function(){
