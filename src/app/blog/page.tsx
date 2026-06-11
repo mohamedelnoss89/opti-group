@@ -10,7 +10,6 @@ import { Calendar, Clock, ArrowRight, ArrowLeft, Tag, Rss } from 'lucide-react';
 import Link from 'next/link';
 import { blogPosts, getBlogPostsByCategory, type BlogPost } from '@/lib/blog-data';
 import AdBanner from '@/components/AdBanner';
-import PropellerAdsBanner from '@/components/PropellerAdsBanner';
 
 type CategoryFilter = 'all' | 'health' | 'ai' | 'tourism' | 'updates' | 'sports' | 'islamic';
 
@@ -146,11 +145,6 @@ export default function BlogPage() {
               );
             })}
           </motion.div>
-
-          {/* PropellerAds In-Page Push Banner - Before Blog Grid */}
-          <div className="flex justify-center mb-8">
-            <PropellerAdsBanner zoneId="11133741" />
-          </div>
 
           {/* Blog grid with ads */}
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">

@@ -16,7 +16,6 @@ import BackToTop from '@/components/BackToTop';
 import { categories } from '@/lib/apps-data';
 import SocialLinks from '@/components/SocialLinks';
 import AdBanner from '@/components/AdBanner';
-import PropellerAdsBanner from '@/components/PropellerAdsBanner';
 import { motion } from 'framer-motion';
 
 export default function HomePage() {
@@ -68,8 +67,6 @@ export default function HomePage() {
 
         {/* Ad Banner - After Hero/Stats */}
         <div className="max-w-7xl mx-auto px-4 py-4">
-          {/* PropellerAds In-Page Push Banner - Desktop + Mobile */}
-          <PropellerAdsBanner zoneId="11133741" />
           {/* AdSense Banner (shows when AdSense is approved) */}
           <AdBanner adSlot="auto" adFormat="horizontal" className="opacity-80" />
         </div>
@@ -93,8 +90,6 @@ export default function HomePage() {
             {/* Ad Banner - After every 2nd category section */}
             {(index + 1) % 2 === 0 && index < categories.length - 1 && (
               <div className="max-w-7xl mx-auto px-4 py-3">
-                {/* PropellerAds In-Page Push Banner */}
-                <PropellerAdsBanner zoneId="11133741" />
                 <AdBanner adSlot="auto" adFormat="horizontal" className="opacity-75" />
               </div>
             )}
@@ -103,8 +98,6 @@ export default function HomePage() {
 
         {/* Ad Banner - Before Contact Section */}
         <div className="max-w-7xl mx-auto px-4 py-4">
-          {/* PropellerAds In-Page Push Banner - Desktop + Mobile */}
-          <PropellerAdsBanner zoneId="11133741" />
           <AdBanner adSlot="auto" adFormat="horizontal" className="opacity-80" />
         </div>
 

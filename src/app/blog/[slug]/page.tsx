@@ -12,7 +12,6 @@ import { getBlogPostBySlug, type BlogPost } from '@/lib/blog-data';
 import { useParams } from 'next/navigation';
 import InArticleAd from '@/components/InArticleAd';
 import AdBanner from '@/components/AdBanner';
-import PropellerAdsBanner from '@/components/PropellerAdsBanner';
 
 const categoryColors: Record<BlogPost['category'], string> = {
   health: '#22c55e',
@@ -265,10 +264,6 @@ export default function BlogPostPage() {
 
           {/* Ad Banner after article content */}
           <div className="mt-10">
-            {/* PropellerAds In-Page Push Banner */}
-            <div className="flex justify-center mb-4">
-              <PropellerAdsBanner zoneId="11133741" />
-            </div>
             <AdBanner adSlot="auto" adFormat="horizontal" className="opacity-75" />
           </div>
 
