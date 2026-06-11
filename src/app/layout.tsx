@@ -112,18 +112,17 @@ export default function RootLayout({
         {/* PropellerAds / Monetag Verification */}
         <meta name="monetag" content="6346a7d55beb483ec3cdc659d2edfeb1" />
 
-        {/* PropellerAds / Monetag MultiTag - Zone 1 (Interesting tag) */}
-        <script src="https://quge5.com/88/tag.min.js" data-zone="247662" async data-cfasync="false" />
-        {/* PropellerAds / Monetag MultiTag - Zone 2 (Luminous tag) - Desktop + Mobile */}
+        {/* PropellerAds / Monetag - ONLY load when app is installed (standalone mode) */}
         <script
           dangerouslySetInnerHTML={{
-            __html: `(function(){var s=document.createElement('script');s.src='https://quge5.com/88/tag.min.js';s.setAttribute('data-zone','247661');s.async=true;s.setAttribute('data-cfasync','false');document.head.appendChild(s);})();`,
-          }}
-        />
-        {/* PropellerAds / Monetag In-Page Push Banner - Zone 11133741 (Desktop + Mobile) */}
-        <script
-          dangerouslySetInnerHTML={{
-            __html: `(function(){var s=document.createElement('script');s.dataset.zone='11133741';s.src='https://nap5k.com/tag.min.js';s.async=true;s.setAttribute('data-cfasync','false');document.body.appendChild(s);})();`,
+            __html: `(function(){
+              var isStandalone=window.matchMedia('(display-mode:standalone)').matches||(window.navigator&&window.navigator.standalone===true);
+              if(isStandalone){
+                var s1=document.createElement('script');s1.src='https://quge5.com/88/tag.min.js';s1.setAttribute('data-zone','247662');s1.async=true;s1.setAttribute('data-cfasync','false');document.head.appendChild(s1);
+                var s2=document.createElement('script');s2.src='https://quge5.com/88/tag.min.js';s2.setAttribute('data-zone','247661');s2.async=true;s2.setAttribute('data-cfasync','false');document.head.appendChild(s2);
+                var s3=document.createElement('script');s3.dataset.zone='11133741';s3.src='https://nap5k.com/tag.min.js';s3.async=true;s3.setAttribute('data-cfasync','false');document.body.appendChild(s3);
+              }
+            })();`,
           }}
         />
 
