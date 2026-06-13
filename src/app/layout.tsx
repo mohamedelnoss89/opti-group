@@ -158,6 +158,34 @@ export default function RootLayout({
                 position: absolute !important;
                 left: -9999px !important;
               }
+
+              /* ===== BLOCK UNWANTED MONETAG ZONES (Popunder/InPagePush/Push) ===== */
+              /* Only Zone 11143210 (Vignette via n6wxm.com) is allowed */
+              /* All other Monetag domains = BLOCKED */
+              script[src*="quge5"],
+              script[src*="auqot"],
+              script[src*="jmosl"],
+              script[src*="094kk"],
+              script[src*="6opo"],
+              iframe[src*="quge5"],
+              iframe[src*="auqot"],
+              iframe[src*="jmosl"],
+              iframe[src*="094kk"],
+              iframe[src*="6opo"],
+              script[src*="quge5"] + *,
+              script[src*="auqot"] + *,
+              script[src*="jmosl"] + *,
+              script[src*="094kk"] + * {
+                display: none !important;
+                visibility: hidden !important;
+                height: 0 !important;
+                max-height: 0 !important;
+                overflow: hidden !important;
+                opacity: 0 !important;
+                pointer-events: none !important;
+                position: absolute !important;
+                left: -9999px !important;
+              }
             `,
           }}
         />
@@ -245,6 +273,25 @@ export default function RootLayout({
                   console.log('[OptiGroup] Monetag Vignette loaded (' + (isDesktop ? 'desktop' : isStandalone ? 'standalone' : 'unknown') + ')');
                 }
 
+                // ===== BLOCK UNWANTED MONETAG ZONES =====
+                // Only n6wxm.com (Zone 11143210 Vignette) is allowed
+                // All other Monetag domains are blocked (Popunder/InPagePush/Push)
+                var blockedDomains = ['quge5.com', 'auqot.com', 'jmosl.com', '094kk.com', '6opo.com'];
+                function nukeUnwantedMonetag() {
+                  // Remove scripts
+                  for (var i = 0; i < blockedDomains.length; i++) {
+                    var badScripts = document.querySelectorAll('script[src*="' + blockedDomains[i] + '"]');
+                    for (var j = 0; j < badScripts.length; j++) { badScripts[j].remove(); }
+                    var badIframes = document.querySelectorAll('iframe[src*="' + blockedDomains[i] + '"]');
+                    for (var k = 0; k < badIframes.length; k++) { badIframes[k].remove(); }
+                  }
+                }
+                nukeUnwantedMonetag();
+                setTimeout(nukeUnwantedMonetag, 500);
+                setTimeout(nukeUnwantedMonetag, 1000);
+                setTimeout(nukeUnwantedMonetag, 2000);
+                setTimeout(nukeUnwantedMonetag, 5000);
+
                 // Check if user is authenticated via Supabase
                 function isSupabaseAuthenticated() {
                   try {
@@ -322,7 +369,7 @@ export default function RootLayout({
                 }
 
                 // ===== AD SAFETY MONITOR =====
-                // Removes ads on auth pages and mobile browser (both AdSense + Monetag)
+                // Removes ads on auth pages, mobile browser, AND blocks unwanted Monetag zones
                 var adSafetyObserver = new MutationObserver(function(mutations) {
                   var found = false;
                   for (var i = 0; i < mutations.length; i++) {
@@ -333,13 +380,23 @@ export default function RootLayout({
                         var el = node;
                         var src = el.src || el.getAttribute('src') || '';
                         var cls = el.className || '';
+                        var dataZone = el.getAttribute('data-zone') || '';
+
+                        // ALWAYS remove unwanted Monetag domains (Popunder/InPagePush/Push)
+                        for (var b = 0; b < blockedDomains.length; b++) {
+                          if (src.indexOf(blockedDomains[b]) > -1) {
+                            el.remove();
+                            found = true;
+                          }
+                        }
+
                         var authPath = window.location.pathname;
                         var isOnAuthPage = authPath === '/signup' || authPath === '/login' || authPath === '/auth' || authPath.indexOf('/auth/') === 0;
                         var isMobileBrowser = !isStandalone && !isDesktop;
                         // Remove ANY ad (AdSense + Monetag) on auth pages and mobile browser
                         if (isMobileBrowser || isOnAuthPage) {
                           if (src.indexOf('pagead2.googlesyndication') > -1 || cls.indexOf('adsbygoogle') > -1 ||
-                              src.indexOf('n6wxm') > -1 || src.indexOf('quge5') > -1 || el.getAttribute('data-zone')) {
+                              src.indexOf('n6wxm') > -1 || dataZone) {
                             el.remove();
                             found = true;
                           }
@@ -348,7 +405,7 @@ export default function RootLayout({
                     }
                   }
                   if (found) {
-                    console.log('[OptiGroup] Ad safety: removed ad element (auth page or mobile browser)');
+                    console.log('[OptiGroup] Ad safety: removed unwanted ad element');
                   }
                 });
                 adSafetyObserver.observe(document.documentElement, { childList: true, subtree: true });
