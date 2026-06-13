@@ -12,14 +12,13 @@ export default function InArticleAd({ adSlot, className = '' }: InArticleAdProps
   const isPushed = useRef(false);
 
   useEffect(() => {
-    if (adRef.current && !isPushed.current) {
-      try {
-        // @ts-expect-error adsbygoogle is injected by the AdSense script
-        (window.adsbygoogle = window.adsbygoogle || []).push({});
-        isPushed.current = true;
-      } catch (e) {
-        console.log('AdSense in-article push error:', e);
-      }
+    if (isPushed.current) return;
+    try {
+      // @ts-expect-error adsbygoogle is injected by the AdSense script
+      (window.adsbygoogle = window.adsbygoogle || []).push({});
+      isPushed.current = true;
+    } catch (e) {
+      // AdSense not loaded yet
     }
   }, []);
 
