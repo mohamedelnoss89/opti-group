@@ -24,29 +24,8 @@ export default function CookieConsent() {
   const handleAccept = () => {
     localStorage.setItem(CONSENT_KEY, 'accepted');
     setShowConsent(false);
-    // Dispatch event so AdBanner components can react
+    // Dispatch event for any listeners
     window.dispatchEvent(new Event('cookie-consent-changed'));
-    // Also try to load AdSense on desktop/standalone if not already loaded
-    const isStandalone =
-      window.matchMedia('(display-mode: standalone)').matches ||
-      (window.navigator as any).standalone === true;
-    const isDesktop = !isStandalone && window.innerWidth >= 1024;
-    if (isStandalone || isDesktop) {
-      // Load AdSense if not already loaded
-      if (!document.getElementById('optigroup-adsense-script')) {
-        const script = document.createElement('script');
-        script.id = 'optigroup-adsense-script';
-        script.async = true;
-        script.src = 'https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-2715535111154362';
-        script.crossOrigin = 'anonymous';
-        document.head.appendChild(script);
-      }
-      // Load Monetag Vignette if not already loaded (EXACT original Monetag code)
-      if (!(window as any).__optigroupMonetagLoaded) {
-        (window as any).__optigroupMonetagLoaded = true;
-        (function(s: any){s.dataset.zone='11143210',s.src='https://n6wxm.com/vignette.min.js'})([document.documentElement, document.body].filter(Boolean).pop().appendChild(document.createElement('script')));
-      }
-    }
   };
 
   const handleDecline = () => {
