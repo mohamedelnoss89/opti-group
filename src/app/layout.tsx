@@ -100,21 +100,32 @@ export default function RootLayout({
         {/* Adsterra Native Banner */}
         <script async data-cfasync="false" src="https://pl29736070.effectivecpmnetwork.com/02cf7d9902da8d556cfe7f03550e90d9/invoke.js"></script>
 
+        {/* Adsterra Social Bar */}
+        <script src="https://pl29736457.effectivecpmnetwork.com/02/10/14/0210141f0370b389f9055df094ac6ca0.js"></script>
+
+        {/* Adsterra Popunder */}
+        <script src="https://pl29736459.effectivecpmnetwork.com/48/99/7a/48997ae29fe9b45f47c08dfb88305322.js"></script>
+
         {/* Monetag OnClick (Popunder) - Zone 249426 */}
         <script src="https://quge5.com/88/tag.min.js" data-zone="249426" async data-cfasync="false"></script>
       </head>
       <body className={`${geistSans.variable} ${geistMono.variable} ${notoKufiArabic.variable} min-h-screen flex flex-col`}>
         <Providers>
-          {/* Ad Banner - Top of every page */}
+          {/* Ad - Top of every page */}
           <div className="w-full bg-transparent">
             <AdsterraAd type="banner728" className="py-2" />
           </div>
 
           {children}
 
-          {/* Ad Banner - Bottom of every page */}
+          {/* Ad - Bottom of every page */}
           <div className="w-full bg-transparent">
             <AdsterraAd type="native" className="py-3" />
+          </div>
+
+          {/* Smart Link - Floating on every page */}
+          <div className="fixed bottom-20 right-4 z-40">
+            <AdsterraAd type="smartlink" />
           </div>
 
           <CookieConsent />
