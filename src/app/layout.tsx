@@ -135,7 +135,11 @@ export default function RootLayout({
               body.no-ads div[class^="ads-"],
               body.no-ads a[href*="effectivecpmnetwork"],
               body.no-ads a[href*="quge5"],
-              body.no-ads a[href*="highperformanceformat"] {
+              body.no-ads a[href*="highperformanceformat"],
+              body.no-ads a[href*="idealistic-revenue"],
+              body.no-ads iframe[src*="idealistic-revenue"],
+              body.no-ads [id*="idealistic-revenue"],
+              body.no-ads [class*="idealistic-revenue"] {
                 display: none !important;
                 visibility: hidden !important;
                 opacity: 0 !important;

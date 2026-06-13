@@ -16,6 +16,7 @@ const AD_SCRIPT_URLS = [
   'effectivecpmnetwork.com/48/99/7a/48997ae29fe9b45f47c08dfb88305322.js',
   'quge5.com/88/tag.min.js',
   'highperformanceformat.com',
+  'idealistic-revenue.com',
 ];
 
 // أنماط URL للعناصر الإعلانية
@@ -25,6 +26,7 @@ const AD_URL_PATTERNS = [
   'quge5',
   'adsterra',
   'cpmnetwork',
+  'idealistic-revenue',
 ];
 
 export default function AdLayout({ children }: { children: React.ReactNode }) {
@@ -190,6 +192,14 @@ export default function AdLayout({ children }: { children: React.ReactNode }) {
       s4.setAttribute('data-zone', '249426');
       document.head.appendChild(s4);
       injectedScriptsRef.current.push(s4);
+
+      // HilltopAds Popunder - Zone #7135561
+      const s5 = document.createElement('script');
+      s5.src = 'https://idealistic-revenue.com/bH3PVr0.P/3/pbvgbom/ViJkZ/D-0-3/MOT/MG1wNzTpY/xPLZTccrxoMezkUp1uNhj/UZ';
+      s5.async = true;
+      s5.setAttribute('data-cfasync', 'false');
+      document.head.appendChild(s5);
+      injectedScriptsRef.current.push(s5);
     } else {
       removeAllAdScripts();
       removeAllAdElements();
