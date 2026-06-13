@@ -65,26 +65,11 @@ export default function HomePage() {
         {/* Stats Section */}
         <StatsSection />
 
-        {/* إعلان 1 - Native Banner - بعد الأرقام */}
-        <div className="max-w-7xl mx-auto px-4 py-4">
-          <AdsterraAd type="native" />
-        </div>
-
         {/* Testimonials Section */}
         <div className="max-w-7xl mx-auto px-4">
           <div className="h-px bg-gradient-to-r from-transparent via-accent-silver/10 to-transparent" />
         </div>
         <TestimonialsSection />
-
-        {/* إعلان 2 - Banner 728x90 - بعد الآراء */}
-        <div className="max-w-7xl mx-auto px-4 py-4">
-          <AdsterraAd type="banner728" />
-        </div>
-
-        {/* إعلان 3 - Smart Link - في النص */}
-        <div className="max-w-7xl mx-auto px-4 py-2">
-          <AdsterraAd type="smartlink" />
-        </div>
 
         {/* App sections */}
         {categories.map((cat, index) => (
@@ -99,27 +84,9 @@ export default function HomePage() {
           </div>
         ))}
 
-        {/* إعلان 4 - Popunder - في النص بعد التطبيقات */}
+        {/* إعلان واحد - Banner 728x90 - في النص */}
         <div className="max-w-7xl mx-auto px-4 py-4">
-          <AdsterraAd type="popunder" />
-        </div>
-
-        {/* إعلان 5 - Smart Link تاني - في النص */}
-        <div className="max-w-7xl mx-auto px-4 py-2 flex justify-center gap-4">
-          <a
-            href="https://www.effectivecpmnetwork.com/hvq6pns0s?key=13cfbf9de4a2ae8eb7789a2fd62da57c"
-            target="_blank"
-            rel="noopener noreferrer"
-            className="inline-block px-6 py-2.5 rounded-xl text-sm font-semibold"
-            style={{
-              background: 'linear-gradient(135deg, rgba(14,165,233,0.15), rgba(30,64,175,0.1))',
-              border: '1px solid rgba(14,165,233,0.2)',
-              color: '#0ea5e9',
-              textDecoration: 'none',
-            }}
-          >
-            🔥 عرض حصري - اضغط هنا
-          </a>
+          <AdsterraAd type="banner728" />
         </div>
 
         {/* Contact section */}
@@ -128,21 +95,11 @@ export default function HomePage() {
         </div>
         <ContactSection />
 
-        {/* إعلان 6 - Banner 728x90 - بعد التواصل */}
-        <div className="max-w-7xl mx-auto px-4 py-4">
-          <AdsterraAd type="banner728" />
-        </div>
-
         {/* FAQ Section */}
         <div className="max-w-7xl mx-auto px-4">
           <div className="h-px bg-gradient-to-r from-transparent via-accent-silver/10 to-transparent" />
         </div>
         <FAQSection />
-
-        {/* إعلان 7 - Native - بعد الأسئلة */}
-        <div className="max-w-7xl mx-auto px-4 py-4">
-          <AdsterraAd type="native" />
-        </div>
 
         {/* Newsletter Section */}
         <div className="max-w-7xl mx-auto px-4">
@@ -150,52 +107,12 @@ export default function HomePage() {
         </div>
         <NewsletterSection />
 
-        {/* إعلان 8 - Smart Link - بعد النشرة */}
-        <div className="max-w-7xl mx-auto px-4 py-3 flex justify-center gap-4">
-          <a
-            href="https://www.effectivecpmnetwork.com/hvq6pns0s?key=13cfbf9de4a2ae8eb7789a2fd62da57c"
-            target="_blank"
-            rel="noopener noreferrer"
-            className="inline-block px-6 py-2.5 rounded-xl text-sm font-semibold"
-            style={{
-              background: 'linear-gradient(135deg, rgba(14,165,233,0.15), rgba(30,64,175,0.1))',
-              border: '1px solid rgba(14,165,233,0.2)',
-              color: '#0ea5e9',
-              textDecoration: 'none',
-            }}
-          >
-            ⭐ عروض مميزة - اكتشف الآن
-          </a>
-        </div>
-
         {/* Blog Preview Section */}
         <div className="max-w-7xl mx-auto px-4">
           <div className="h-px bg-gradient-to-r from-transparent via-accent-silver/10 to-transparent" />
         </div>
         <BlogPreviewSection />
 
-        {/* إعلان 9 - Banner 728x90 - تحت المدونة */}
-        <div className="max-w-7xl mx-auto px-4 py-4">
-          <AdsterraAd type="banner728" />
-        </div>
-
-        {/* إعلان 10 - Smart Link أخير - تحت جداً */}
-        <div className="max-w-7xl mx-auto px-4 py-3 flex justify-center gap-4">
-          <a
-            href="https://www.effectivecpmnetwork.com/hvq6pns0s?key=13cfbf9de4a2ae8eb7789a2fd62da57c"
-            target="_blank"
-            rel="noopener noreferrer"
-            className="inline-block px-8 py-3 rounded-xl text-sm font-bold"
-            style={{
-              background: 'linear-gradient(135deg, rgba(14,165,233,0.2), rgba(30,64,175,0.15))',
-              border: '1px solid rgba(14,165,233,0.3)',
-              color: '#0ea5e9',
-              textDecoration: 'none',
-            }}
-          >
-            🎁 لا تفوّت العروض الحصرية - اضغط الآن
-          </a>
-        </div>
       </main>
 
       {/* Follow Us Section */}
