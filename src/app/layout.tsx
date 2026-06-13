@@ -93,6 +93,9 @@ export default function RootLayout({
         {/* Google AdSense Verification */}
         <meta name="google-adsense-account" content="ca-pub-2715535111154362" />
 
+        {/* Monetag Verification */}
+        <meta name="monetag" content="cb1e85204cec32a1e92c546d3075cb32" />
+
         {/*
           CRITICAL: CSS-based ad protection system.
           1. Block ads on mobile browser (not standalone + not desktop)
