@@ -68,7 +68,7 @@ export default function HomePage() {
 
         {/* Adsterra Native Ad - After Hero/Stats */}
         <div className="max-w-7xl mx-auto px-4 py-4">
-          <AdsterraAd type="native" className="opacity-90" />
+          <AdsterraAd variant={1} className="opacity-90" />
         </div>
 
         {/* Testimonials Section */}
@@ -76,6 +76,11 @@ export default function HomePage() {
           <div className="h-px bg-gradient-to-r from-transparent via-accent-silver/10 to-transparent" />
         </div>
         <TestimonialsSection />
+
+        {/* Adsterra Banner 728x90 - After Testimonials */}
+        <div className="max-w-7xl mx-auto px-4 py-3">
+          <AdsterraAd variant={2} className="opacity-90" />
+        </div>
 
         {/* App sections with ad between categories */}
         {categories.map((cat, index) => (
@@ -87,18 +92,18 @@ export default function HomePage() {
               </div>
             )}
             <AppSection category={cat.id} sectionId={cat.sectionId} />
-            {/* Adsterra Banner 728x90 - After every 2nd category section */}
+            {/* Adsterra Banner - After every 2nd category section */}
             {(index + 1) % 2 === 0 && index < categories.length - 1 && (
               <div className="max-w-7xl mx-auto px-4 py-3">
-                <AdsterraAd type="banner728" className="opacity-90" />
+                <AdsterraAd variant={3} className="opacity-90" />
               </div>
             )}
           </div>
         ))}
 
-        {/* Adsterra Native Ad - Before Contact Section */}
+        {/* Adsterra Banner 728x90 - Before Contact Section */}
         <div className="max-w-7xl mx-auto px-4 py-4">
-          <AdsterraAd type="native" className="opacity-90" />
+          <AdsterraAd variant={2} className="opacity-90" />
         </div>
 
         {/* Contact section */}
