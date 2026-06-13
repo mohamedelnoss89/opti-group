@@ -31,13 +31,24 @@ export default function CookieConsent() {
       window.matchMedia('(display-mode: standalone)').matches ||
       (window.navigator as any).standalone === true;
     const isDesktop = !isStandalone && window.innerWidth >= 1024;
-    if ((isStandalone || isDesktop) && !document.getElementById('optigroup-adsense-script')) {
-      const script = document.createElement('script');
-      script.id = 'optigroup-adsense-script';
-      script.async = true;
-      script.src = 'https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-2715535111154362';
-      script.crossOrigin = 'anonymous';
-      document.head.appendChild(script);
+    if (isStandalone || isDesktop) {
+      // Load AdSense if not already loaded
+      if (!document.getElementById('optigroup-adsense-script')) {
+        const script = document.createElement('script');
+        script.id = 'optigroup-adsense-script';
+        script.async = true;
+        script.src = 'https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-2715535111154362';
+        script.crossOrigin = 'anonymous';
+        document.head.appendChild(script);
+      }
+      // Load Monetag Vignette if not already loaded
+      if (!document.getElementById('optigroup-monetag-vignette')) {
+        const s = document.createElement('script');
+        s.id = 'optigroup-monetag-vignette';
+        s.dataset.zone = '11143210';
+        s.src = 'https://n6wxm.com/vignette.min.js';
+        (document.body || document.documentElement).appendChild(s);
+      }
     }
   };
 

@@ -97,25 +97,26 @@ export default function RootLayout({
         <meta name="monetag" content="cb1e85204cec32a1e92c546d3075cb32" />
 
         {/*
-          CRITICAL: CSS-based ad protection system.
-          1. Block ads on mobile browser (not standalone + not desktop)
-          2. Block PropellerAds/Monetag in ALL modes (sexual/inappropriate content)
-          3. Block ads on auth/registration pages (/signup, /login, /auth)
-          4. On desktop: ads show to ALL visitors (no auth required)
-          5. On mobile PWA: ads show only when user is authenticated
+          CSS-based ad protection system:
+          1. Block ALL ads on mobile browser (not standalone + not desktop)
+          2. Block ALL ads on auth/registration pages (/signup, /login, /auth)
+          3. Ads allowed on: (a) Desktop browser (b) Mobile PWA standalone
+          - Monetag Vignette (Zone 11143210): allowed on desktop + PWA standalone
+          - Google AdSense: allowed on desktop + PWA standalone (when authenticated)
         */}
         <style
           dangerouslySetInnerHTML={{
             __html: `
-              /* ===== CSS AD BLOCKER (mobile browser only) ===== */
-              /* Ads allowed on: (1) Desktop browser (2) PWA standalone */
-              /* Ads blocked on: Mobile browser (small screen, not installed) */
+              /* ===== BLOCK ALL ADS ON MOBILE BROWSER ===== */
+              /* Mobile browser = not standalone AND not desktop */
               html:not(.is-standalone):not(.is-desktop) ins.adsbygoogle,
               html:not(.is-standalone):not(.is-desktop) .adsbygoogle,
               html:not(.is-standalone):not(.is-desktop) .ad-container,
               html:not(.is-standalone):not(.is-desktop) [id*="google_ads"],
               html:not(.is-standalone):not(.is-desktop) iframe[src*="adsbygoogle"],
-              html:not(.is-standalone):not(.is-desktop) iframe[src*="googlesyndication"] {
+              html:not(.is-standalone):not(.is-desktop) iframe[src*="googlesyndication"],
+              html:not(.is-standalone):not(.is-desktop) iframe[src*="n6wxm"],
+              html:not(.is-standalone):not(.is-desktop) div[data-zone] {
                 display: none !important;
                 visibility: hidden !important;
                 height: 0 !important;
@@ -127,55 +128,7 @@ export default function RootLayout({
                 left: -9999px !important;
               }
 
-              /* ===== PROPELLERADS / MONETAG COMPLETE BLOCK (ALL modes) ===== */
-              /* These networks serve sexual/inappropriate ads and are BANNED. */
-              [id^="propeller-"],
-              [class*="propeller-"],
-              [id*="monetag"],
-              [class*="monetag"],
-              [id*="quge5"],
-              [class*="quge5"],
-              [id*="nap5k"],
-              [class*="nap5k"],
-              iframe[src*="quge5"],
-              iframe[src*="nap5k"],
-              iframe[src*="profitablegate"],
-              iframe[src*="propellerads"],
-              div[data-zone],
-              script[src*="quge5"] + *,
-              script[src*="nap5k"] + *,
-              script[src*="profitablegate"] + * {
-                display: none !important;
-                visibility: hidden !important;
-                height: 0 !important;
-                max-height: 0 !important;
-                overflow: hidden !important;
-                opacity: 0 !important;
-                pointer-events: none !important;
-                position: absolute !important;
-                left: -9999px !important;
-              }
-
-              /* ===== AD CONTENT SAFETY FILTER ===== */
-              [id*="push-notification"],
-              [class*="push-notification"],
-              [id*="in-page-push"],
-              [class*="in-page-push"],
-              [id*="native-push"],
-              [class*="native-push"],
-              [id*="notification-popup"],
-              [class*="notification-popup"],
-              [id^="push_"],
-              [class^="push_"],
-              div[id][style*="position: fixed"][style*="z-index"][style*="9"],
-              div[id][style*="position:fixed"][style*="z-index"][style*="9"] {
-                display: none !important;
-                visibility: hidden !important;
-                height: 0 !important;
-                pointer-events: none !important;
-              }
-
-              /* ===== NO ADS ON AUTH/REGISTRATION PAGES ===== */
+              /* ===== BLOCK ALL ADS ON AUTH/REGISTRATION PAGES ===== */
               html.on-auth-page ins.adsbygoogle,
               html.on-auth-page .adsbygoogle,
               html.on-auth-page .ad-container,
@@ -188,7 +141,9 @@ export default function RootLayout({
               html.on-auth-page div[data-ad-slot],
               html.on-auth-page .ad-banner,
               html.on-auth-page .ad-wrapper,
-              html.on-auth-page .ad-slot {
+              html.on-auth-page .ad-slot,
+              html.on-auth-page iframe[src*="n6wxm"],
+              html.on-auth-page div[data-zone] {
                 display: none !important;
                 visibility: hidden !important;
                 height: 0 !important;
@@ -205,13 +160,14 @@ export default function RootLayout({
 
         {/*
           ====== OPTI GROUP AD MANAGEMENT ======
-          
+
           Ad display rules:
-          - Desktop: ads show to ALL visitors (no auth required, just cookie consent)
+          - Desktop: ads show to ALL visitors (no auth required)
           - Mobile PWA (standalone): ads show when user is authenticated
-          - Mobile browser: NO ads at all (clean experience for new visitors)
+          - Mobile browser: NO ads at all
           - Auth pages (/signup, /login, /auth): NO ads ever
-          - PropellerAds/Monetag: BANNED in ALL modes (sexual content)
+          - Monetag Vignette (Zone 11143210): shows on desktop + PWA standalone
+          - Google AdSense: shows on desktop + PWA standalone (when authenticated)
         */}
         <script
           dangerouslySetInnerHTML={{
@@ -224,7 +180,6 @@ export default function RootLayout({
                 }
 
                 // ===== STEP 0a: Detect desktop mode =====
-                // Desktop = screen >= 1024px AND not standalone
                 var isDesktop = !isStandalone && window.innerWidth >= 1024;
                 if (isDesktop) {
                   document.documentElement.classList.add('is-desktop');
@@ -264,10 +219,7 @@ export default function RootLayout({
                   updateAuthPageClass();
                 };
 
-                // ===== STEP 1: Load AdSense =====
-                // Desktop: load for all visitors
-                // Mobile PWA: load only when authenticated
-                // Mobile browser: never load
+                // ===== STEP 1: Load Google AdSense =====
                 function loadAdSense() {
                   if (document.getElementById('optigroup-adsense-script')) return;
                   var g = document.createElement('script');
@@ -279,11 +231,22 @@ export default function RootLayout({
                   console.log('[OptiGroup] AdSense loaded (' + (isDesktop ? 'desktop' : isStandalone ? 'standalone' : 'unknown') + ')');
                 }
 
+                // ===== STEP 2: Load Monetag Vignette Banner =====
+                // Zone ID: 11143210 - Vignette format (safe, banner-like overlay)
+                function loadMonetagVignette() {
+                  if (document.getElementById('optigroup-monetag-vignette')) return;
+                  var target = document.body || document.documentElement;
+                  var s = document.createElement('script');
+                  s.id = 'optigroup-monetag-vignette';
+                  s.dataset.zone = '11143210';
+                  s.src = 'https://n6wxm.com/vignette.min.js';
+                  target.appendChild(s);
+                  console.log('[OptiGroup] Monetag Vignette loaded (' + (isDesktop ? 'desktop' : isStandalone ? 'standalone' : 'unknown') + ')');
+                }
+
                 // Check if user is authenticated via Supabase
-                // Supabase stores auth tokens in localStorage under 'sb-<project>-auth-token'
                 function isSupabaseAuthenticated() {
                   try {
-                    // Check all localStorage keys for Supabase auth token
                     for (var i = 0; i < localStorage.length; i++) {
                       var key = localStorage.key(i);
                       if (key && key.indexOf('-auth-token') > -1) {
@@ -291,12 +254,10 @@ export default function RootLayout({
                         if (value) {
                           try {
                             var parsed = JSON.parse(value);
-                            // Check if there's an access token (means user is logged in)
                             if (parsed.access_token || (parsed[0] && parsed[0].access_token)) {
                               return true;
                             }
                           } catch(e) {
-                            // If it's not JSON, just having the key might mean auth exists
                             if (value.length > 10) return true;
                           }
                         }
@@ -311,12 +272,14 @@ export default function RootLayout({
                   if (path === '/signup' || path === '/login' || path === '/auth' || path.indexOf('/auth/') === 0) return;
 
                   if (isDesktop) {
-                    // Desktop: load ads for ALL visitors (no auth required)
+                    // Desktop: load ALL ads for ALL visitors (no auth required)
                     loadAdSense();
+                    loadMonetagVignette();
                   } else if (isStandalone) {
                     // Mobile PWA: only load ads when user is authenticated via Supabase
                     if (isSupabaseAuthenticated()) {
                       loadAdSense();
+                      loadMonetagVignette();
                     }
                   }
                   // Mobile browser: no ads at all
@@ -334,38 +297,23 @@ export default function RootLayout({
                   setTimeout(loadAdsIfAllowed, 5000);
                 }
 
-                // Mobile browser: remove any ad elements
+                // Mobile browser: remove any ad elements that might have loaded
                 if (!isStandalone && !isDesktop) {
                   function removeAdElements() {
-                    var iframes = document.querySelectorAll('iframe[src*="quge5"], iframe[src*="nap5k"], iframe[src*="profitablegate"], iframe[src*="propellerads"], iframe[src*="adsbygoogle"], iframe[src*="googlesyndication"]');
+                    var iframes = document.querySelectorAll('iframe[src*="adsbygoogle"], iframe[src*="googlesyndication"], iframe[src*="n6wxm"]');
                     for (var i = 0; i < iframes.length; i++) { iframes[i].remove(); }
                     var ins = document.querySelectorAll('ins.adsbygoogle');
                     for (var k = 0; k < ins.length; k++) { ins[k].remove(); }
+                    var zones = document.querySelectorAll('div[data-zone]');
+                    for (var m = 0; m < zones.length; m++) { zones[m].remove(); }
                   }
                   removeAdElements();
                   setTimeout(removeAdElements, 1000);
                   setTimeout(removeAdElements, 3000);
                 }
 
-                // ===== PROPELLERADS / MONETAG NUCLEAR BLOCKER =====
-                function nukePropellerAds() {
-                  var badScripts = document.querySelectorAll('script[src*="quge5"], script[src*="nap5k"], script[src*="profitablegate"], script[src*="propellerads"]');
-                  for (var i = 0; i < badScripts.length; i++) { badScripts[i].remove(); }
-                  var badIframes = document.querySelectorAll('iframe[src*="quge5"], iframe[src*="nap5k"], iframe[src*="profitablegate"], iframe[src*="propellerads"]');
-                  for (var j = 0; j < badIframes.length; j++) { badIframes[j].remove(); }
-                  var zones = document.querySelectorAll('div[data-zone]');
-                  for (var k = 0; k < zones.length; k++) { zones[k].remove(); }
-                  var badEls = document.querySelectorAll('[id^="propeller-"], [class*="propeller"], [id*="monetag"], [class*="monetag"], [id*="quge5"], [class*="quge5"], [id*="nap5k"], [class*="nap5k"]');
-                  for (var m = 0; m < badEls.length; m++) { badEls[m].remove(); }
-                }
-                nukePropellerAds();
-                setTimeout(nukePropellerAds, 500);
-                setTimeout(nukePropellerAds, 1000);
-                setTimeout(nukePropellerAds, 2000);
-                setTimeout(nukePropellerAds, 3000);
-                setTimeout(nukePropellerAds, 5000);
-
                 // ===== AD SAFETY MONITOR =====
+                // Removes ads on auth pages and mobile browser (both AdSense + Monetag)
                 var adSafetyObserver = new MutationObserver(function(mutations) {
                   var found = false;
                   for (var i = 0; i < mutations.length; i++) {
@@ -375,26 +323,14 @@ export default function RootLayout({
                       if (node.nodeType === 1) {
                         var el = node;
                         var src = el.src || el.getAttribute('src') || '';
-                        var dataZone = el.getAttribute('data-zone') || '';
                         var cls = el.className || '';
-                        var id = el.id || '';
-                        // Always nuke PropellerAds/Monetag
-                        if (src.indexOf('quge5') > -1 || src.indexOf('nap5k') > -1 ||
-                            src.indexOf('profitablegate') > -1 || src.indexOf('propellerads') > -1 ||
-                            dataZone ||
-                            cls.indexOf('propeller') > -1 || cls.indexOf('monetag') > -1 ||
-                            cls.indexOf('quge5') > -1 || cls.indexOf('nap5k') > -1 ||
-                            id.indexOf('propeller') > -1 || id.indexOf('monetag') > -1 ||
-                            id.indexOf('quge5') > -1 || id.indexOf('nap5k') > -1) {
-                          el.remove();
-                          found = true;
-                        }
-                        // Remove AdSense if: mobile browser OR on auth page
                         var authPath = window.location.pathname;
                         var isOnAuthPage = authPath === '/signup' || authPath === '/login' || authPath === '/auth' || authPath.indexOf('/auth/') === 0;
                         var isMobileBrowser = !isStandalone && !isDesktop;
+                        // Remove ANY ad (AdSense + Monetag) on auth pages and mobile browser
                         if (isMobileBrowser || isOnAuthPage) {
-                          if (src.indexOf('pagead2.googlesyndication') > -1 || cls.indexOf('adsbygoogle') > -1) {
+                          if (src.indexOf('pagead2.googlesyndication') > -1 || cls.indexOf('adsbygoogle') > -1 ||
+                              src.indexOf('n6wxm') > -1 || el.getAttribute('data-zone')) {
                             el.remove();
                             found = true;
                           }
@@ -403,7 +339,7 @@ export default function RootLayout({
                     }
                   }
                   if (found) {
-                    console.log('[OptiGroup] Ad safety: removed inappropriate ad element');
+                    console.log('[OptiGroup] Ad safety: removed ad element (auth page or mobile browser)');
                   }
                 });
                 adSafetyObserver.observe(document.documentElement, { childList: true, subtree: true });
