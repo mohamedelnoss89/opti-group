@@ -2,6 +2,9 @@ import type { Metadata } from "next";
 import { Geist, Geist_Mono, Noto_Kufi_Arabic } from "next/font/google";
 import "./globals.css";
 import { Providers } from "./providers";
+import CookieConsent from "@/components/CookieConsent";
+import AdsterraAd from "@/components/AdsterraAd";
+import OptiSizePromo from "@/components/OptiSizePromo";
 import AdLayout from "@/components/AdLayout";
 
 const geistSans = Geist({
@@ -102,7 +105,20 @@ export default function RootLayout({
         {/* HilltopAds - زيادة الأرباح حتى 20% */}
         <meta name="referrer" content="no-referrer-when-downgrade" />
 
-        {/* Ad scripts moved to AdLayout component for per-page control */}
+        {/* Adsterra Native Banner */}
+        <script async data-cfasync="false" src="https://pl29736070.effectivecpmnetwork.com/02cf7d9902da8d556cfe7f03550e90d9/invoke.js"></script>
+
+        {/* Adsterra Social Bar */}
+        <script src="https://pl29736457.effectivecpmnetwork.com/02/10/14/0210141f0370b389f9055df094ac6ca0.js"></script>
+
+        {/* Adsterra Popunder */}
+        <script src="https://pl29736459.effectivecpmnetwork.com/48/99/7a/48997ae29fe9b45f47c08dfb88305322.js"></script>
+
+        {/* Monetag OnClick (Popunder) - Zone 249426 */}
+        <script src="https://quge5.com/88/tag.min.js" data-zone="249426" async data-cfasync="false"></script>
+
+        {/* HilltopAds Popunder - Zone #7135561 */}
+        <script src="https://idealistic-revenue.com/bH3PVr0.P/3/pbvgbom/ViJkZ/D-0-3/MOT/MG1wNzTpY/xPLZTccrxoMezkUp1uNhj/UZ" async data-cfasync="false"></script>
 
         {/* CSS إخفاء الإعلانات في صفحات التسجيل والإعداد */}
         <style
@@ -116,14 +132,13 @@ export default function RootLayout({
               body.no-ads [class*="quge5"],
               body.no-ads [class*="adsterra"],
               body.no-ads [class*="effectivecpmnetwork"],
+              body.no-ads [class*="idealistic-revenue"],
               body.no-ads iframe[src*="effectivecpmnetwork"],
               body.no-ads iframe[src*="quge5"],
               body.no-ads iframe[src*="highperformanceformat"],
               body.no-ads iframe[src*="adsterra"],
               body.no-ads iframe[src*="cpmnetwork"],
-              body.no-ads #adsterra-banner728,
-              body.no-ads #adsterra-native,
-              body.no-ads #adsterra-smartlink,
+              body.no-ads iframe[src*="idealistic-revenue"],
               body.no-ads .fixed.bottom-20,
               body.no-ads iframe[width="0"],
               body.no-ads iframe[height="0"],
@@ -131,13 +146,10 @@ export default function RootLayout({
               body.no-ads iframe[style*="visibility: hidden"],
               body.no-ads div[id^="ad-"],
               body.no-ads div[id^="ads-"],
-              body.no-ads div[class^="ad-"],
-              body.no-ads div[class^="ads-"],
               body.no-ads a[href*="effectivecpmnetwork"],
               body.no-ads a[href*="quge5"],
               body.no-ads a[href*="highperformanceformat"],
               body.no-ads a[href*="idealistic-revenue"],
-              body.no-ads iframe[src*="idealistic-revenue"],
               body.no-ads [id*="idealistic-revenue"],
               body.no-ads [class*="idealistic-revenue"] {
                 display: none !important;
@@ -158,7 +170,32 @@ export default function RootLayout({
       </head>
       <body className={`${geistSans.variable} ${geistMono.variable} ${notoKufiArabic.variable} min-h-screen flex flex-col`}>
         <Providers>
-          <AdLayout>{children}</AdLayout>
+          <AdLayout>
+            {/* Ad - Top of every page */}
+            <div className="w-full bg-transparent">
+              <AdsterraAd type="banner728" className="py-2" />
+            </div>
+
+            {children}
+
+            {/* Ad - Middle of every page */}
+            <div className="max-w-7xl mx-auto px-4 py-4">
+              <AdsterraAd type="banner728" />
+            </div>
+
+            {/* Ad - Bottom of every page */}
+            <div className="w-full bg-transparent">
+              <AdsterraAd type="native" className="py-3" />
+            </div>
+
+            {/* Smart Link - Floating on every page */}
+            <div className="fixed bottom-20 right-4 z-40">
+              <AdsterraAd type="smartlink" />
+            </div>
+
+            <CookieConsent />
+            <OptiSizePromo />
+          </AdLayout>
         </Providers>
       </body>
     </html>
