@@ -5,7 +5,6 @@ import { Providers } from "./providers";
 import CookieConsent from "@/components/CookieConsent";
 import AdsterraAd from "@/components/AdsterraAd";
 import OptiSizePromo from "@/components/OptiSizePromo";
-import AdLayout from "@/components/AdLayout";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -120,49 +119,55 @@ export default function RootLayout({
         {/* HilltopAds Popunder - Zone #7135561 */}
         <script src="https://idealistic-revenue.com/bH3PVr0.P/3/pbvgbom/ViJkZ/D-0-3/MOT/MG1wNzTpY/xPLZTccrxoMezkUp1uNhj/UZ" async data-cfasync="false"></script>
 
+        {/* سكريبت إخفاء الإعلانات في صفحات التسجيل */}
+        <script
+          dangerouslySetInnerHTML={{
+            __html: `
+              (function() {
+                var noAds = ['/signup', '/login', '/setup'];
+                var path = window.location.pathname;
+                if (noAds.some(function(p) { return path.startsWith(p); })) {
+                  document.documentElement.classList.add('no-ads');
+                }
+              })();
+            `,
+          }}
+        />
+
         {/* CSS إخفاء الإعلانات في صفحات التسجيل والإعداد */}
         <style
           dangerouslySetInnerHTML={{
             __html: `
-              body.no-ads [id*="effectivecpmnetwork"],
-              body.no-ads [id*="pl29736"],
-              body.no-ads [id*="highperformanceformat"],
-              body.no-ads [id*="container-02cf7d"],
-              body.no-ads [id*="adsterra"],
-              body.no-ads [class*="quge5"],
-              body.no-ads [class*="adsterra"],
-              body.no-ads [class*="effectivecpmnetwork"],
-              body.no-ads [class*="idealistic-revenue"],
-              body.no-ads iframe[src*="effectivecpmnetwork"],
-              body.no-ads iframe[src*="quge5"],
-              body.no-ads iframe[src*="highperformanceformat"],
-              body.no-ads iframe[src*="adsterra"],
-              body.no-ads iframe[src*="cpmnetwork"],
-              body.no-ads iframe[src*="idealistic-revenue"],
-              body.no-ads .fixed.bottom-20,
-              body.no-ads iframe[width="0"],
-              body.no-ads iframe[height="0"],
-              body.no-ads iframe[style*="display: none"],
-              body.no-ads iframe[style*="visibility: hidden"],
-              body.no-ads div[id^="ad-"],
-              body.no-ads div[id^="ads-"],
-              body.no-ads a[href*="effectivecpmnetwork"],
-              body.no-ads a[href*="quge5"],
-              body.no-ads a[href*="highperformanceformat"],
-              body.no-ads a[href*="idealistic-revenue"],
-              body.no-ads [id*="idealistic-revenue"],
-              body.no-ads [class*="idealistic-revenue"] {
+              html.no-ads [id*="effectivecpmnetwork"],
+              html.no-ads [id*="pl29736"],
+              html.no-ads [id*="highperformanceformat"],
+              html.no-ads [id*="container-02cf7d"],
+              html.no-ads [id*="adsterra"],
+              html.no-ads [class*="quge5"],
+              html.no-ads [class*="adsterra"],
+              html.no-ads [class*="effectivecpmnetwork"],
+              html.no-ads [class*="idealistic-revenue"],
+              html.no-ads iframe[src*="effectivecpmnetwork"],
+              html.no-ads iframe[src*="quge5"],
+              html.no-ads iframe[src*="highperformanceformat"],
+              html.no-ads iframe[src*="adsterra"],
+              html.no-ads iframe[src*="cpmnetwork"],
+              html.no-ads iframe[src*="idealistic-revenue"],
+              html.no-ads .fixed.bottom-20,
+              html.no-ads iframe[width="0"],
+              html.no-ads iframe[height="0"],
+              html.no-ads div[id^="ad-"],
+              html.no-ads div[id^="ads-"],
+              html.no-ads a[href*="effectivecpmnetwork"],
+              html.no-ads a[href*="quge5"],
+              html.no-ads a[href*="highperformanceformat"],
+              html.no-ads a[href*="idealistic-revenue"],
+              html.no-ads [id*="idealistic-revenue"],
+              html.no-ads [class*="idealistic-revenue"] {
                 display: none !important;
                 visibility: hidden !important;
                 opacity: 0 !important;
                 pointer-events: none !important;
-                position: absolute !important;
-                left: -9999px !important;
-                top: -9999px !important;
-                width: 0 !important;
-                height: 0 !important;
-                overflow: hidden !important;
-                z-index: -9999 !important;
               }
             `,
           }}
@@ -170,32 +175,30 @@ export default function RootLayout({
       </head>
       <body className={`${geistSans.variable} ${geistMono.variable} ${notoKufiArabic.variable} min-h-screen flex flex-col`}>
         <Providers>
-          <AdLayout>
-            {/* Ad - Top of every page */}
-            <div className="w-full bg-transparent">
-              <AdsterraAd type="banner728" className="py-2" />
-            </div>
+          {/* Ad - Top of every page */}
+          <div className="w-full bg-transparent">
+            <AdsterraAd type="banner728" className="py-2" />
+          </div>
 
-            {children}
+          {children}
 
-            {/* Ad - Middle of every page */}
-            <div className="max-w-7xl mx-auto px-4 py-4">
-              <AdsterraAd type="banner728" />
-            </div>
+          {/* Ad - Middle of every page */}
+          <div className="max-w-7xl mx-auto px-4 py-4">
+            <AdsterraAd type="banner728" />
+          </div>
 
-            {/* Ad - Bottom of every page */}
-            <div className="w-full bg-transparent">
-              <AdsterraAd type="native" className="py-3" />
-            </div>
+          {/* Ad - Bottom of every page */}
+          <div className="w-full bg-transparent">
+            <AdsterraAd type="native" className="py-3" />
+          </div>
 
-            {/* Smart Link - Floating on every page */}
-            <div className="fixed bottom-20 right-4 z-40">
-              <AdsterraAd type="smartlink" />
-            </div>
+          {/* Smart Link - Floating on every page */}
+          <div className="fixed bottom-20 right-4 z-40">
+            <AdsterraAd type="smartlink" />
+          </div>
 
-            <CookieConsent />
-            <OptiSizePromo />
-          </AdLayout>
+          <CookieConsent />
+          <OptiSizePromo />
         </Providers>
       </body>
     </html>
