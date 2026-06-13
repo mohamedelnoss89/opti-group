@@ -84,11 +84,6 @@ export default function HomePage() {
           </div>
         ))}
 
-        {/* إعلان واحد - Banner 728x90 - في النص */}
-        <div className="max-w-7xl mx-auto px-4 py-4">
-          <AdsterraAd type="banner728" />
-        </div>
-
         {/* Contact section */}
         <div className="max-w-7xl mx-auto px-4">
           <div className="h-px bg-gradient-to-r from-transparent via-accent-silver/10 to-transparent" />

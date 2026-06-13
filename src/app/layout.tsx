@@ -4,6 +4,7 @@ import "./globals.css";
 import { Providers } from "./providers";
 import CookieConsent from "@/components/CookieConsent";
 import AdsterraAd from "@/components/AdsterraAd";
+import OptiSizePromo from "@/components/OptiSizePromo";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -118,6 +119,11 @@ export default function RootLayout({
 
           {children}
 
+          {/* Ad - Middle of every page */}
+          <div className="max-w-7xl mx-auto px-4 py-4">
+            <AdsterraAd type="banner728" />
+          </div>
+
           {/* Ad - Bottom of every page */}
           <div className="w-full bg-transparent">
             <AdsterraAd type="native" className="py-3" />
@@ -129,6 +135,7 @@ export default function RootLayout({
           </div>
 
           <CookieConsent />
+          <OptiSizePromo />
         </Providers>
       </body>
     </html>
