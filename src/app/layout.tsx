@@ -101,7 +101,7 @@ export default function RootLayout({
           1. Block ALL ads on mobile browser (not standalone + not desktop)
           2. Block ALL ads on auth/registration pages (/signup, /login, /auth)
           3. Ads allowed on: (a) Desktop browser (b) Mobile PWA standalone
-          - Monetag Vignette (Zone 11143210): allowed on desktop + PWA standalone
+          - Monetag In-Page Push (Zone 249426): allowed on desktop + PWA standalone
           - Google AdSense: allowed on desktop + PWA standalone (when authenticated)
         */}
         <style
@@ -116,7 +116,9 @@ export default function RootLayout({
               html:not(.is-standalone):not(.is-desktop) iframe[src*="adsbygoogle"],
               html:not(.is-standalone):not(.is-desktop) iframe[src*="googlesyndication"],
               html:not(.is-standalone):not(.is-desktop) iframe[src*="n6wxm"],
-              html:not(.is-standalone):not(.is-desktop) div[data-zone] {
+              html:not(.is-standalone):not(.is-desktop) iframe[src*="quge5"],
+              html:not(.is-standalone):not(.is-desktop) div[data-zone],
+              html:not(.is-standalone):not(.is-desktop) script[src*="quge5"] + * {
                 display: none !important;
                 visibility: hidden !important;
                 height: 0 !important;
@@ -143,7 +145,9 @@ export default function RootLayout({
               html.on-auth-page .ad-wrapper,
               html.on-auth-page .ad-slot,
               html.on-auth-page iframe[src*="n6wxm"],
-              html.on-auth-page div[data-zone] {
+              html.on-auth-page iframe[src*="quge5"],
+              html.on-auth-page div[data-zone],
+              html.on-auth-page script[src*="quge5"] + * {
                 display: none !important;
                 visibility: hidden !important;
                 height: 0 !important;
@@ -231,14 +235,19 @@ export default function RootLayout({
                   console.log('[OptiGroup] AdSense loaded (' + (isDesktop ? 'desktop' : isStandalone ? 'standalone' : 'unknown') + ')');
                 }
 
-                // ===== STEP 2: Load Monetag Vignette Banner =====
-                // Zone ID: 11143210 - Vignette format (safe, banner-like overlay)
+                // ===== STEP 2: Load Monetag In-Page Push Banner =====
+                // Zone ID: 249426 - In-Page Push format (sidebar banner with close button)
                 // EXACT original Monetag code - do NOT modify
-                function loadMonetagVignette() {
-                  if (window.__optigroupMonetagVignetteLoaded) return;
-                  window.__optigroupMonetagVignetteLoaded = true;
-                  (function(s){s.dataset.zone='11143210',s.src='https://n6wxm.com/vignette.min.js'})([document.documentElement, document.body].filter(Boolean).pop().appendChild(document.createElement('script')));
-                  console.log('[OptiGroup] Monetag Vignette loaded (' + (isDesktop ? 'desktop' : isStandalone ? 'standalone' : 'unknown') + ')');
+                function loadMonetagInPagePush() {
+                  if (window.__optigroupMonetagLoaded) return;
+                  window.__optigroupMonetagLoaded = true;
+                  var s = document.createElement('script');
+                  s.src = 'https://quge5.com/88/tag.min.js';
+                  s.setAttribute('data-zone', '249426');
+                  s.async = true;
+                  s.setAttribute('data-cfasync', 'false');
+                  document.head.appendChild(s);
+                  console.log('[OptiGroup] Monetag In-Page Push loaded (' + (isDesktop ? 'desktop' : isStandalone ? 'standalone' : 'unknown') + ')');
                 }
 
                 // Check if user is authenticated via Supabase
@@ -283,22 +292,14 @@ export default function RootLayout({
                 if (isStandalone || isDesktop) {
                   // Load AdSense immediately (head is available)
                   loadAdsIfAllowed();
-                  // Load Monetag Vignette after DOM is ready (needs document.body)
+                  // Load Monetag In-Page Push
                   // Desktop: always load, PWA: only when authenticated
                   function tryLoadMonetag() {
                     if (isDesktop || (isStandalone && isSupabaseAuthenticated())) {
-                      loadMonetagVignette();
+                      loadMonetagInPagePush();
                     }
                   }
-                  if (document.body) {
-                    tryLoadMonetag();
-                  } else {
-                    document.addEventListener('DOMContentLoaded', function() {
-                      tryLoadMonetag();
-                    });
-                    // Fallback: try after 500ms even if DOMContentLoaded already fired
-                    setTimeout(tryLoadMonetag, 500);
-                  }
+                  tryLoadMonetag();
                   // Listen for ad loading requests (after auth change)
                   window.addEventListener('optigroup-load-ads', function() {
                     loadAdsIfAllowed();
@@ -313,7 +314,7 @@ export default function RootLayout({
                 // Mobile browser: remove any ad elements that might have loaded
                 if (!isStandalone && !isDesktop) {
                   function removeAdElements() {
-                    var iframes = document.querySelectorAll('iframe[src*="adsbygoogle"], iframe[src*="googlesyndication"], iframe[src*="n6wxm"]');
+                    var iframes = document.querySelectorAll('iframe[src*="adsbygoogle"], iframe[src*="googlesyndication"], iframe[src*="n6wxm"], iframe[src*="quge5"]');
                     for (var i = 0; i < iframes.length; i++) { iframes[i].remove(); }
                     var ins = document.querySelectorAll('ins.adsbygoogle');
                     for (var k = 0; k < ins.length; k++) { ins[k].remove(); }
@@ -343,7 +344,7 @@ export default function RootLayout({
                         // Remove ANY ad (AdSense + Monetag) on auth pages and mobile browser
                         if (isMobileBrowser || isOnAuthPage) {
                           if (src.indexOf('pagead2.googlesyndication') > -1 || cls.indexOf('adsbygoogle') > -1 ||
-                              src.indexOf('n6wxm') > -1 || el.getAttribute('data-zone')) {
+                              src.indexOf('n6wxm') > -1 || src.indexOf('quge5') > -1 || el.getAttribute('data-zone')) {
                             el.remove();
                             found = true;
                           }
