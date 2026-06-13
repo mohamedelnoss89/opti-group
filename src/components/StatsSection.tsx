@@ -151,12 +151,6 @@ export default function StatsSection() {
           >
             {isArabic ? 'إنجازاتنا بالأرقام' : 'Our achievements in numbers'}
           </p>
-          <p
-            className={`text-xs mt-2 ${isArabic ? 'font-arabic' : ''}`}
-            style={{ color: 'rgba(14,165,233,0.5)' }}
-          >
-            {isArabic ? 'وَإِن تَعُدُّوا نِعْمَةَ اللَّهِ لَا تُحْصُوهَا' : 'If you count the blessings of Allah, you cannot count them'}
-          </p>
         </motion.div>
 
         {/* Stats grid */}
