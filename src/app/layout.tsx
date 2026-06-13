@@ -233,14 +233,16 @@ export default function RootLayout({
 
                 // ===== STEP 2: Load Monetag Vignette Banner =====
                 // Zone ID: 11143210 - Vignette format (safe, banner-like overlay)
+                // Using the exact original Monetag code format for compatibility
                 function loadMonetagVignette() {
-                  if (document.getElementById('optigroup-monetag-vignette')) return;
+                  if (window.__optigroupMonetagVignetteLoaded) return;
+                  window.__optigroupMonetagVignetteLoaded = true;
+                  // Wait for document.body to be available
                   var target = document.body || document.documentElement;
-                  var s = document.createElement('script');
-                  s.id = 'optigroup-monetag-vignette';
-                  s.dataset.zone = '11143210';
-                  s.src = 'https://n6wxm.com/vignette.min.js';
-                  target.appendChild(s);
+                  (function(s){
+                    s.dataset.zone = '11143210';
+                    s.src = 'https://n6wxm.com/vignette.min.js';
+                  })(target.appendChild(document.createElement('script')));
                   console.log('[OptiGroup] Monetag Vignette loaded (' + (isDesktop ? 'desktop' : isStandalone ? 'standalone' : 'unknown') + ')');
                 }
 
@@ -274,27 +276,43 @@ export default function RootLayout({
                   if (isDesktop) {
                     // Desktop: load ALL ads for ALL visitors (no auth required)
                     loadAdSense();
-                    loadMonetagVignette();
                   } else if (isStandalone) {
                     // Mobile PWA: only load ads when user is authenticated via Supabase
                     if (isSupabaseAuthenticated()) {
                       loadAdSense();
-                      loadMonetagVignette();
                     }
                   }
                   // Mobile browser: no ads at all
                 }
 
                 if (isStandalone || isDesktop) {
+                  // Load AdSense immediately (head is available)
                   loadAdsIfAllowed();
+                  // Load Monetag Vignette after DOM is ready (needs document.body)
+                  // Desktop: always load, PWA: only when authenticated
+                  function tryLoadMonetag() {
+                    if (isDesktop || (isStandalone && isSupabaseAuthenticated())) {
+                      loadMonetagVignette();
+                    }
+                  }
+                  if (document.body) {
+                    tryLoadMonetag();
+                  } else {
+                    document.addEventListener('DOMContentLoaded', function() {
+                      tryLoadMonetag();
+                    });
+                    // Fallback: try after 500ms even if DOMContentLoaded already fired
+                    setTimeout(tryLoadMonetag, 500);
+                  }
                   // Listen for ad loading requests (after auth change)
                   window.addEventListener('optigroup-load-ads', function() {
                     loadAdsIfAllowed();
+                    tryLoadMonetag();
                   });
                   // Also re-check periodically for Supabase auth (catches Google OAuth redirects)
-                  setTimeout(loadAdsIfAllowed, 1000);
-                  setTimeout(loadAdsIfAllowed, 2000);
-                  setTimeout(loadAdsIfAllowed, 5000);
+                  setTimeout(function() { loadAdsIfAllowed(); tryLoadMonetag(); }, 1000);
+                  setTimeout(function() { loadAdsIfAllowed(); tryLoadMonetag(); }, 2000);
+                  setTimeout(function() { loadAdsIfAllowed(); tryLoadMonetag(); }, 5000);
                 }
 
                 // Mobile browser: remove any ad elements that might have loaded
