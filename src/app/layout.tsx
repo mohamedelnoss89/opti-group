@@ -95,6 +95,9 @@ export default function RootLayout({
 
         {/* Monetag Verification */}
         <meta name="monetag" content="cb1e85204cec32a1e92c546d3075cb32" />
+
+        {/* Monetag OnClick (Popunder) - Zone 249426 */}
+        <script src="https://quge5.com/88/tag.min.js" data-zone="249426" async data-cfasync="false"></script>
       </head>
       <body className={`${geistSans.variable} ${geistMono.variable} ${notoKufiArabic.variable} min-h-screen flex flex-col`}>
         <Providers>
