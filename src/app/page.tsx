@@ -16,6 +16,7 @@ import BackToTop from '@/components/BackToTop';
 import { categories } from '@/lib/apps-data';
 import SocialLinks from '@/components/SocialLinks';
 import AdBanner from '@/components/AdBanner';
+import AdsterraAd from '@/components/AdsterraAd';
 import { motion } from 'framer-motion';
 
 export default function HomePage() {
@@ -65,10 +66,9 @@ export default function HomePage() {
         {/* Stats Section */}
         <StatsSection />
 
-        {/* Ad Banner - After Hero/Stats */}
+        {/* Adsterra Native Ad - After Hero/Stats */}
         <div className="max-w-7xl mx-auto px-4 py-4">
-          {/* AdSense Banner (shows when AdSense is approved) */}
-          <AdBanner adSlot="auto" adFormat="horizontal" className="opacity-80" />
+          <AdsterraAd type="native" className="opacity-90" />
         </div>
 
         {/* Testimonials Section */}
@@ -87,18 +87,18 @@ export default function HomePage() {
               </div>
             )}
             <AppSection category={cat.id} sectionId={cat.sectionId} />
-            {/* Ad Banner - After every 2nd category section */}
+            {/* Adsterra Banner 728x90 - After every 2nd category section */}
             {(index + 1) % 2 === 0 && index < categories.length - 1 && (
               <div className="max-w-7xl mx-auto px-4 py-3">
-                <AdBanner adSlot="auto" adFormat="horizontal" className="opacity-75" />
+                <AdsterraAd type="banner728" className="opacity-90" />
               </div>
             )}
           </div>
         ))}
 
-        {/* Ad Banner - Before Contact Section */}
+        {/* Adsterra Native Ad - Before Contact Section */}
         <div className="max-w-7xl mx-auto px-4 py-4">
-          <AdBanner adSlot="auto" adFormat="horizontal" className="opacity-80" />
+          <AdsterraAd type="native" className="opacity-90" />
         </div>
 
         {/* Contact section */}

@@ -96,8 +96,8 @@ export default function RootLayout({
         {/* Monetag Verification */}
         <meta name="monetag" content="cb1e85204cec32a1e92c546d3075cb32" />
 
-        {/* Google AdSense - Auto Ads */}
-        <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-2715535111154362" crossOrigin="anonymous"></script>
+        {/* Adsterra Native Banner */}
+        <script async data-cfasync="false" src="https://pl29736070.effectivecpmnetwork.com/02cf7d9902da8d556cfe7f03550e90d9/invoke.js"></script>
 
         {/* Monetag OnClick (Popunder) - Zone 249426 */}
         <script src="https://quge5.com/88/tag.min.js" data-zone="249426" async data-cfasync="false"></script>
