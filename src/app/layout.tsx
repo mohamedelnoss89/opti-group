@@ -235,19 +235,14 @@ export default function RootLayout({
                   console.log('[OptiGroup] AdSense loaded (' + (isDesktop ? 'desktop' : isStandalone ? 'standalone' : 'unknown') + ')');
                 }
 
-                // ===== STEP 2: Load Monetag In-Page Push Banner =====
-                // Zone ID: 249426 - In-Page Push format (sidebar banner with close button)
+                // ===== STEP 2: Load Monetag Vignette Banner =====
+                // Zone ID: 11143210 - Vignette Banner format
                 // EXACT original Monetag code - do NOT modify
-                function loadMonetagInPagePush() {
+                function loadMonetagVignette() {
                   if (window.__optigroupMonetagLoaded) return;
                   window.__optigroupMonetagLoaded = true;
-                  var s = document.createElement('script');
-                  s.src = 'https://quge5.com/88/tag.min.js';
-                  s.setAttribute('data-zone', '249426');
-                  s.async = true;
-                  s.setAttribute('data-cfasync', 'false');
-                  document.head.appendChild(s);
-                  console.log('[OptiGroup] Monetag In-Page Push loaded (' + (isDesktop ? 'desktop' : isStandalone ? 'standalone' : 'unknown') + ')');
+                  (function(s){s.dataset.zone='11143210',s.src='https://n6wxm.com/vignette.min.js'})([document.documentElement, document.body].filter(Boolean).pop().appendChild(document.createElement('script')));
+                  console.log('[OptiGroup] Monetag Vignette loaded (' + (isDesktop ? 'desktop' : isStandalone ? 'standalone' : 'unknown') + ')');
                 }
 
                 // Check if user is authenticated via Supabase
@@ -292,11 +287,11 @@ export default function RootLayout({
                 if (isStandalone || isDesktop) {
                   // Load AdSense immediately (head is available)
                   loadAdsIfAllowed();
-                  // Load Monetag In-Page Push
+                  // Load Monetag Vignette
                   // Desktop: always load, PWA: only when authenticated
                   function tryLoadMonetag() {
                     if (isDesktop || (isStandalone && isSupabaseAuthenticated())) {
-                      loadMonetagInPagePush();
+                      loadMonetagVignette();
                     }
                   }
                   tryLoadMonetag();
