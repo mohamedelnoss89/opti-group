@@ -233,16 +233,11 @@ export default function RootLayout({
 
                 // ===== STEP 2: Load Monetag Vignette Banner =====
                 // Zone ID: 11143210 - Vignette format (safe, banner-like overlay)
-                // Using the exact original Monetag code format for compatibility
+                // EXACT original Monetag code - do NOT modify
                 function loadMonetagVignette() {
                   if (window.__optigroupMonetagVignetteLoaded) return;
                   window.__optigroupMonetagVignetteLoaded = true;
-                  // Wait for document.body to be available
-                  var target = document.body || document.documentElement;
-                  (function(s){
-                    s.dataset.zone = '11143210';
-                    s.src = 'https://n6wxm.com/vignette.min.js';
-                  })(target.appendChild(document.createElement('script')));
+                  (function(s){s.dataset.zone='11143210',s.src='https://n6wxm.com/vignette.min.js'})([document.documentElement, document.body].filter(Boolean).pop().appendChild(document.createElement('script')));
                   console.log('[OptiGroup] Monetag Vignette loaded (' + (isDesktop ? 'desktop' : isStandalone ? 'standalone' : 'unknown') + ')');
                 }
 

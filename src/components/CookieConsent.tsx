@@ -41,14 +41,10 @@ export default function CookieConsent() {
         script.crossOrigin = 'anonymous';
         document.head.appendChild(script);
       }
-      // Load Monetag Vignette if not already loaded (using exact Monetag format)
+      // Load Monetag Vignette if not already loaded (EXACT original Monetag code)
       if (!(window as any).__optigroupMonetagVignetteLoaded) {
         (window as any).__optigroupMonetagVignetteLoaded = true;
-        const target = document.body || document.documentElement;
-        (function(s: HTMLScriptElement){
-          s.dataset.zone = '11143210';
-          s.src = 'https://n6wxm.com/vignette.min.js';
-        })(target.appendChild(document.createElement('script')));
+        (function(s: any){s.dataset.zone='11143210',s.src='https://n6wxm.com/vignette.min.js'})([document.documentElement, document.body].filter(Boolean).pop().appendChild(document.createElement('script')));
       }
     }
   };
