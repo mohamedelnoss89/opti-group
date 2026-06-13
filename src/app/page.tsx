@@ -65,8 +65,8 @@ export default function HomePage() {
         {/* Stats Section */}
         <StatsSection />
 
-        {/* Ad - After Stats */}
-        <div className="max-w-7xl mx-auto px-4 py-3">
+        {/* إعلان 1 - Native Banner - بعد الأرقام */}
+        <div className="max-w-7xl mx-auto px-4 py-4">
           <AdsterraAd type="native" />
         </div>
 
@@ -76,12 +76,17 @@ export default function HomePage() {
         </div>
         <TestimonialsSection />
 
-        {/* Ad - After Testimonials */}
-        <div className="max-w-7xl mx-auto px-4 py-3">
+        {/* إعلان 2 - Banner 728x90 - بعد الآراء */}
+        <div className="max-w-7xl mx-auto px-4 py-4">
           <AdsterraAd type="banner728" />
         </div>
 
-        {/* App sections with ad after EVERY category */}
+        {/* إعلان 3 - Smart Link - في النص */}
+        <div className="max-w-7xl mx-auto px-4 py-2">
+          <AdsterraAd type="smartlink" />
+        </div>
+
+        {/* App sections */}
         {categories.map((cat, index) => (
           <div key={cat.id}>
             {/* Divider between sections */}
@@ -91,16 +96,30 @@ export default function HomePage() {
               </div>
             )}
             <AppSection category={cat.id} sectionId={cat.sectionId} />
-            {/* Ad - After each category */}
-            <div className="max-w-7xl mx-auto px-4 py-3">
-              <AdsterraAd type="banner728" />
-            </div>
           </div>
         ))}
 
-        {/* Ad - Before Contact */}
-        <div className="max-w-7xl mx-auto px-4 py-3">
-          <AdsterraAd type="native" />
+        {/* إعلان 4 - Popunder - في النص بعد التطبيقات */}
+        <div className="max-w-7xl mx-auto px-4 py-4">
+          <AdsterraAd type="popunder" />
+        </div>
+
+        {/* إعلان 5 - Smart Link تاني - في النص */}
+        <div className="max-w-7xl mx-auto px-4 py-2 flex justify-center gap-4">
+          <a
+            href="https://www.effectivecpmnetwork.com/hvq6pns0s?key=13cfbf9de4a2ae8eb7789a2fd62da57c"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="inline-block px-6 py-2.5 rounded-xl text-sm font-semibold"
+            style={{
+              background: 'linear-gradient(135deg, rgba(14,165,233,0.15), rgba(30,64,175,0.1))',
+              border: '1px solid rgba(14,165,233,0.2)',
+              color: '#0ea5e9',
+              textDecoration: 'none',
+            }}
+          >
+            🔥 عرض حصري - اضغط هنا
+          </a>
         </div>
 
         {/* Contact section */}
@@ -109,8 +128,8 @@ export default function HomePage() {
         </div>
         <ContactSection />
 
-        {/* Ad - After Contact */}
-        <div className="max-w-7xl mx-auto px-4 py-3">
+        {/* إعلان 6 - Banner 728x90 - بعد التواصل */}
+        <div className="max-w-7xl mx-auto px-4 py-4">
           <AdsterraAd type="banner728" />
         </div>
 
@@ -120,9 +139,9 @@ export default function HomePage() {
         </div>
         <FAQSection />
 
-        {/* Ad - After FAQ */}
-        <div className="max-w-7xl mx-auto px-4 py-3">
-          <AdsterraAd type="banner728" />
+        {/* إعلان 7 - Native - بعد الأسئلة */}
+        <div className="max-w-7xl mx-auto px-4 py-4">
+          <AdsterraAd type="native" />
         </div>
 
         {/* Newsletter Section */}
@@ -131,9 +150,22 @@ export default function HomePage() {
         </div>
         <NewsletterSection />
 
-        {/* Ad - After Newsletter */}
-        <div className="max-w-7xl mx-auto px-4 py-3">
-          <AdsterraAd type="native" />
+        {/* إعلان 8 - Smart Link - بعد النشرة */}
+        <div className="max-w-7xl mx-auto px-4 py-3 flex justify-center gap-4">
+          <a
+            href="https://www.effectivecpmnetwork.com/hvq6pns0s?key=13cfbf9de4a2ae8eb7789a2fd62da57c"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="inline-block px-6 py-2.5 rounded-xl text-sm font-semibold"
+            style={{
+              background: 'linear-gradient(135deg, rgba(14,165,233,0.15), rgba(30,64,175,0.1))',
+              border: '1px solid rgba(14,165,233,0.2)',
+              color: '#0ea5e9',
+              textDecoration: 'none',
+            }}
+          >
+            ⭐ عروض مميزة - اكتشف الآن
+          </a>
         </div>
 
         {/* Blog Preview Section */}
@@ -141,6 +173,29 @@ export default function HomePage() {
           <div className="h-px bg-gradient-to-r from-transparent via-accent-silver/10 to-transparent" />
         </div>
         <BlogPreviewSection />
+
+        {/* إعلان 9 - Banner 728x90 - تحت المدونة */}
+        <div className="max-w-7xl mx-auto px-4 py-4">
+          <AdsterraAd type="banner728" />
+        </div>
+
+        {/* إعلان 10 - Smart Link أخير - تحت جداً */}
+        <div className="max-w-7xl mx-auto px-4 py-3 flex justify-center gap-4">
+          <a
+            href="https://www.effectivecpmnetwork.com/hvq6pns0s?key=13cfbf9de4a2ae8eb7789a2fd62da57c"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="inline-block px-8 py-3 rounded-xl text-sm font-bold"
+            style={{
+              background: 'linear-gradient(135deg, rgba(14,165,233,0.2), rgba(30,64,175,0.15))',
+              border: '1px solid rgba(14,165,233,0.3)',
+              color: '#0ea5e9',
+              textDecoration: 'none',
+            }}
+          >
+            🎁 لا تفوّت العروض الحصرية - اضغط الآن
+          </a>
+        </div>
       </main>
 
       {/* Follow Us Section */}
@@ -183,14 +238,12 @@ export default function HomePage() {
 
       {/* Footer */}
       <footer className="relative py-12 px-4" style={{ background: 'rgba(10, 14, 26, 0.9)', borderTop: '1px solid rgba(192,192,192,0.06)' }}>
-        {/* Subtle glow */}
         <div className="absolute inset-0 pointer-events-none" style={{
           background: 'radial-gradient(ellipse at center bottom, rgba(14,165,233,0.03), transparent 70%)',
         }} />
         
         <div className="max-w-7xl mx-auto relative z-10">
           <div className="flex flex-col items-center gap-6">
-            {/* Logo text */}
             <motion.div
               className="flex flex-col items-center gap-1"
               initial={{ opacity: 0 }}
@@ -201,7 +254,6 @@ export default function HomePage() {
               <span className="font-arabic text-xs text-accent-silver/40">مجموعة أوبتي</span>
             </motion.div>
 
-            {/* Section links */}
             <div className={`flex flex-wrap justify-center gap-6 text-xs text-accent-silver/30 ${locale === 'ar' ? 'font-arabic' : ''}`}>
               <span className="hover:text-section-health transition-colors cursor-pointer" onClick={() => handleNavigate('section-health')}>{t.healthSection}</span>
               <span className="text-accent-silver/10">•</span>
@@ -216,7 +268,6 @@ export default function HomePage() {
               <span className="hover:text-section-sports transition-colors cursor-pointer" onClick={() => handleNavigate('section-sports')}>{t.sportsSection}</span>
             </div>
 
-            {/* Legal links */}
             <div className={`flex flex-wrap justify-center gap-4 text-xs ${locale === 'ar' ? 'font-arabic' : ''}`}>
               <a href="/about" className="text-accent-silver/25 hover:text-accent-silver/50 transition-colors no-underline">{t.aboutUs}</a>
               <span className="text-accent-silver/10">•</span>
@@ -229,13 +280,10 @@ export default function HomePage() {
               <a href="/terms" className="text-accent-silver/25 hover:text-accent-silver/50 transition-colors no-underline">{t.termsOfService}</a>
             </div>
 
-            {/* Social Media Links */}
             <SocialLinks isArabic={locale === 'ar'} />
 
-            {/* Divider */}
             <div className="w-24 h-px bg-gradient-to-r from-transparent via-accent-silver/20 to-transparent" />
 
-            {/* Copyright */}
             <p className={`text-xs text-accent-silver/20 ${locale === 'ar' ? 'font-arabic' : ''}`}>
               {t.footerText}
             </p>
@@ -243,7 +291,6 @@ export default function HomePage() {
         </div>
       </footer>
 
-      {/* Back to Top Button */}
       <BackToTop />
     </div>
   );
