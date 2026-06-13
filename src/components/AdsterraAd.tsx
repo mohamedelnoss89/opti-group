@@ -1,22 +1,16 @@
 'use client';
 
-import { useEffect, useRef } from 'react';
+import { useEffect, useRef, useId } from 'react';
 
 interface AdsterraAdProps {
-  variant: number;
+  type: 'native' | 'banner728';
   className?: string;
 }
 
-// Each variant uses a unique container ID from Adsterra
-// Variant 1: Native Banner (from Adsterra)
-// Variant 2: 728x90 Banner
-// Variant 3: Another placement of 728x90
-
-let banner728Loaded = false;
-
-export default function AdsterraAd({ variant, className = '' }: AdsterraAdProps) {
+export default function AdsterraAd({ type, className = '' }: AdsterraAdProps) {
   const containerRef = useRef<HTMLDivElement>(null);
   const isLoaded = useRef(false);
+  const uniqueId = useId().replace(/:/g, '');
 
   useEffect(() => {
     if (isLoaded.current) return;
@@ -25,13 +19,7 @@ export default function AdsterraAd({ variant, className = '' }: AdsterraAdProps)
     const container = containerRef.current;
     if (!container) return;
 
-    if (variant === 1) {
-      // Native Banner - script is loaded in layout.tsx head
-      // The container div with the specific ID is all we need
-      return;
-    }
-
-    if (variant === 2 || variant === 3) {
+    if (type === 'banner728') {
       // 728x90 Banner - inject scripts dynamically
       const atOptionsScript = document.createElement('script');
       atOptionsScript.type = 'text/javascript';
@@ -51,9 +39,9 @@ export default function AdsterraAd({ variant, className = '' }: AdsterraAdProps)
       invokeScript.src = 'https://www.highperformanceformat.com/df6179afb55a28833e3da220d014e849/invoke.js';
       container.appendChild(invokeScript);
     }
-  }, [variant]);
+  }, [type]);
 
-  if (variant === 1) {
+  if (type === 'native') {
     return (
       <div ref={containerRef} className={`flex justify-center ${className}`}>
         <div id="container-02cf7d9902da8d556cfe7f03550e90d9"></div>

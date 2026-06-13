@@ -3,6 +3,7 @@ import { Geist, Geist_Mono, Noto_Kufi_Arabic } from "next/font/google";
 import "./globals.css";
 import { Providers } from "./providers";
 import CookieConsent from "@/components/CookieConsent";
+import AdsterraAd from "@/components/AdsterraAd";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -104,7 +105,18 @@ export default function RootLayout({
       </head>
       <body className={`${geistSans.variable} ${geistMono.variable} ${notoKufiArabic.variable} min-h-screen flex flex-col`}>
         <Providers>
+          {/* Ad Banner - Top of every page */}
+          <div className="w-full bg-transparent">
+            <AdsterraAd type="banner728" className="py-2" />
+          </div>
+
           {children}
+
+          {/* Ad Banner - Bottom of every page */}
+          <div className="w-full bg-transparent">
+            <AdsterraAd type="native" className="py-3" />
+          </div>
+
           <CookieConsent />
         </Providers>
       </body>

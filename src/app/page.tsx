@@ -15,7 +15,6 @@ import BlogPreviewSection from '@/components/BlogPreviewSection';
 import BackToTop from '@/components/BackToTop';
 import { categories } from '@/lib/apps-data';
 import SocialLinks from '@/components/SocialLinks';
-import AdBanner from '@/components/AdBanner';
 import AdsterraAd from '@/components/AdsterraAd';
 import { motion } from 'framer-motion';
 
@@ -66,9 +65,9 @@ export default function HomePage() {
         {/* Stats Section */}
         <StatsSection />
 
-        {/* Adsterra Native Ad - After Hero/Stats */}
-        <div className="max-w-7xl mx-auto px-4 py-4">
-          <AdsterraAd variant={1} className="opacity-90" />
+        {/* Ad - After Stats */}
+        <div className="max-w-7xl mx-auto px-4 py-3">
+          <AdsterraAd type="native" />
         </div>
 
         {/* Testimonials Section */}
@@ -77,12 +76,12 @@ export default function HomePage() {
         </div>
         <TestimonialsSection />
 
-        {/* Adsterra Banner 728x90 - After Testimonials */}
+        {/* Ad - After Testimonials */}
         <div className="max-w-7xl mx-auto px-4 py-3">
-          <AdsterraAd variant={2} className="opacity-90" />
+          <AdsterraAd type="banner728" />
         </div>
 
-        {/* App sections with ad between categories */}
+        {/* App sections with ad after EVERY category */}
         {categories.map((cat, index) => (
           <div key={cat.id}>
             {/* Divider between sections */}
@@ -92,18 +91,16 @@ export default function HomePage() {
               </div>
             )}
             <AppSection category={cat.id} sectionId={cat.sectionId} />
-            {/* Adsterra Banner - After every 2nd category section */}
-            {(index + 1) % 2 === 0 && index < categories.length - 1 && (
-              <div className="max-w-7xl mx-auto px-4 py-3">
-                <AdsterraAd variant={3} className="opacity-90" />
-              </div>
-            )}
+            {/* Ad - After each category */}
+            <div className="max-w-7xl mx-auto px-4 py-3">
+              <AdsterraAd type="banner728" />
+            </div>
           </div>
         ))}
 
-        {/* Adsterra Banner 728x90 - Before Contact Section */}
-        <div className="max-w-7xl mx-auto px-4 py-4">
-          <AdsterraAd variant={2} className="opacity-90" />
+        {/* Ad - Before Contact */}
+        <div className="max-w-7xl mx-auto px-4 py-3">
+          <AdsterraAd type="native" />
         </div>
 
         {/* Contact section */}
@@ -112,17 +109,32 @@ export default function HomePage() {
         </div>
         <ContactSection />
 
+        {/* Ad - After Contact */}
+        <div className="max-w-7xl mx-auto px-4 py-3">
+          <AdsterraAd type="banner728" />
+        </div>
+
         {/* FAQ Section */}
         <div className="max-w-7xl mx-auto px-4">
           <div className="h-px bg-gradient-to-r from-transparent via-accent-silver/10 to-transparent" />
         </div>
         <FAQSection />
 
+        {/* Ad - After FAQ */}
+        <div className="max-w-7xl mx-auto px-4 py-3">
+          <AdsterraAd type="banner728" />
+        </div>
+
         {/* Newsletter Section */}
         <div className="max-w-7xl mx-auto px-4">
           <div className="h-px bg-gradient-to-r from-transparent via-accent-silver/10 to-transparent" />
         </div>
         <NewsletterSection />
+
+        {/* Ad - After Newsletter */}
+        <div className="max-w-7xl mx-auto px-4 py-3">
+          <AdsterraAd type="native" />
+        </div>
 
         {/* Blog Preview Section */}
         <div className="max-w-7xl mx-auto px-4">
