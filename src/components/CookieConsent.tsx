@@ -24,16 +24,8 @@ export default function CookieConsent() {
   const handleAccept = () => {
     localStorage.setItem(CONSENT_KEY, 'accepted');
     setShowConsent(false);
-    // Enable personalized ads
-    try {
-      // @ts-expect-error adsbygoogle is injected by the AdSense script
-      (window.adsbygoogle = window.adsbygoogle || []).push({
-        google_ad_client: "ca-pub-2715535111154362",
-        enable_page_level_ads: true
-      });
-    } catch (e) {
-      // Silently fail
-    }
+    // Dispatch event so AdBanner components can react
+    window.dispatchEvent(new Event('cookie-consent-changed'));
   };
 
   const handleDecline = () => {

@@ -108,6 +108,9 @@ export default function AuthForm({ mode }: AuthFormProps) {
           setError(authError);
         } else {
           setSuccess(t.loginSuccess);
+          // Notify the app that user is now authenticated → allow ads to load on PWA
+          window.dispatchEvent(new Event('optigroup-auth-changed'));
+          window.dispatchEvent(new Event('optigroup-load-ads'));
           setTimeout(() => router.push('/'), 1000);
         }
       } else {
@@ -116,6 +119,9 @@ export default function AuthForm({ mode }: AuthFormProps) {
           setError(authError);
         } else {
           setSuccess(t.signupSuccess);
+          // Notify the app that user is now authenticated → allow ads to load on PWA
+          window.dispatchEvent(new Event('optigroup-auth-changed'));
+          window.dispatchEvent(new Event('optigroup-load-ads'));
           setTimeout(() => router.push('/'), 1500);
         }
       }
