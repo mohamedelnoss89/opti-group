@@ -26,6 +26,19 @@ export default function CookieConsent() {
     setShowConsent(false);
     // Dispatch event so AdBanner components can react
     window.dispatchEvent(new Event('cookie-consent-changed'));
+    // Also try to load AdSense on desktop/standalone if not already loaded
+    const isStandalone =
+      window.matchMedia('(display-mode: standalone)').matches ||
+      (window.navigator as any).standalone === true;
+    const isDesktop = !isStandalone && window.innerWidth >= 1024;
+    if ((isStandalone || isDesktop) && !document.getElementById('optigroup-adsense-script')) {
+      const script = document.createElement('script');
+      script.id = 'optigroup-adsense-script';
+      script.async = true;
+      script.src = 'https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-2715535111154362';
+      script.crossOrigin = 'anonymous';
+      document.head.appendChild(script);
+    }
   };
 
   const handleDecline = () => {

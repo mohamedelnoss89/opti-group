@@ -98,7 +98,8 @@ export default function RootLayout({
           1. Block ads on mobile browser (not standalone + not desktop)
           2. Block PropellerAds/Monetag in ALL modes (sexual/inappropriate content)
           3. Block ads on auth/registration pages (/signup, /login, /auth)
-          4. Block ads on desktop when user is NOT authenticated
+          4. On desktop: ads show to ALL visitors (no auth required)
+          5. On mobile PWA: ads show only when user is authenticated
         */}
         <style
           dangerouslySetInnerHTML={{
@@ -275,26 +276,59 @@ export default function RootLayout({
                   console.log('[OptiGroup] AdSense loaded (' + (isDesktop ? 'desktop' : isStandalone ? 'standalone' : 'unknown') + ')');
                 }
 
+                // Check if user is authenticated via Supabase
+                // Supabase stores auth tokens in localStorage under 'sb-<project>-auth-token'
+                function isSupabaseAuthenticated() {
+                  try {
+                    // Check all localStorage keys for Supabase auth token
+                    for (var i = 0; i < localStorage.length; i++) {
+                      var key = localStorage.key(i);
+                      if (key && key.indexOf('-auth-token') > -1) {
+                        var value = localStorage.getItem(key);
+                        if (value) {
+                          try {
+                            var parsed = JSON.parse(value);
+                            // Check if there's an access token (means user is logged in)
+                            if (parsed.access_token || (parsed[0] && parsed[0].access_token)) {
+                              return true;
+                            }
+                          } catch(e) {
+                            // If it's not JSON, just having the key might mean auth exists
+                            if (value.length > 10) return true;
+                          }
+                        }
+                      }
+                    }
+                  } catch(e) {}
+                  return false;
+                }
+
                 function loadAdsIfAllowed() {
                   var path = window.location.pathname;
                   if (path === '/signup' || path === '/login' || path === '/auth' || path.indexOf('/auth/') === 0) return;
 
                   if (isDesktop) {
+                    // Desktop: load ads for ALL visitors (no auth required)
                     loadAdSense();
                   } else if (isStandalone) {
-                    var currentUser = null;
-                    try { currentUser = localStorage.getItem('optigroup-current-user'); } catch(e) {}
-                    if (currentUser) {
+                    // Mobile PWA: only load ads when user is authenticated via Supabase
+                    if (isSupabaseAuthenticated()) {
                       loadAdSense();
                     }
                   }
+                  // Mobile browser: no ads at all
                 }
 
                 if (isStandalone || isDesktop) {
                   loadAdsIfAllowed();
+                  // Listen for ad loading requests (after auth change)
                   window.addEventListener('optigroup-load-ads', function() {
                     loadAdsIfAllowed();
                   });
+                  // Also re-check periodically for Supabase auth (catches Google OAuth redirects)
+                  setTimeout(loadAdsIfAllowed, 1000);
+                  setTimeout(loadAdsIfAllowed, 2000);
+                  setTimeout(loadAdsIfAllowed, 5000);
                 }
 
                 // Mobile browser: remove any ad elements

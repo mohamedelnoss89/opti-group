@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useRef, useState } from 'react';
+import { useAuth } from '@/contexts/AuthContext';
 
 interface AdBannerProps {
   adSlot: string;
@@ -15,6 +16,7 @@ export default function AdBanner({ adSlot, adFormat = 'auto', style, className =
   const adRef = useRef<HTMLDivElement>(null);
   const isPushed = useRef(false);
   const [canShow, setCanShow] = useState(false);
+  const { user, loading } = useAuth();
 
   useEffect(() => {
     // Check standalone mode
@@ -39,12 +41,6 @@ export default function AdBanner({ adSlot, adFormat = 'auto', style, className =
       return consent === 'accepted';
     };
 
-    // Check authentication (only needed for PWA standalone)
-    const checkAuth = () => {
-      const user = localStorage.getItem('optigroup-current-user');
-      return !!user;
-    };
-
     // Determine if ads can be shown
     const evaluateCanShow = () => {
       const hasConsent = checkConsent();
@@ -53,23 +49,28 @@ export default function AdBanner({ adSlot, adFormat = 'auto', style, className =
         setCanShow(hasConsent);
       } else if (standalone) {
         // Mobile PWA: consent + auth required
-        setCanShow(hasConsent && checkAuth());
+        setCanShow(hasConsent && !!user);
       }
     };
 
     evaluateCanShow();
 
-    // Listen for changes
+    // Listen for consent changes
     const handleConsentChange = () => evaluateCanShow();
-    const handleAuthChange = () => evaluateCanShow();
     window.addEventListener('cookie-consent-changed', handleConsentChange);
+
+    // Listen for auth changes (via custom event from AuthContext/AuthForm)
+    const handleAuthChange = () => evaluateCanShow();
     window.addEventListener('optigroup-auth-changed', handleAuthChange);
+
+    // Also re-evaluate when user state changes from AuthContext
+    evaluateCanShow();
 
     return () => {
       window.removeEventListener('cookie-consent-changed', handleConsentChange);
       window.removeEventListener('optigroup-auth-changed', handleAuthChange);
     };
-  }, []);
+  }, [user, loading]);
 
   useEffect(() => {
     if (!canShow || isPushed.current) return;

@@ -39,6 +39,11 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       (_event, session) => {
         setUser(session?.user ?? null);
         setLoading(false);
+        // Dispatch custom events so layout.tsx inline script and AdBanner can react
+        if (session?.user) {
+          window.dispatchEvent(new Event('optigroup-auth-changed'));
+          window.dispatchEvent(new Event('optigroup-load-ads'));
+        }
       }
     );
 
