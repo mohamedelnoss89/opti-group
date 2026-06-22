@@ -5,7 +5,6 @@ import { Providers } from "./providers";
 import CookieConsent from "@/components/CookieConsent";
 import AdsterraAd from "@/components/AdsterraAd";
 import AdsterraIframeAd from "@/components/AdsterraIframeAd";
-import OptiSizePromo from "@/components/OptiSizePromo";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -223,7 +222,6 @@ export default function RootLayout({
           </div>
 
           <CookieConsent />
-          <OptiSizePromo />
         </Providers>
       </body>
     </html>
