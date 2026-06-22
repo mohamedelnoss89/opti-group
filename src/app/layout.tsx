@@ -5,6 +5,7 @@ import { Providers } from "./providers";
 import CookieConsent from "@/components/CookieConsent";
 import AdsterraAd from "@/components/AdsterraAd";
 import AdsterraIframeAd from "@/components/AdsterraIframeAd";
+import TopRightAdCloser from "@/components/TopRightAdCloser";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -169,6 +170,28 @@ export default function RootLayout({
                 opacity: 0 !important;
                 pointer-events: none !important;
               }
+
+              /* === Top-right ad dismiss (TopRightAdCloser component) ===
+                 When user clicks the X button at top-right, we set
+                 data-top-right-ad-hidden="1" on <html>. These rules
+                 hide Adsterra Social Bar elements (which inject in the
+                 top-right corner) for the rest of the session. */
+              html[data-top-right-ad-hidden="1"] iframe[src*="effectivecpmnetwork"][src*="0210141f"],
+              html[data-top-right-ad-hidden="1"] div[id*="pl29736457"],
+              html[data-top-right-ad-hidden="1"] div[id*="0210141f"],
+              html[data-top-right-ad-hidden="1"] div[class*="pl29736457"],
+              html[data-top-right-ad-hidden="1"] #pl29736457,
+              html[data-top-right-ad-hidden="1"] div[style*="top: 0px"],
+              html[data-top-right-ad-hidden="1"] div[style*="top:0px"],
+              html[data-top-right-ad-hidden="1"] div[style*="top: 0"][style*="right: 0"],
+              html[data-top-right-ad-hidden="1"] div[style*="top:0"][style*="right:0"],
+              html[data-top-right-ad-hidden="1"] div[style*="position: fixed"][style*="top: 0"],
+              html[data-top-right-ad-hidden="1"] div[style*="position:fixed"][style*="top:0"] {
+                display: none !important;
+                visibility: hidden !important;
+                opacity: 0 !important;
+                pointer-events: none !important;
+              }
             `,
           }}
         />
@@ -222,6 +245,7 @@ export default function RootLayout({
           </div>
 
           <CookieConsent />
+          <TopRightAdCloser />
         </Providers>
       </body>
     </html>
