@@ -4,6 +4,7 @@ import "./globals.css";
 import { Providers } from "./providers";
 import CookieConsent from "@/components/CookieConsent";
 import AdsterraAd from "@/components/AdsterraAd";
+import AdsterraIframeAd from "@/components/AdsterraIframeAd";
 import OptiSizePromo from "@/components/OptiSizePromo";
 
 const geistSans = Geist({
@@ -175,21 +176,45 @@ export default function RootLayout({
       </head>
       <body className={`${geistSans.variable} ${geistMono.variable} ${notoKufiArabic.variable} min-h-screen flex flex-col`}>
         <Providers>
-          {/* Ad - Top of every page */}
-          <div className="w-full bg-transparent">
-            <AdsterraAd type="banner728" className="py-2" />
+          {/* ===== TOP BANNERS (2 banners) ===== */}
+          {/* #1 — 728x90 banner */}
+          <div
+            className="opti-group-ad-top-1 w-full bg-transparent"
+            style={{ padding: "6px 4px", borderBottom: "1px solid rgba(14,165,233,0.05)" }}
+          >
+            <AdsterraIframeAd src="/ads/banner728.html" width={728} height={90} />
+          </div>
+
+          {/* #2 — 728x90 banner (NEW in this version — isolated iframe) */}
+          <div
+            className="opti-group-ad-top-2 w-full bg-transparent"
+            style={{ padding: "6px 4px", borderBottom: "1px solid rgba(14,165,233,0.05)" }}
+          >
+            <AdsterraIframeAd src="/ads/banner728-2.html" width={728} height={90} />
           </div>
 
           {children}
 
-          {/* Ad - Middle of every page */}
-          <div className="max-w-7xl mx-auto px-4 py-4">
-            <AdsterraAd type="banner728" />
-          </div>
-
-          {/* Ad - Bottom of every page */}
+          {/* ===== BOTTOM BANNERS ===== */}
+          {/* Native Banner (separate format, kept between content and rectangular banners) */}
           <div className="w-full bg-transparent">
             <AdsterraAd type="native" className="py-3" />
+          </div>
+
+          {/* #1 — 728x90 banner (NEW — was the middle banner, now at bottom) */}
+          <div
+            className="opti-group-ad-bottom-1 w-full bg-transparent"
+            style={{ padding: "6px 4px", borderTop: "1px solid rgba(14,165,233,0.05)" }}
+          >
+            <AdsterraIframeAd src="/ads/banner728-2.html" width={728} height={90} />
+          </div>
+
+          {/* #2 — 728x90 banner (NEW — second bottom banner) */}
+          <div
+            className="opti-group-ad-bottom-2 w-full bg-transparent"
+            style={{ padding: "6px 4px", borderTop: "1px solid rgba(14,165,233,0.05)" }}
+          >
+            <AdsterraIframeAd src="/ads/banner728.html" width={728} height={90} />
           </div>
 
           {/* Smart Link - Floating on every page */}
