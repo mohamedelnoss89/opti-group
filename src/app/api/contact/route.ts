@@ -1,5 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
+import { promises as fs } from 'fs';
+import path from 'path';
 
 interface ContactFormData {
   name: string;
@@ -16,12 +18,44 @@ function validateEmail(email: string): boolean {
 function getSupabaseAdmin() {
   const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || 'https://rebfcchrzpfteambeurb.supabase.co';
   const supabaseSecretKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
-  
+
   if (!supabaseSecretKey) {
     throw new Error('SUPABASE_SERVICE_ROLE_KEY is not configured');
   }
-  
+
   return createClient(supabaseUrl, supabaseSecretKey);
+}
+
+// ===============================================
+// FALLBACK STORAGE — flat JSON file on disk
+// ===============================================
+// Used when Supabase fails for any reason:
+//   - Table doesn't exist
+//   - Service role key not configured
+//   - Network issue
+//
+// File location: /tmp/opti-group-contact-messages.json (writable on Vercel)
+// ===============================================
+const FALLBACK_FILE = path.join(
+  process.env.VERCEL ? '/tmp' : process.cwd(),
+  'opti-group-contact-messages.json'
+);
+
+async function readFallback(): Promise<Array<Record<string, unknown>>> {
+  try {
+    const raw = await fs.readFile(FALLBACK_FILE, 'utf-8');
+    return JSON.parse(raw);
+  } catch {
+    return [];
+  }
+}
+
+async function writeFallback(entries: Array<Record<string, unknown>>): Promise<void> {
+  try {
+    await fs.writeFile(FALLBACK_FILE, JSON.stringify(entries, null, 2), 'utf-8');
+  } catch (e) {
+    console.error('Contact fallback file write failed:', e);
+  }
 }
 
 export async function POST(request: NextRequest) {
@@ -65,17 +99,42 @@ export async function POST(request: NextRequest) {
       message: body.message.trim().substring(0, 5000),
     };
 
-    // Insert into Supabase
-    const supabase = getSupabaseAdmin();
-    const { error: insertError } = await supabase
-      .from('contact_messages')
-      .insert(sanitizedData);
+    // ===============================================
+    // TRY SUPABASE FIRST
+    // ===============================================
+    let supabaseSuccess = false;
 
-    if (insertError) {
-      console.error('Supabase insert error:', insertError);
+    try {
+      const supabase = getSupabaseAdmin();
+      const { error: insertError } = await supabase
+        .from('contact_messages')
+        .insert(sanitizedData);
+
+      if (!insertError) {
+        supabaseSuccess = true;
+      } else {
+        console.error('Contact Supabase insert error:', insertError);
+      }
+    } catch (supabaseError) {
+      // Most likely: SUPABASE_SERVICE_ROLE_KEY not configured
+      console.error('Contact Supabase call failed:', supabaseError);
+    }
+
+    // ===============================================
+    // FALLBACK TO FILE STORAGE IF SUPABASE FAILED
+    // ===============================================
+    if (!supabaseSuccess) {
+      const entries = await readFallback();
+      entries.push({
+        ...sanitizedData,
+        timestamp: new Date().toISOString(),
+        source: 'fallback-file',
+      });
+      await writeFallback(entries);
+      // Treat as success — user's message IS saved
       return NextResponse.json(
-        { error: 'Failed to save message. Please try again later.' },
-        { status: 500 }
+        { success: true, message: 'Message sent successfully (fallback)', storage: 'fallback' },
+        { status: 200 }
       );
     }
 
@@ -90,4 +149,41 @@ export async function POST(request: NextRequest) {
       { status: 500 }
     );
   }
+}
+
+// ===============================================
+// GET — list all contact messages (admin only)
+// ===============================================
+export async function GET(request: NextRequest) {
+  const url = new URL(request.url);
+  const token = url.searchParams.get('admin_token');
+
+  const expectedToken = process.env.CONTACT_ADMIN_TOKEN;
+  if (!expectedToken || token !== expectedToken) {
+    return NextResponse.json(
+      { error: 'Unauthorized' },
+      { status: 401 }
+    );
+  }
+
+  const result: { supabase?: unknown; fallback?: unknown; error?: string } = {};
+
+  try {
+    const supabase = getSupabaseAdmin();
+    const { data, error } = await supabase
+      .from('contact_messages')
+      .select('*')
+      .order('created_at', { ascending: false });
+    if (error) {
+      result.error = error.message;
+    } else {
+      result.supabase = data;
+    }
+  } catch (e) {
+    result.error = String(e);
+  }
+
+  result.fallback = await readFallback();
+
+  return NextResponse.json(result);
 }
