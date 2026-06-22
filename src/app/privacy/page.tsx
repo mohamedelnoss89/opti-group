@@ -147,7 +147,7 @@ export default function PrivacyPage() {
                 </Section>
 
                 <Section title="اتصل بنا">
-                  إذا كان لديكم أي أسئلة حول سياسة الخصوصية هذه أو ممارسات البيانات الخاصة بنا، يرجى التواصل معنا عبر صفحة الاتصال على موقعنا أو عبر البريد الإلكتروني: mohamed10.mohamed10@gmail.com
+                  إذا كان لديكم أي أسئلة حول سياسة الخصوصية هذه أو ممارسات البيانات الخاصة بنا، يرجى التواصل معنا عبر صفحة الاتصال على موقعنا أو عبر البريد الإلكتروني: optigroup.10@gmail.com
                 </Section>
               </>
             ) : (
@@ -224,7 +224,7 @@ export default function PrivacyPage() {
                 </Section>
 
                 <Section title="Contact Us">
-                  If you have any questions about this Privacy Policy or our data practices, please contact us through the contact page on our website or via email at: mohamed10.mohamed10@gmail.com
+                  If you have any questions about this Privacy Policy or our data practices, please contact us through the contact page on our website or via email at: optigroup.10@gmail.com
                 </Section>
               </>
             )}

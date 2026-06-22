@@ -108,7 +108,7 @@ export default function TermsPage() {
                 </Section>
 
                 <Section title="اتصل بنا">
-                  لأي أسئلة حول شروط الاستخدام هذه، يرجى التواصل معنا عبر صفحة الاتصال على موقعنا أو عبر البريد الإلكتروني: mohamed10.mohamed10@gmail.com
+                  لأي أسئلة حول شروط الاستخدام هذه، يرجى التواصل معنا عبر صفحة الاتصال على موقعنا أو عبر البريد الإلكتروني: optigroup.10@gmail.com
                 </Section>
               </>
             ) : (
@@ -146,7 +146,7 @@ export default function TermsPage() {
                 </Section>
 
                 <Section title="Contact Us">
-                  For any questions about these Terms of Service, please contact us through the contact page on our website or via email at: mohamed10.mohamed10@gmail.com
+                  For any questions about these Terms of Service, please contact us through the contact page on our website or via email at: optigroup.10@gmail.com
                 </Section>
               </>
             )}
