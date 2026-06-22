@@ -10,51 +10,6 @@ interface ContactFormData {
   message: string;
 }
 
-// ===============================================
-// FORWARD-TO-EMAIL via FormSubmit.co
-// ===============================================
-// Free service (no signup). First submission triggers a confirmation email
-// to optigroup.10@gmail.com — after the owner clicks confirm, every new
-// contact message is delivered to that inbox automatically.
-// ===============================================
-const CONTACT_INBOX = 'optigroup.10@gmail.com';
-
-async function forwardToEmail(data: {
-  name: string;
-  email: string;
-  subject: string | null;
-  message: string;
-}): Promise<boolean> {
-  try {
-    const formData = new URLSearchParams();
-    formData.append('name', data.name);
-    formData.append('email', data.email);
-    formData.append('_subject', `opti-group | ${data.subject || 'رسالة جديدة من زائر'}`);
-    formData.append('message', data.message);
-    // AJAX endpoint returns JSON
-    formData.append('_template', 'table');
-    formData.append('_captcha', 'false');
-
-    const res = await fetch(`https://formsubmit.co/ajax/${CONTACT_INBOX}`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/x-www-form-urlencoded',
-        Accept: 'application/json',
-      },
-      body: formData.toString(),
-      // Don't let one slow third-party hang the whole request
-      signal: AbortSignal.timeout(10000),
-    });
-
-    if (!res.ok) return false;
-    const json = (await res.json()) as { success?: boolean };
-    return json.success === true;
-  } catch (e) {
-    console.error('forwardToEmail failed:', e);
-    return false;
-  }
-}
-
 function validateEmail(email: string): boolean {
   const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
   return emailRegex.test(email);
@@ -178,24 +133,11 @@ export async function POST(request: NextRequest) {
       await writeFallback(entries);
     }
 
-    // ===============================================
-    // FORWARD TO INBOX (optigroup.10@gmail.com) via FormSubmit.co
-    // — this is what actually delivers the message to the owner.
-    // ===============================================
-    const emailDelivered = await forwardToEmail(sanitizedData);
-
-    if (emailDelivered) {
-      return NextResponse.json(
-        { success: true, message: 'Message sent successfully', delivered: true },
-        { status: 200 }
-      );
-    }
-
-    // Email forward failed — but the message is still saved locally,
-    // so treat as success (UI shows "sent") and log for review.
-    console.error('Email forward failed — message saved to fallback only');
+    // NOTE: actual email delivery to optigroup.10@gmail.com is now
+    // handled client-side by ContactModal.tsx (FormSubmit.co + mailto fallback)
+    // because FormSubmit blocks server-side Vercel IPs with Cloudflare.
     return NextResponse.json(
-      { success: true, message: 'Message saved (email delivery pending)', delivered: false },
+      { success: true, message: 'Message saved successfully' },
       { status: 200 }
     );
   } catch (error) {

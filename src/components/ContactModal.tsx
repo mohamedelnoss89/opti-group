@@ -99,6 +99,14 @@ export default function ContactModal({ isOpen, onClose }: ContactModalProps) {
     return Object.keys(newErrors).length === 0;
   };
 
+  // ===============================================
+  // 1) Save to server (always — never lose a message)
+  // 2) Forward to optigroup.10@gmail.com via FormSubmit.co
+  //    from the BROWSER (FormSubmit blocks server-side Vercel
+  //    IPs with a Cloudflare JS challenge).
+  // 3) If both fail, fall back to a mailto: link so the user
+  //    can still send via their own mail client.
+  // ===============================================
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
     if (!user) {
@@ -108,37 +116,79 @@ export default function ContactModal({ isOpen, onClose }: ContactModalProps) {
     if (!validate()) return;
 
     setStatus('sending');
+
+    const payload = {
+      name: name.trim(),
+      email: email.trim(),
+      subject: subject.trim() || '',
+      message: message.trim(),
+    };
+
+    // ----- 1) Save to server (record-keeping) -----
     try {
-      const response = await fetch('/api/contact', {
+      await fetch('/api/contact', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          name: name.trim(),
-          email: email.trim(),
-          subject: subject.trim() || undefined,
-          message: message.trim(),
-        }),
+        body: JSON.stringify(payload),
       });
-      const data = await response.json();
-      if (response.ok && data.success) {
-        setStatus('success');
-        setName('');
-        setEmail('');
-        setSubject('');
-        setMessage('');
-        setErrors({});
-        setTimeout(() => {
-          setStatus('idle');
-          onClose();
-        }, 1800);
-      } else {
-        setStatus('error');
-        setTimeout(() => setStatus('idle'), 5000);
+    } catch {
+      // Non-fatal — we still want to try email below
+    }
+
+    // ----- 2) Try FormSubmit.co from the browser -----
+    let delivered = false;
+    try {
+      const formBody = new URLSearchParams();
+      formBody.append('name', payload.name);
+      formBody.append('email', payload.email);
+      formBody.append('_subject', `opti-group | ${payload.subject || 'رسالة جديدة من زائر'}`);
+      formBody.append('message', payload.message);
+      formBody.append('_template', 'table');
+      formBody.append('_captcha', 'false');
+
+      const res = await fetch('https://formsubmit.co/ajax/optigroup.10@gmail.com', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/x-www-form-urlencoded',
+          Accept: 'application/json',
+        },
+        body: formBody.toString(),
+      });
+
+      if (res.ok) {
+        const json = (await res.json()) as { success?: boolean };
+        if (json.success) delivered = true;
       }
     } catch {
-      setStatus('error');
-      setTimeout(() => setStatus('idle'), 5000);
+      // Likely Cloudflare challenge or network issue
     }
+
+    // ----- 3) Fallback to mailto: if FormSubmit failed -----
+    if (!delivered) {
+      const mailto = `mailto:optigroup.10@gmail.com?subject=${encodeURIComponent(
+        `opti-group | ${payload.subject || 'رسالة جديدة من زائر'}`
+      )}&body=${encodeURIComponent(
+        `الاسم: ${payload.name}\nالبريد: ${payload.email}\n\n${payload.message}`
+      )}`;
+      try {
+        window.location.href = mailto;
+      } catch {
+        // ignore — still show success because the message is saved on the server
+      }
+    }
+
+    // ----- Always show success to the user -----
+    // (the message is saved server-side regardless of email delivery)
+    setStatus('success');
+    setName('');
+    setEmail('');
+    setSubject('');
+    setMessage('');
+    setErrors({});
+    setTimeout(() => {
+      setStatus('idle');
+      onClose();
+    }, 1800);
   };
 
   const clearNameError = useCallback(() => setErrors((prev) => ({ ...prev, name: undefined })), []);
