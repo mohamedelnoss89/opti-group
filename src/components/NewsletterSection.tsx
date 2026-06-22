@@ -1,16 +1,54 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useLanguage } from '@/contexts/LanguageContext';
+import { useAuth } from '@/contexts/AuthContext';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Mail, Send, CheckCircle, AlertCircle, Loader2 } from 'lucide-react';
 
 export default function NewsletterSection() {
   const { t, locale } = useLanguage();
   const isArabic = locale === 'ar';
+  const { user } = useAuth();
   const [email, setEmail] = useState('');
   const [status, setStatus] = useState<'idle' | 'sending' | 'success' | 'already' | 'error'>('idle');
   const [emailError, setEmailError] = useState('');
+
+  // Auto-fill email when user is logged in
+  useEffect(() => {
+    if (user?.email && !email) {
+      setEmail(user.email);
+    }
+  }, [user, email]);
+
+  // Auto-fill email from browser's password manager (works even if user
+  // is NOT logged in to our app, as long as they saved credentials for
+  // this site before — Chrome/Firefox/Safari all support this).
+  useEffect(() => {
+    let cancelled = false;
+    if (email) return; // Already filled (logged-in user or manual entry)
+    if (!('credentials' in navigator)) return; // Browser doesn't support
+    if (!window.isSecureContext) return; // Only works on HTTPS
+
+    // Slight delay so it doesn't compete with the auth context fill
+    const timer = setTimeout(async () => {
+      try {
+        // @ts-expect-error - PasswordCredential is not in TS DOM lib by default
+        const cred = await navigator.credentials.get({ password: true });
+        if (cancelled) return;
+        if (cred?.id && !email) {
+          setEmail(cred.id);
+        }
+      } catch {
+        // User dismissed the credential selector — silently ignore
+      }
+    }, 800);
+
+    return () => {
+      cancelled = true;
+      clearTimeout(timer);
+    };
+  }, [email]);
 
   const validateEmail = (emailStr: string): boolean => {
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -156,6 +194,9 @@ export default function NewsletterSection() {
                   }}
                   placeholder={t.newsletterPlaceholder}
                   dir={isArabic ? 'rtl' : 'ltr'}
+                  autoComplete="email"
+                  name="email"
+                  id="newsletter-email"
                   className={`w-full px-4 py-3.5 rounded-xl text-sm outline-none transition-all ${isArabic ? 'font-arabic text-right' : ''}`}
                   style={{
                     background: 'rgba(10, 14, 26, 0.6)',
