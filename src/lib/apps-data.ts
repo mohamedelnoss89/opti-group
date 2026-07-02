@@ -251,6 +251,44 @@ export const apps: App[] = [
     },
   },
   {
+    id: 'al-mashi',
+    name: { ar: 'ع الماشي فى السيدة زينب', en: 'Al Mashi - Sayyida Zainab' },
+    description: {
+      ar: 'دليلك الذكي لاكتشاف السيدة زينب بالقاهرة - مطاعم، قهوة، جوامع وأكثر من 80 مكاناً موثقاً',
+      en: 'Your smart guide to discover Sayyida Zainab in Cairo - restaurants, cafes, mosques & 80+ documented places'
+    },
+    category: 'landmarks',
+    icon: '🕌',
+    url: 'https://al-mashi.vercel.app',
+    status: 'live',
+    fullDescription: {
+      ar: 'ع الماشي فى السيدة زينب هو دليلك الذكي لاكتشاف روح القاهرة الفاطمية. يجمع التطبيق أكثر من 80 مكاناً موثقاً في 12 تصنيفاً مختلفاً، يشمل مطاعم السيدة زينب الشهيرة مثل قهوة بلبع وكشري أبو طارق، والجوامع التاريخية كمسجد السيدة زينب، بالإضافة إلى الأسواق والمتاحف والمعالم الثقافية. يقدم التطبيق تجربة تفاعلية مع خرائط، تقييمات، وخطط يومية مخصصة لتنظيم جولاتك في المنطقة.',
+      en: 'Al Mashi in Sayyida Zainab is your smart guide to discover the spirit of Fatimid Cairo. The app compiles more than 80 documented places in 12 different categories, including famous Sayyida Zainab restaurants like Qahwet Belbea and Koshary Abu Tarek, historic mosques like Sayyida Zainab Mosque, as well as markets, museums, and cultural landmarks. The app offers an interactive experience with maps, ratings, and customized daily plans to organize your tours in the area.'
+    },
+    features: {
+      ar: [
+        'أكثر من 80 مكاناً موثقاً في السيدة زينب',
+        '12 تصنيفاً: مطاعم، قهوة، جوامع، أسواق، متاحف',
+        'خرائط تفاعلية للمواقع والمناطق',
+        'تقييمات ومراجعات حقيقية من المستخدمين',
+        'خطط يومية مخصصة لتنظيم الجولات',
+        'نظام شارات ومكافآت للمستخدمين النشطين',
+        'وضع عدم الاتصال للوصول بدون إنترنت',
+        'دعم كامل للغة العربية مع واجهة RTL'
+      ],
+      en: [
+        '80+ documented places in Sayyida Zainab',
+        '12 categories: restaurants, cafes, mosques, markets, museums',
+        'Interactive maps for locations and areas',
+        'Real user ratings and reviews',
+        'Customized daily plans for tours',
+        'Badges and rewards system for active users',
+        'Offline mode for access without internet',
+        'Full Arabic support with RTL interface'
+      ]
+    },
+  },
+  {
     id: 'optipyr',
     name: { ar: 'أوبتي باير', en: 'OptiPyr' },
     description: { 
